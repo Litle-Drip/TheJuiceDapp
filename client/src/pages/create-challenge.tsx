@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
-import { RANDOM_IDEAS } from '@/lib/contracts';
+import { RANDOM_IDEAS, ABI_V1 } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap } from 'lucide-react';
 
@@ -63,9 +63,23 @@ export default function CreateChallenge() {
 
       let challengeId = '';
       try {
-        const nextId = await c.nextChallengeId();
-        challengeId = String(BigInt(nextId) - 1n);
+        const iface = new ethers.Interface(ABI_V1);
+        for (const log of receipt.logs) {
+          try {
+            const parsed = iface.parseLog(log);
+            if (parsed?.name === 'ChallengeOpened') {
+              challengeId = String(parsed.args.challengeId);
+              break;
+            }
+          } catch {}
+        }
       } catch {}
+      if (!challengeId) {
+        try {
+          const nextId = await c.nextChallengeId();
+          challengeId = String(BigInt(nextId) - 1n);
+        } catch {}
+      }
 
       setLastChallengeId(challengeId);
       toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Challenge live on-chain' });

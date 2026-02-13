@@ -37,6 +37,7 @@ export const ABI_V1 = [
   'function setRefundPenaltyBps(uint16 newPenaltyBps)',
   'function setPaused(bool paused_)',
   'function withdrawProtocolFees(address to)',
+  'event ChallengeOpened(uint256 indexed challengeId, address indexed challenger, uint256 stakeWei, uint64 joinDeadline, uint64 resolveDeadline)',
 ];
 
 export const ABI_V2 = [
