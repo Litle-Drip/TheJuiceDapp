@@ -34,6 +34,7 @@ export default function JoinResolve() {
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState('');
+  const [lastTxHash, setLastTxHash] = useState('');
 
   const loadChallenge = useCallback(async () => {
     if (!challengeId.trim()) return;
@@ -69,7 +70,8 @@ export default function JoinResolve() {
     try {
       const tx = await fn();
       toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
-      await tx.wait();
+      const receipt = await tx.wait();
+      setLastTxHash(receipt.hash);
       toast({ title: 'Success', description: `${action} completed` });
       await loadChallenge();
     } catch (e: any) {
@@ -229,6 +231,32 @@ export default function JoinResolve() {
                 <p className="text-xs text-amber-400">Votes conflict. Refund available after the resolve deadline passes.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {lastTxHash && (
+          <div className="mt-3 p-3 rounded-md border border-border bg-muted/30">
+            <div className="flex items-center gap-2">
+              <button
+                data-testid="button-copy-action-tx"
+                onClick={() => {
+                  navigator.clipboard.writeText(lastTxHash);
+                  toast({ title: 'Copied', description: 'Transaction hash copied' });
+                }}
+                className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
+              >
+                Last TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
+              </button>
+              <a
+                href={`${explorerUrl}/tx/${lastTxHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[hsl(var(--primary))] flex-shrink-0"
+                data-testid="link-action-tx-explorer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
         )}
       </Card>

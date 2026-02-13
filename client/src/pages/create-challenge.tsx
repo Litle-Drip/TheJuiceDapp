@@ -6,10 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { RANDOM_IDEAS, ABI_V1 } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap } from 'lucide-react';
+import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink } from 'lucide-react';
 
 export default function CreateChallenge() {
-  const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting } = useWallet();
+  const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
   const { toast } = useToast();
 
   const [idea, setIdea] = useState("Click the shuffle button for a random challenge idea");
@@ -20,6 +20,7 @@ export default function CreateChallenge() {
   const [resolveMins, setResolveMins] = useState(30);
   const [loading, setLoading] = useState(false);
   const [lastChallengeId, setLastChallengeId] = useState('');
+  const [lastTxHash, setLastTxHash] = useState('');
 
   const stakeEthValue = useMemo(() => {
     if (stakeMode === 'USD') {
@@ -60,15 +61,16 @@ export default function CreateChallenge() {
       const tx = await c.openChallenge(stakeWei, feeBps, BigInt(jm * 60), BigInt(rm * 60), { value: stakeWei });
       toast({ title: 'Transaction sent', description: 'Waiting for confirmation...' });
       const receipt = await tx.wait();
+      setLastTxHash(receipt.hash);
 
       let challengeId = '';
       try {
         const iface = new ethers.Interface(ABI_V1);
         for (const log of receipt.logs) {
           try {
-            const parsed = iface.parseLog(log);
+            const parsed = iface.parseLog({ topics: log.topics as string[], data: log.data });
             if (parsed?.name === 'ChallengeOpened') {
-              challengeId = String(parsed.args.challengeId);
+              challengeId = String(parsed.args[0]);
               break;
             }
           } catch {}
@@ -76,13 +78,16 @@ export default function CreateChallenge() {
       } catch {}
       if (!challengeId) {
         try {
-          const nextId = await c.nextChallengeId();
-          challengeId = String(BigInt(nextId) - 1n);
+          const readContract = getV1Contract(true);
+          if (readContract) {
+            const nextId = await readContract.nextChallengeId();
+            challengeId = String(BigInt(nextId) - 1n);
+          }
         } catch {}
       }
 
       setLastChallengeId(challengeId);
-      toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Challenge live on-chain' });
+      toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Check transaction for details' });
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
     } finally {
@@ -281,10 +286,37 @@ export default function CreateChallenge() {
           </Button>
         </div>
 
-        {lastChallengeId && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5" data-testid="challenge-created-success">
-            <p className="text-xs text-emerald-400 font-medium">Challenge #{lastChallengeId} Created</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Share this ID with your opponent on the Join & Resolve tab.</p>
+        {(lastChallengeId || lastTxHash) && (
+          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-2" data-testid="challenge-created-success">
+            {lastChallengeId && (
+              <div>
+                <p className="text-xs text-emerald-400 font-medium">Challenge #{lastChallengeId} Created</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Share this ID with your opponent on the Join & Resolve tab.</p>
+              </div>
+            )}
+            {lastTxHash && (
+              <div className="flex items-center gap-2">
+                <button
+                  data-testid="button-copy-tx"
+                  onClick={() => {
+                    navigator.clipboard.writeText(lastTxHash);
+                    toast({ title: 'Copied', description: 'Transaction hash copied' });
+                  }}
+                  className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
+                >
+                  TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
+                </button>
+                <a
+                  href={`${explorerUrl}/tx/${lastTxHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[hsl(var(--primary))] flex-shrink-0"
+                  data-testid="link-tx-explorer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
           </div>
         )}
       </Card>

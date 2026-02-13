@@ -21,6 +21,7 @@ export default function Markets() {
   const [resolveMins, setResolveMins] = useState(30);
   const [loading, setLoading] = useState(false);
   const [lastOfferId, setLastOfferId] = useState('');
+  const [lastTxHash, setLastTxHash] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const shuffleQuestion = () => {
@@ -76,15 +77,16 @@ export default function Markets() {
       const tx = await c.openOffer(sideYes, oddsBps, joinSecs, resolveSecs, { value: Awei });
       toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
       const receipt = await tx.wait();
+      setLastTxHash(receipt.hash);
 
       let offerId = '';
       try {
         const iface = new ethers.Interface(ABI_V2);
         for (const log of receipt.logs) {
           try {
-            const parsed = iface.parseLog(log);
+            const parsed = iface.parseLog({ topics: log.topics as string[], data: log.data });
             if (parsed?.name === 'OfferOpened') {
-              offerId = String(parsed.args.offerId);
+              offerId = String(parsed.args[0]);
               break;
             }
           } catch {}
@@ -94,7 +96,7 @@ export default function Markets() {
       setLastOfferId(offerId);
       toast({
         title: 'Offer Created',
-        description: offerId ? `Offer #${offerId} is live` : 'Your offer is live on-chain',
+        description: offerId ? `Offer #${offerId} is live` : 'Check transaction for details',
       });
     } catch (e: any) {
       const msg = e?.shortMessage || e?.message || String(e);
@@ -413,27 +415,52 @@ export default function Markets() {
           )}
         </Button>
 
-        {lastOfferId && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5" data-testid="offer-created-success">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-emerald-400 font-medium">Offer Created</p>
-                <p className="text-sm font-mono mt-0.5">ID: {lastOfferId}</p>
+        {(lastOfferId || lastTxHash) && (
+          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-2" data-testid="offer-created-success">
+            {lastOfferId && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-emerald-400 font-medium">Offer Created</p>
+                  <p className="text-sm font-mono mt-0.5">ID: {lastOfferId}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    data-testid="button-copy-offer-id"
+                    onClick={() => {
+                      navigator.clipboard.writeText(lastOfferId);
+                      toast({ title: 'Copied', description: 'Offer ID copied to clipboard' });
+                    }}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  data-testid="button-copy-offer-id"
+            )}
+            {lastTxHash && (
+              <div className="flex items-center gap-2">
+                <button
+                  data-testid="button-copy-offer-tx"
                   onClick={() => {
-                    navigator.clipboard.writeText(lastOfferId);
-                    toast({ title: 'Copied', description: 'Offer ID copied to clipboard' });
+                    navigator.clipboard.writeText(lastTxHash);
+                    toast({ title: 'Copied', description: 'Transaction hash copied' });
                   }}
+                  className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                </Button>
+                  TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
+                </button>
+                <a
+                  href={`${explorerUrl}/tx/${lastTxHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[hsl(var(--primary))] flex-shrink-0"
+                  data-testid="link-offer-tx-explorer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
-            </div>
+            )}
           </div>
         )}
       </Card>
