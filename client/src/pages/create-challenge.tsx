@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { RANDOM_IDEAS, ABI_V1 } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink } from 'lucide-react';
+import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink, Search } from 'lucide-react';
+import { Link } from 'wouter';
 
 export default function CreateChallenge() {
   const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
@@ -288,7 +289,7 @@ export default function CreateChallenge() {
         </div>
 
         {(lastChallengeId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-2" data-testid="challenge-created-success">
+          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="challenge-created-success">
             {lastChallengeId && (
               <div>
                 <p className="text-xs text-emerald-400 font-medium">Challenge #{lastChallengeId} Created</p>
@@ -318,6 +319,12 @@ export default function CreateChallenge() {
                 </a>
               </div>
             )}
+            <Link href="/lookup" data-testid="link-go-to-lookup">
+              <Button variant="outline" size="sm" className="w-full">
+                <Search className="w-3.5 h-3.5 mr-1.5" />
+                Go to Bet Lookup
+              </Button>
+            </Link>
           </div>
         )}
       </Card>

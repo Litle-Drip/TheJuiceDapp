@@ -173,7 +173,7 @@ export default function BetLookup() {
       </div>
 
       <Card className="p-5">
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -182,7 +182,7 @@ export default function BetLookup() {
               value={betId}
               onChange={(e) => setBetId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && loadBet()}
-              placeholder="Bet ID..."
+              placeholder="Enter a numeric ID, e.g. 1, 2, 3..."
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
           </div>
@@ -190,6 +190,7 @@ export default function BetLookup() {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           </Button>
         </div>
+        <p className="text-[10px] text-muted-foreground mb-4" data-testid="text-lookup-hint">Works for both V1 Challenges and V2 Market Offers. The bet type is detected automatically.</p>
 
         {bet?.type === 'challenge' && (
           <ChallengeView

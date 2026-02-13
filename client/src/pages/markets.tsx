@@ -7,7 +7,8 @@ import { useWallet } from '@/lib/wallet';
 import { computeTakerStake, ABI_V2 } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { RANDOM_IDEAS } from '@/lib/contracts';
-import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search } from 'lucide-react';
+import { Link } from 'wouter';
 
 export default function Markets() {
   const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network, explorerUrl, connecting } = useWallet();
@@ -416,9 +417,9 @@ export default function Markets() {
         </Button>
 
         {(lastOfferId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-2" data-testid="offer-created-success">
+          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="offer-created-success">
             {lastOfferId && (
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <p className="text-xs text-emerald-400 font-medium">Offer Created</p>
                   <p className="text-sm font-mono mt-0.5">ID: {lastOfferId}</p>
@@ -461,6 +462,12 @@ export default function Markets() {
                 </a>
               </div>
             )}
+            <Link href="/lookup" data-testid="link-go-to-lookup">
+              <Button variant="outline" size="sm" className="w-full">
+                <Search className="w-3.5 h-3.5 mr-1.5" />
+                Go to Bet Lookup
+              </Button>
+            </Link>
           </div>
         )}
       </Card>
@@ -474,6 +481,7 @@ export default function Markets() {
           <p>Market offers use <span className="text-foreground font-medium">asymmetric stakes</span> based on implied probability, just like Kalshi prediction markets.</p>
           <p>If you set YES at <span className="text-foreground font-medium">70%</span>, you risk more for a smaller return. Your opponent gets a better payout if they're right.</p>
           <p>Both sides vote on the outcome. If votes match, the winner is paid automatically. If they disagree, funds are refunded after the deadline.</p>
+          <p>After creating an offer, share the <span className="text-foreground font-medium">Bet ID</span> with your opponent. They can accept it on the <span className="text-foreground font-medium">Bet Lookup</span> page.</p>
         </div>
       </Card>
     </div>
