@@ -1,29 +1,196 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { WalletProvider, useWallet } from "@/lib/wallet";
+import { NETWORKS } from "@/lib/contracts";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Markets from "@/pages/markets";
+import CreateChallenge from "@/pages/create-challenge";
+import JoinResolve from "@/pages/join-resolve";
+import OfferActions from "@/pages/offer-actions";
 import NotFound from "@/pages/not-found";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import {
+  TrendingUp,
+  Zap,
+  Users,
+  ArrowDownToLine,
+  Wallet,
+  ExternalLink,
+  Globe,
+  Loader2,
+} from "lucide-react";
+
+const navItems = [
+  { title: "Markets", url: "/", icon: TrendingUp },
+  { title: "Create Challenge", url: "/challenge", icon: Zap },
+  { title: "Join & Resolve", url: "/join", icon: Users },
+  { title: "Offer Actions", url: "/offers", icon: ArrowDownToLine },
+];
+
+function WalletButton() {
+  const { connected, connect, shortAddress, network, switchNetwork, connecting, explorerUrl, address } = useWallet();
+  const net = NETWORKS[network];
+
+  return (
+    <div className="space-y-2 p-2">
+      {connected ? (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
+              {shortAddress}
+            </Badge>
+            <a
+              href={`${explorerUrl}/address/${address}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground"
+              data-testid="link-explorer"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+          <button
+            data-testid="button-switch-network"
+            onClick={switchNetwork}
+            className="flex items-center gap-1.5 w-full text-[10px] text-muted-foreground py-1 px-2 rounded-md border border-border"
+          >
+            <Globe className="w-3 h-3" />
+            <span>{net.chainName}</span>
+          </button>
+        </>
+      ) : (
+        <Button
+          data-testid="button-connect-wallet"
+          onClick={connect}
+          disabled={connecting}
+          className="w-full"
+          size="sm"
+        >
+          {connecting ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+          ) : (
+            <Wallet className="w-4 h-4 mr-1.5" />
+          )}
+          {connecting ? "Connecting..." : "Connect Wallet"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function AppSidebar() {
+  const [location] = useLocation();
+
+  return (
+    <Sidebar data-testid="app-sidebar">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
+        <Link href="/" data-testid="link-logo">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-[hsl(var(--primary))] flex items-center justify-center">
+              <Zap className="w-5 h-5 text-[hsl(var(--primary-foreground))]" />
+            </div>
+            <div>
+              <div className="text-base font-bold tracking-tight leading-none">The Juice</div>
+              <div className="text-[10px] text-muted-foreground leading-none mt-0.5">P2P Betting on Base</div>
+            </div>
+          </div>
+        </Link>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border">
+        <WalletButton />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
 
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={Markets} />
+      <Route path="/challenge" component={CreateChallenge} />
+      <Route path="/join" component={JoinResolve} />
+      <Route path="/offers" component={OfferActions} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <WalletProvider>
+          <SidebarProvider style={style as React.CSSProperties}>
+            <div className="flex h-screen w-full">
+              <AppSidebar />
+              <div className="flex flex-col flex-1 min-w-0">
+                <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
+                  <SidebarTrigger data-testid="button-sidebar-toggle" />
+                  <div className="flex-1" />
+                  <EthPrice />
+                </header>
+                <main className="flex-1 overflow-auto p-4">
+                  <Router />
+                </main>
+              </div>
+            </div>
+          </SidebarProvider>
+          <Toaster />
+        </WalletProvider>
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function EthPrice() {
+  const { ethUsd } = useWallet();
+  return (
+    <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-eth-price">
+      ETH ${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+    </Badge>
   );
 }
 
