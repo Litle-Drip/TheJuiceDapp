@@ -6,8 +6,8 @@ export const NETWORKS = {
     chainName: 'Base Mainnet',
     rpc: 'https://mainnet.base.org',
     explorer: 'https://basescan.org',
-    contract: '',
-    v2contract: '',
+    contract: '0x80BC4133BcCC0491ACdebf4d7375aeF75729671a',
+    v2contract: '0x80BC4133BcCC0491ACdebf4d7375aeF75729671a',
   },
   testnet: {
     key: 'testnet',

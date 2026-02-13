@@ -6,7 +6,7 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **V2 Market Offers**: Asymmetric stakes based on implied probability/odds
 
 ## Smart Contracts
-- **Base Mainnet**: Not yet deployed
+- **Base Mainnet**: `0x80BC4133BcCC0491ACdebf4d7375aeF75729671a` (V1 + V2 combined contract)
 - **Base Sepolia**: `0x474b39dF73745CFC9D84A961b2544b4b236757Dc` (V1 + V2 combined contract)
 
 ## Architecture
