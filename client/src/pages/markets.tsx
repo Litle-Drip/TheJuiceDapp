@@ -81,11 +81,13 @@ export default function Markets() {
       try {
         const iface = new ethers.Interface(ABI_V2);
         for (const log of receipt.logs) {
-          const parsed = iface.parseLog(log);
-          if (parsed?.name === 'OfferOpened') {
-            offerId = String(parsed.args.offerId);
-            break;
-          }
+          try {
+            const parsed = iface.parseLog(log);
+            if (parsed?.name === 'OfferOpened') {
+              offerId = String(parsed.args.offerId);
+              break;
+            }
+          } catch {}
         }
       } catch {}
 

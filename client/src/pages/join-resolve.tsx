@@ -216,7 +216,7 @@ export default function JoinResolve() {
               </Button>
             )}
 
-            {((challenge.state === 0 && joinExpired && !joined) || (challenge.state === 1 && resolveExpired)) && (
+            {((challenge.state === 0 && joinExpired && !joined) || (challenge.state === 1 && resolveExpired) || (challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote)) && (
               <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
                 {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                 Request Refund

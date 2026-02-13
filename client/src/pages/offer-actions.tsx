@@ -49,6 +49,7 @@ export default function OfferActions() {
         c.getOfferCore(id),
         c.getOfferStatus(id),
       ]);
+      if (core[0] === ethers.ZeroAddress) throw new Error('Offer not found');
       setOffer({
         creator: core[0], taker: core[1], creatorSideYes: core[2], pBps: Number(core[3]),
         creatorStake: core[4], takerStake: core[5],
