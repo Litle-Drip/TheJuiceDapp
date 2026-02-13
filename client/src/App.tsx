@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Markets from "@/pages/markets";
 import CreateChallenge from "@/pages/create-challenge";
-import JoinResolve from "@/pages/join-resolve";
-import OfferActions from "@/pages/offer-actions";
+import BetLookup from "@/pages/bet-lookup";
 import NotFound from "@/pages/not-found";
 import {
   Sidebar,
@@ -29,8 +28,7 @@ import {
 import {
   TrendingUp,
   Zap,
-  Users,
-  ArrowDownToLine,
+  Search,
   Wallet,
   ExternalLink,
   Globe,
@@ -41,9 +39,8 @@ import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_17710157614
 
 const navItems = [
   { title: "Markets", url: "/", icon: TrendingUp },
-  { title: "Offer Actions", url: "/offers", icon: ArrowDownToLine },
   { title: "Create Challenge", url: "/challenge", icon: Zap },
-  { title: "Join & Resolve", url: "/join", icon: Users },
+  { title: "Bet Lookup", url: "/lookup", icon: Search },
 ];
 
 function WalletButton() {
@@ -146,8 +143,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Markets} />
       <Route path="/challenge" component={CreateChallenge} />
-      <Route path="/join" component={JoinResolve} />
-      <Route path="/offers" component={OfferActions} />
+      <Route path="/lookup" component={BetLookup} />
       <Route component={NotFound} />
     </Switch>
   );

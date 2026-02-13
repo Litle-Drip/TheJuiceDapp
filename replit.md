@@ -20,15 +20,13 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - `client/src/lib/wallet.tsx` - WalletProvider context with MetaMask/Coinbase support
 - `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2)
 - `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1)
-- `client/src/pages/join-resolve.tsx` - V1 challenge join/vote/resolve/refund
-- `client/src/pages/offer-actions.tsx` - V2 offer take/vote/resolve/refund
+- `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID
 - `client/src/App.tsx` - Main app with sidebar navigation
 
 ## Pages
 - `/` - Markets (create odds-based offers)
 - `/challenge` - Create Challenge (symmetric bets)
-- `/join` - Join & Resolve (V1 actions)
-- `/offers` - Offer Actions (V2 actions)
+- `/lookup` - Bet Lookup (unified join/vote/resolve/refund for both V1 and V2)
 
 ## Technical Notes
 - Uses ethers.js v6 syntax (`ethers.parseEther`, `ethers.formatEther`, `ethers.BrowserProvider`)
