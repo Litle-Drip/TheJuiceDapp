@@ -41,12 +41,17 @@ export default function JoinResolve() {
     try {
       const c = getV1Contract(true);
       if (!c) throw new Error('Contract not available');
-      const b = await c.getChallenge(BigInt(challengeId));
-      if (b[0] === ethers.ZeroAddress) throw new Error('Challenge not found');
+      const id = BigInt(challengeId);
+      const [core, status] = await Promise.all([
+        c.getChallengeCore(id),
+        c.getChallengeStatus(id),
+      ]);
+      if (core[0] === ethers.ZeroAddress) throw new Error('Challenge not found');
       setChallenge({
-        challenger: b[0], participant: b[1], stakeWei: b[2], feeBps: Number(b[3]),
-        joinDeadline: Number(b[4]), resolveDeadline: Number(b[5]), createdAt: Number(b[6]),
-        state: Number(b[7]), challengerVote: Number(b[8]), participantVote: Number(b[9]),
+        challenger: core[0], participant: core[1], stakeWei: core[2], feeBps: Number(core[3]),
+        joinDeadline: Number(core[4]), resolveDeadline: Number(core[5]),
+        createdAt: Number(status[0]), state: Number(status[1]),
+        challengerVote: Number(status[2]), participantVote: Number(status[3]),
       });
     } catch (e: any) {
       toast({ title: 'Error', description: e?.message || 'Challenge not found', variant: 'destructive' });

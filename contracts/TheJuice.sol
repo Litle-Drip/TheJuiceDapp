@@ -235,30 +235,6 @@ contract TheJuice is Ownable, ReentrancyGuard {
         return (c.createdAt, uint8(c.state), c.challengerVote, c.participantVote);
     }
 
-    function getChallenge(uint256 challengeId) external view returns (
-        address challenger,
-        address participant,
-        uint256 stakeWei,
-        uint16  feeBps_,
-        uint64  joinDeadline,
-        uint64  resolveDeadline,
-        uint64  createdAt,
-        uint8   state,
-        int8    challengerVote,
-        int8    participantVote
-    ) {
-        Challenge storage c = challenges[challengeId];
-        challenger = c.challenger;
-        participant = c.participant;
-        stakeWei = c.stakeWei;
-        feeBps_ = c.feeBps;
-        joinDeadline = c.joinDeadline;
-        resolveDeadline = c.resolveDeadline;
-        createdAt = c.createdAt;
-        state = uint8(c.state);
-        challengerVote = c.challengerVote;
-        participantVote = c.participantVote;
-    }
 
     // ═════════════════════════════════════════════════════════════════
     //  V2: ASYMMETRIC MARKET OFFERS
@@ -437,36 +413,6 @@ contract TheJuice is Ownable, ReentrancyGuard {
         return (o.joinDeadline, o.resolveDeadline, o.createdAt, uint8(o.state), o.creatorVote, o.takerVote, o.paid);
     }
 
-    function getOffer(uint256 offerId) external view returns (
-        address creator,
-        address taker,
-        bool    creatorSideYes,
-        uint16  pBps,
-        uint256 creatorStakeWei,
-        uint256 takerStakeWei,
-        uint64  joinDeadline,
-        uint64  resolveDeadline,
-        uint64  createdAt,
-        uint8   state,
-        int8    creatorVote,
-        int8    takerVote,
-        bool    paid
-    ) {
-        Offer storage o = offers[offerId];
-        creator = o.creator;
-        taker = o.taker;
-        creatorSideYes = o.creatorSideYes;
-        pBps = o.pBps;
-        creatorStakeWei = o.creatorStakeWei;
-        takerStakeWei = o.takerStakeWei;
-        joinDeadline = o.joinDeadline;
-        resolveDeadline = o.resolveDeadline;
-        createdAt = o.createdAt;
-        state = uint8(o.state);
-        creatorVote = o.creatorVote;
-        takerVote = o.takerVote;
-        paid = o.paid;
-    }
 
     // ═════════════════════════════════════════════════════════════════
     //  ADMIN FUNCTIONS

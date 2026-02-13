@@ -29,7 +29,8 @@ export const ABI_V1 = [
   'function submitOutcomeVote(uint256 challengeId, bool challengerWon)',
   'function resolveChallenge(uint256 challengeId)',
   'function issueRefund(uint256 challengeId)',
-  'function getChallenge(uint256 challengeId) view returns (address challenger, address participant, uint256 stakeWei, uint16 feeBps, uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 challengerVote, int8 participantVote)',
+  'function getChallengeCore(uint256 challengeId) view returns (address challenger, address participant, uint256 stakeWei, uint16 feeBps, uint64 joinDeadline, uint64 resolveDeadline)',
+  'function getChallengeStatus(uint256 challengeId) view returns (uint64 createdAt, uint8 state, int8 challengerVote, int8 participantVote)',
   'function nextChallengeId() view returns (uint256)',
   'function protocolFeeBps() view returns (uint16)',
   'function setProtocolFeeBps(uint16 newFeeBps)',
@@ -45,7 +46,8 @@ export const ABI_V2 = [
   'function submitOfferVote(uint256 offerId, bool outcomeYes)',
   'function resolveOffer(uint256 offerId)',
   'function refundOffer(uint256 offerId)',
-  'function getOffer(uint256 offerId) view returns (address creator, address taker, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei, uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 creatorVote, int8 takerVote, bool paid)',
+  'function getOfferCore(uint256 offerId) view returns (address creator, address taker, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei)',
+  'function getOfferStatus(uint256 offerId) view returns (uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 creatorVote, int8 takerVote, bool paid)',
   'event OfferOpened(uint256 indexed offerId, address indexed creator, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei, uint64 joinDeadline, uint64 resolveDeadline)',
 ];
 

@@ -44,12 +44,17 @@ export default function OfferActions() {
     try {
       const c = getV2Contract(true);
       if (!c) throw new Error('V2 contract not available');
-      const o = await c.getOffer(BigInt(offerId));
+      const id = BigInt(offerId);
+      const [core, status] = await Promise.all([
+        c.getOfferCore(id),
+        c.getOfferStatus(id),
+      ]);
       setOffer({
-        creator: o[0], taker: o[1], creatorSideYes: o[2], pBps: Number(o[3]),
-        creatorStake: o[4], takerStake: o[5], joinDeadline: Number(o[6]),
-        resolveDeadline: Number(o[7]), createdAt: Number(o[8]), state: Number(o[9]),
-        creatorVote: Number(o[10]), takerVote: Number(o[11]), paid: o[12],
+        creator: core[0], taker: core[1], creatorSideYes: core[2], pBps: Number(core[3]),
+        creatorStake: core[4], takerStake: core[5],
+        joinDeadline: Number(status[0]), resolveDeadline: Number(status[1]),
+        createdAt: Number(status[2]), state: Number(status[3]),
+        creatorVote: Number(status[4]), takerVote: Number(status[5]), paid: status[6],
       });
     } catch (e: any) {
       toast({ title: 'Error', description: e?.message || 'Offer not found', variant: 'destructive' });
