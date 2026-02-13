@@ -36,6 +36,7 @@ import {
   Globe,
   Loader2,
 } from "lucide-react";
+import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_1771015761494.png";
 
 const navItems = [
   { title: "Markets", url: "/", icon: TrendingUp },
@@ -103,9 +104,7 @@ function AppSidebar() {
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <Link href="/" data-testid="link-logo">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-[hsl(var(--primary))] flex items-center justify-center">
-              <Zap className="w-5 h-5 text-[hsl(var(--primary-foreground))]" />
-            </div>
+            <img src={logoImg} alt="The Juice" className="w-8 h-8 rounded-md" />
             <div>
               <div className="text-base font-bold tracking-tight leading-none">The Juice</div>
               <div className="text-[10px] text-muted-foreground leading-none mt-0.5">P2P Betting on Base</div>
