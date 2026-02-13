@@ -46,7 +46,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     signer: null,
     address: '',
     connected: false,
-    network: 'mainnet',
+    network: 'testnet',
     ethUsd: 3500,
     feeBps: 250,
     connecting: false,

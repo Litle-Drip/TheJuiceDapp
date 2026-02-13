@@ -6,8 +6,8 @@ export const NETWORKS = {
     chainName: 'Base Mainnet',
     rpc: 'https://mainnet.base.org',
     explorer: 'https://basescan.org',
-    contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
-    v2contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
+    contract: '',
+    v2contract: '',
   },
   testnet: {
     key: 'testnet',
@@ -16,8 +16,8 @@ export const NETWORKS = {
     chainName: 'Base Sepolia',
     rpc: 'https://sepolia.base.org',
     explorer: 'https://sepolia.basescan.org',
-    contract: '0x61eD264AAEF359717B2070E0426B26aa27D54890',
-    v2contract: '0x61eD264AAEF359717B2070E0426B26aa27D54890',
+    contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
+    v2contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
   },
 } as const;
 
