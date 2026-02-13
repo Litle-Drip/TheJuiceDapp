@@ -12,7 +12,7 @@ export default function CreateChallenge() {
   const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
   const { toast } = useToast();
 
-  const [idea, setIdea] = useState("Click the shuffle button for a random challenge idea");
+  const [idea, setIdea] = useState('');
   const [stakeMode, setStakeMode] = useState<'USD' | 'ETH'>('USD');
   const [stakeUsd, setStakeUsd] = useState(5);
   const [stakeEthDirect, setStakeEthDirect] = useState('0.0014');
@@ -116,6 +116,7 @@ export default function CreateChallenge() {
               type="text"
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
+              placeholder="e.g. I can beat you at chess"
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-3 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
             <button
@@ -279,7 +280,7 @@ export default function CreateChallenge() {
               setStakeEthDirect('0.0014');
               setJoinMins(15);
               setResolveMins(30);
-              setIdea("Click the shuffle button for a random challenge idea");
+              setIdea('');
             }}
           >
             Reset
@@ -291,7 +292,7 @@ export default function CreateChallenge() {
             {lastChallengeId && (
               <div>
                 <p className="text-xs text-emerald-400 font-medium">Challenge #{lastChallengeId} Created</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Share this ID with your opponent on the Join & Resolve tab.</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Share this ID with your opponent. They can join on the Bet Lookup page.</p>
               </div>
             )}
             {lastTxHash && (
