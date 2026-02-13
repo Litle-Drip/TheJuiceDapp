@@ -1,0 +1,4274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>The Juice — Crypto Escrow Challenges</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.10.0/dist/index.umd.js"></script>
+
+  <style>
+    :root{
+      --bg:#050608;
+      --card:#16171b;
+      --card-soft:#1c1d22;
+      --text:#f4f4f5;
+      --muted:#a1a1aa;
+      --border:#27272f;
+      --accent:#00eaff;
+      --accent-ink:#001014;
+      --glow:0 0 12px rgba(0,234,255,0.65);
+      --danger:#ef4444;
+      --chip:#111114;
+      --radius:18px;
+      --fs:16px;
+      --accent-green:#16a34a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:radial-gradient(circle at top,#111827 0,#020617 45%,#000 100%);
+      color:var(--text);
+      font:500 var(--fs)/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      background-attachment: fixed;
+   html, body{
+      min-height: 100%;
+      background-color: #07050a; /* matches your theme base */
+    }
+
+    }
+
+    .app{
+      max-width:960px;
+      margin:0 auto;
+      padding:20px 20px calc(24px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+      padding:0 16px;
+    }
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-weight:700;
+      font-size:18px;
+    }
+    .brand-logo{
+      width:24px;
+      height:24px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:6px;
+      background:transparent;
+      border:none;
+      padding:0;
+    }
+    .brand-logo img{
+      width:22px;
+      height:22px;
+      display:block;
+    }
+
+    /* Buttons / chips */
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#101014;
+      color:var(--text);
+      padding:9px 16px;
+      font-size:14px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      transition:background .12s ease,border-color .12s ease,transform .06s ease;
+    }
+    .btn:hover{
+      transform:translateY(-1px);
+      background:#18181b;
+    }
+    .btn.primary{
+      background:#f9fafb;
+      color:#020617;
+      border-color:#f9fafb;
+      font-weight:600;
+    }
+    .btn.primary:hover{
+      background:#e5e7eb;
+      border-color:#e5e7eb;
+    }
+    .btn.accent{
+      background:var(--accent);
+      border-color:var(--accent);
+      color:var(--accent-ink);
+      font-weight:600;
+    }
+    .btn.accent:hover{
+      background:rgba(0,234,255,0.86);
+      border-color:rgba(0,234,255,0.86);
+      box-shadow:var(--glow);
+    }
+    .btn.ghost{
+      border-color:var(--border);
+      background:#101014;
+      color:var(--text);
+    }
+    .btn.small{padding:6px 12px;font-size:13px}
+    .btn.connected{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+
+    .chip{
+      background:var(--chip);
+      border-radius:999px;
+      border:1px solid var(--border);
+      padding:5px 10px;
+      font-size:11px;
+      opacity:0.82;
+      color:var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      white-space:nowrap;
+    }
+    .chip.badge{
+      border-color:var(--accent);
+      background:rgba(0,234,255,0.12);
+      color:var(--accent);
+      box-shadow:0 0 10px rgba(0,234,255,0.35);
+      font-weight:500;
+    }
+    .chip.network-active{
+      border-color:var(--accent);
+      color:var(--text);
+      background:var(--chip);
+      box-shadow:var(--glow);
+    }
+    .chip a{
+      color:inherit;
+      text-decoration:none;
+      white-space:nowrap;
+    }
+    .chip:active{
+      background:var(--accent);
+      color:var(--accent-ink);
+      transition:background .15s ease,color .15s ease;
+    }
+
+    .subbar{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:2px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+      padding:0 16px;
+    }
+    .addr{
+      border-radius:999px;
+      border:1px solid var(--accent);
+      background:#0b0b10;
+      padding:8px 18px;
+      margin-bottom:10px;
+      font-size:12px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      text-align:center;
+      color:#ffffff !important;
+      text-decoration:none !important;
+      cursor:pointer;
+    }
+    .subchips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .subchips .chip,
+    .summary-card .chip{
+      cursor:pointer;
+    }
+    .subchips .chip:hover,
+    .summary-card .chip:hover{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+
+    .network-warning-bar{
+      margin:0px auto 10px;
+      font-size:12px;
+      color:var(--muted);
+      min-height:16px;
+      text-align:center;
+      max-width:520px;
+    }
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      background:#050509;
+      border-radius:999px;
+      border:1px solid var(--accent);
+      padding:4px;
+      margin:18px auto 24px;
+      max-width:520px;
+    }
+    .tab{
+      flex:1;
+      border-radius:999px;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      padding:8px 0;
+      font-size:14px;
+      font-weight:500;
+      cursor:pointer;
+      transition:background .12s ease,color .12s ease;
+    }
+    .tab.active{
+      background:#f9fafb;
+      color:#1a1118;
+      font-weight:600;
+      border:1px solid var(--accent);
+    }
+
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* Card */
+    .card{
+      border-radius:24px;
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:24px 24px 22px;
+      box-shadow:0 18px 50px rgba(0,0,0,.55);
+      max-width:520px;
+      margin:0 auto 16px;
+    }
+    .card-header{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      margin-bottom:18px;
+    }
+    .card-title{
+      font-size:20px;
+      font-weight:600;
+      text-align:center;
+      margin-bottom:4px;
+    }
+    .card-sub{
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:14px;
+    }
+    #resolveNote{
+      text-align:center;
+      width:100%;
+      margin-bottom:20px;
+    }
+
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:4px;
+      display:block;
+    }
+    .input{
+      width:100%;
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      color:var(--text);
+      padding:10px 14px;
+      font-size:14px;
+    }
+    .input::placeholder{color:#52525b}
+
+    .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .row.wrap{flex-wrap:wrap}
+    .stack{display:flex;flex-direction:column;gap:10px}
+
+    /* Idea bar */
+    .idea-row{
+      position:relative;
+      margin-bottom:18px;
+    }
+    .idea-input{
+      width:100%;
+      border-radius:18px;
+      border:1px solid #27272f;
+      background:#26262a;
+      color:var(--text);
+      padding:12px 48px 12px 16px;
+      font-size:14px;
+    }
+    .idea-dice{
+      position:absolute;
+      top:50%;
+      right:10px;
+      transform:translateY(-50%);
+      width:32px;
+      height:32px;
+      border-radius:10px;
+      border:2px solid #18DCF1;
+      background:#101014;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-size:18px;
+    }
+    .idea-dice:hover{background:#18181b}
+
+    /* Stake Area */
+    .stake-area{
+      margin-top:18px;
+      margin-bottom:20px;
+      text-align:left;
+    }
+    .stake-label{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:4px;
+      text-align:left;
+    }
+    .stake-main{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:24px;
+      margin:16px 0 10px;
+    }
+    .stake-adjust,
+    .stake-toggle{
+      margin-left:auto;
+    }
+    .stake-symbol{
+      font-size:32px;
+      color:var(--muted);
+      min-width:24px;
+      text-align:right;
+    }
+    .stake-amount{
+      font-size:48px;
+      font-weight:700;
+      min-width:0;
+      width:160px;
+      text-align:center;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:#f9fafb;
+      letter-spacing:-0.02em;
+      line-height:1.05;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button{
+      -webkit-appearance:none;
+      margin:0;
+    }
+    input[type="number"]{-moz-appearance:textfield}
+
+    .stake-box{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      width:200px;
+      max-width:100%;
+      padding:10px 12px;
+      border:1px solid #2a2a2f;
+      border-radius:18px;
+      background:#1a1a1d;
+      box-shadow:0 2px 6px rgba(0,0,0,0.28);
+    }
+    .stake-box .stake-symbol{
+      font-size:22px;
+      flex-shrink:0;
+      color:#e4e4e7;
+    }
+    .stake-box .stake-amount{
+      width:90px;
+      max-width:90px;
+      font-size:16px;
+      text-align:center;
+      border:none;
+      background:transparent;
+      color:#f9fafb;
+      line-height:1.2;
+    }
+    .stake-toggle{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .stake-toggle button{
+      width:118px;
+      text-align:center;
+      background:#26262a;
+      border-radius:10px;
+      border:1px solid #26262a;
+      padding:8px 0;
+      font-size:11px;
+      font-weight:700;
+      color:#e4e4e7;
+      cursor:pointer;
+    }
+    .stake-toggle button.connected{
+      border:2px solid #18DCF1;
+      background:#111827;
+      color:#f9fafb;
+    }
+
+    .quick-row{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-top:10px;
+      width:100%;
+    }
+    .quick-chip{
+      border-radius:24px;
+      border:1px solid #26262a;
+      background:#26262a;
+      color:#e4e4e7;
+      padding:12px 0;
+      font-size:13px;
+      font-weight:500;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .quick-chip:hover{
+      background:#323238;
+      border-color:#323238;
+    }
+    .deadline-input{
+      border-radius:24px;
+      border:2px solid #18DCF1;
+      background:#101014;
+      color:#e4e4e7;
+      padding:12px 0;
+      font-size:13px;
+      text-align:center;
+    }
+    
+    .deadline-grid{display:flex; gap:12px; align-items:flex-start;}
+    .deadline-col{flex:1; min-width:140px;}
+    .deadline-input.deadline-small{padding:10px 0; max-width:160px;}
+    @media (max-width:520px){
+      .deadline-grid{flex-direction:column;}
+      .deadline-input.deadline-small{max-width:100%;}
+    }
+.amount-row{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      margin:14px 0 20px;
+    }
+    .quick-amt{
+      flex:1;
+      min-width:0;
+      border-radius:20px;
+      border:1px solid #2a2a2f;
+      background:#1a1a1d;
+      padding:14px 0;
+      font-size:15px;
+      font-weight:500;
+      color:#e4e4e7;
+      text-align:center;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .quick-amt:hover{
+      background:#26262b;
+      border-color:#323238;
+    }
+
+    .stake-adjust{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-right:16px;
+    }
+    .adjust-btn{
+      border-radius:12px;
+      border:2px solid #18DCF1;
+      background:#0b0b10;
+      color:#18DCF1;
+      font-size:18px;
+      width:38px;
+      height:28px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .adjust-btn:hover{
+      background:#18DCF1;
+      color:#0b0b10;
+    }
+
+    .footer-note{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+      text-align:right;
+    }
+    .status{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--muted);
+      min-height:16px;
+    }
+
+    /* Join Panel */
+    .join-input-row{margin-bottom:10px}
+    .btn-clear{
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      color:#e4e4e7;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .resolve-section{
+      margin-top:16px;
+      padding-top:12px;
+      border-top:1px solid #27272f;
+    }
+    .resolve-title{
+      font-size:13px;
+      color:var(--muted);
+      text-align:center;
+      margin-bottom:4px;
+    }
+    .resolve-sub{
+      font-size:11px;
+      color:#71717a;
+      text-align:center;
+      margin-bottom:10px;
+    }
+    .vote-buttons{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    /* Share Section */
+    .share-card{
+      margin-top:14px;
+      border-radius:18px;
+      background:var(--card-soft);
+      border:1px solid var(--border);
+      padding:14px 16px 16px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+    .share-title{
+      font-size:13px;
+      font-weight:500;
+      margin-bottom:4px;
+    }
+    .share-help{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+    .qr-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:16px;
+      align-items:center;
+    }
+    .qr-box{
+      border-radius:18px;
+      border:1px solid #27272f;
+      background:#050507;
+      width:140px;
+      height:140px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+    }
+
+    /* Summary Footer */
+    .summary-card{
+      margin-top:16px;
+      border-radius:18px;
+      background:#08080b;
+      border:1px solid #27272f;
+      padding:10px 16px;
+      font-size:12px;
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+    .summary-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:6px;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .state-pill{
+      border-radius:999px;
+      border:1px solid #27272f;
+      background:#101014;
+      padding:4px 10px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .state-pill.ok{
+      border-color:var(--accent);
+      color:var(--accent);
+      background:#022c22;
+    }
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:4px;
+    }
+    .summary-label{color:#a1a1aa}
+    .summary-value{font-weight:500}
+    .summary-link{
+      font-size:11px;
+      color:#a1a1aa;
+      text-decoration:underline;
+    }
+    .help-line{
+      font-size:11px;
+      color:#71717a;
+      margin-top:4px;
+      text-align:center;
+      width:100%;
+    }
+    #sbPotEth,#sbPotUsd,#sbWinEth,#sbWinUsd{color:#18DCF1}
+
+    #panelCreate .card-header,
+    #panelCreate .card-sub{
+      display:none;
+    }
+
+    #btnReset{
+      border:1px solid var(--danger);
+      color:var(--danger);
+      background:#101014;
+    }
+    #btnReset:hover{
+      background:var(--danger);
+      color:#020617;
+    }
+
+    /* Site Footer */
+    .site-footer{
+      max-width:520px;
+      margin:32px auto 40px;
+      padding:14px 20px;
+      font-size:11px;
+      color:var(--muted);
+      background:var(--card);
+      border-radius:24px;
+      border:1px solid var(--border);
+      box-shadow:0 18px 50px rgba(0,0,0,.55);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .site-footer nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    .site-footer a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:11px;
+    }
+    .site-footer a:hover{text-decoration:underline}
+
+    .deadline-highlight{
+      /* Miami highlight, but KEEP readable in dark UI */
+      background: rgba(232,214,201,0.14) !important;
+      color: var(--text) !important;
+      border: 2px solid rgba(109,214,209,0.78) !important;
+      border-radius: 40px !important;
+    }
+    .deadline-highlight:focus{
+      background: rgba(232,214,201,0.18) !important;
+      color: var(--text) !important;
+      border-color: rgba(109,214,209,0.95) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 4px rgba(109,214,209,0.22) !important;
+    }
+    
+    /* Error Modal */
+    .error-modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:40;
+    }
+    .error-modal.visible{
+      display:flex;
+    }
+    .error-modal-backdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,0.65);
+    }
+    .error-modal-card{
+      position:relative;
+      max-width:360px;
+      width:90%;
+      background:var(--card);
+      border-radius:20px;
+      border:1px solid var(--border);
+      box-shadow:0 20px 60px rgba(0,0,0,.7);
+      padding:18px 18px 16px;
+      z-index:41;
+    }
+    .error-modal-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-weight:600;
+      margin-bottom:8px;
+    }
+    .error-modal-close{
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:16px;
+      padding:2px 4px;
+    }
+    .error-modal-close:hover{color:var(--text)}
+    .error-modal-body{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.4;
+      white-space:pre-wrap;
+      word-break:break-word;
+      margin-top:4px;
+    }
+
+    @media(max-width:640px){
+      .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+        justify-content:flex-start;
+        gap:6px;
+        padding:0 8px;
+        width:100%;
+      }
+      #chipNetwork{
+  align-self:flex-start;
+  margin-top:2px;
+}
+.tabs{
+  margin:14px auto 18px;
+}
+.qr-row{
+  flex-direction:column;
+  align-items:stretch;
+}
+.qr-box{
+  margin:0 auto;
+}
+.top-actions{
+        display:flex;
+        flex-direction:row;
+        flex-wrap:wrap;
+        justify-content:flex-start;
+        align-items:center;
+        gap:6px;
+        width:100%;
+      }
+      .top-actions .btn{
+        padding:4px 10px;
+        font-size:11px;
+        white-space:nowrap;
+        flex-shrink:1;
+      min-height:32px;
+      }
+      .addr{
+        font-size:10px;
+        white-space:normal;
+        overflow:visible;
+        text-overflow:clip;
+        line-height:1.3;
+        padding:6px 10px;
+        color:#ffffff !important;
+        text-decoration:none !important;
+        cursor:pointer;
+      }
+      .app{padding:14px 12px 28px}
+      .card{padding:16px}
+      .subbar{padding:0 8px}
+      .subchips{
+        display:flex;
+        flex-direction:row;
+        flex-wrap:wrap;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+      }
+      .subchips{
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .subchips::-webkit-scrollbar{display:none}
+      .subchips .chip{
+        width:auto;
+        margin-bottom:0;
+        padding:4px 8px;
+        font-size:10px;
+        white-space:nowrap;
+        justify-content:center;
+      }
+      .quick-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .quick-chip,.quick-amt{min-height:44px}
+      .stake-amount{
+        font-size:16px;
+        min-width:80px;
+      }
+
+      .stake-main{
+        flex-wrap:wrap;
+        justify-content:center;
+        align-items:center;
+        gap:12px;
+      }
+      .stake-box{
+        width:210px;
+        padding:8px 12px;
+        border-radius:18px;
+      }
+      .stake-box .stake-symbol{font-size:22px}
+      .stake-box .stake-amount{width:100px;max-width:100px;font-size:24px}
+      .stake-adjust{margin-right:0}
+      .stake-adjust,.stake-toggle{margin-left:0}
+      .stake-toggle{
+        flex-direction:row;
+        justify-content:center;
+        width:100%;
+        gap:8px;
+      }
+      .stake-toggle button{flex:1;max-width:120px}
+      .site-footer{
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+        text-align:left;
+        padding:12px 16px;
+        margin:24px auto 32px;
+      }
+      .site-footer nav{
+        display:flex;
+        flex-direction:row;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+      }
+      .site-footer a{margin:0}
+    }
+  
+    /* =========================================================
+       Apple-like polish overrides (visual only; no logic changes)
+       ========================================================= */
+    :root{
+      --radius:20px;
+      --card: rgba(18,18,20,0.92);
+      --card-soft: rgba(24,24,28,0.86);
+      --border: rgba(255,255,255,0.10);
+      --chip: rgba(255,255,255,0.06);
+      --muted:#9ca3af;
+      --text:#f8fafc;
+
+      /* Miami (80s/90s) accents — kept subtle/premium */
+      --miami-cyan: rgba(0,234,255,1);
+      --miami-pink: rgba(255,0,170,1);
+      --miami-sunset: rgba(255,170,0,1);
+      --glow-cyan: rgba(0,234,255,0.22);
+      --glow-pink: rgba(255,0,170,0.18);
+    }
+    body{
+      background:
+        radial-gradient(900px 520px at 82% -180px, rgba(255,0,170,0.18), transparent 60%),
+        radial-gradient(980px 560px at 12% 0%, rgba(0,234,255,0.14), transparent 55%),
+        radial-gradient(760px 420px at 50% 112%, rgba(255,170,0,0.10), transparent 62%),
+        linear-gradient(180deg, #060611 0%, #000 62%, #050015 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      letter-spacing:-0.01em;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 84px 84px;
+      opacity:0.20;
+      mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 72%);
+    }
+
+    .app{max-width:920px}
+    .topbar{max-width:560px}
+    .subbar, .network-warning-bar, .tabs, .card, .share-card, .summary-card, .site-footer{max-width:560px}
+
+    .card{
+      border-radius:24px;
+      border:1px solid var(--border);
+      background:var(--card);
+      box-shadow:0 14px 50px rgba(0,0,0,.60);
+      backdrop-filter:saturate(130%) blur(10px);
+      -webkit-backdrop-filter:saturate(130%) blur(10px);
+    }
+    .share-card, .summary-card, .site-footer{
+      border:1px solid var(--border);
+      background:var(--card-soft);
+      box-shadow:0 12px 40px rgba(0,0,0,.45);
+      backdrop-filter:saturate(130%) blur(10px);
+      -webkit-backdrop-filter:saturate(130%) blur(10px);
+    }
+
+    .btn{
+      min-height:44px;
+      padding:0 16px;
+      font-weight:600;
+      letter-spacing:-0.01em;
+    }
+    .btn.small{min-height:34px;padding:0 12px;font-size:12px}
+    .btn:active{transform:translateY(0)}
+    .btn:focus-visible{
+      outline:none;
+      box-shadow:0 0 0 4px rgba(0,234,255,0.22);
+      border-color:rgba(0,234,255,0.75);
+    }
+    .btn.ghost{
+      background:rgba(255,255,255,0.04);
+    }
+    .btn.ghost:hover{
+      background:rgba(255,255,255,0.07);
+    }
+    .btn.primary{
+      min-height:48px;
+      border-radius:14px;
+    }
+    .btn.accent{
+      min-height:48px;
+      border-radius:14px;
+      box-shadow:0 10px 28px rgba(0,234,255,0.18);
+    }
+    #btnReset{
+      min-height:48px;
+      border-radius:14px;
+    }
+
+    .input{
+      min-height:44px;
+      padding:0 14px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(255,255,255,0.04);
+    }
+    .input:focus{
+      outline:none;
+      border-color:rgba(0,234,255,0.70);
+      box-shadow:0 0 0 4px rgba(0,234,255,0.18);
+    }
+
+    .tabs{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(0,234,255,0.55);
+      padding:5px;
+    }
+    .tab{padding:10px 0}
+    .tab.active{
+      border-radius:999px;
+      border:0;
+      box-shadow:0 12px 30px rgba(0,0,0,0.35);
+    }
+
+    .chip{
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(255,255,255,0.05);
+      padding:6px 10px;
+      font-size:11px;
+      opacity:0.95;
+    }
+    .chip.badge{
+      background:rgba(0,234,255,0.12);
+      border-color:rgba(0,234,255,0.65);
+      box-shadow:0 0 14px rgba(0,234,255,0.28);
+    }
+
+    .addr{
+      border:1px solid rgba(0,234,255,0.60);
+      background:rgba(0,0,0,0.35);
+      box-shadow:0 0 0 1px rgba(0,234,255,0.12), 0 10px 28px rgba(0,0,0,0.40);
+      padding:10px 18px;
+    }
+
+    .stake-area{margin-top:16px;margin-bottom:18px}
+    .stake-box{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.10);
+      box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    }
+    .stake-box .stake-amount{letter-spacing:-0.02em}
+    .adjust-btn{
+      width:36px;height:36px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+    }
+    .stake-toggle button{
+      min-height:36px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(255,255,255,0.04);
+    }
+    .stake-toggle button.connected{
+      border-color:rgba(0,234,255,0.80);
+      box-shadow:0 0 0 3px rgba(0,234,255,0.16);
+    }
+
+    .quick-chip, .quick-amt{
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(255,255,255,0.04);
+      border-radius:16px;
+      min-height:44px;
+    }
+    .quick-chip:hover, .quick-amt:hover{
+      background:rgba(255,255,255,0.07);
+      border-color:rgba(255,255,255,0.14);
+    }
+    .deadline-input{
+      border-radius:16px;
+      color: var(--text) !important;
+      caret-color: var(--accent) !important;
+    }
+    .deadline-input::-webkit-inner-spin-button,
+    .deadline-input::-webkit-outer-spin-button{
+      opacity: 0.6;
+      filter: invert(1);
+    }
+
+    .deadline-highlight{
+      box-shadow:0 0 0 4px rgba(0,234,255,0.14);
+    }
+
+    .resolve-section{
+      border-top:1px solid rgba(255,255,255,0.10);
+    }
+
+    .error-modal-card{
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(18,18,20,0.94);
+      backdrop-filter:saturate(130%) blur(10px);
+      -webkit-backdrop-filter:saturate(130%) blur(10px);
+    }
+
+    @media(max-width:640px){
+      .top-actions .btn.small{min-height:32px}
+      .card{border-radius:22px}
+      .btn.primary,.btn.accent,#btnReset{min-height:50px}
+      .quick-row{gap:10px}
+      .stake-box{width:min(240px,100%)}
+    }
+
+  
+
+    /* ===== Miami polish tweaks ===== */
+    .stake-box{
+      width:auto !important;
+      flex: 1 1 340px;
+      max-width: 560px;
+    }
+    .stake-amount{
+      width:100%;
+      min-width:0;
+      font-variant-numeric: tabular-nums;
+    }
+    .stake-main{
+      gap:16px !important;
+    }
+
+    /* Make the +/- sit tight and consistent */
+    .stake-adjust{
+      gap:12px !important;
+    }
+    .adjust-btn{
+      border-color: rgba(0,234,255,0.65) !important;
+      box-shadow: 0 0 0 3px rgba(0,234,255,0.10), 0 12px 30px rgba(0,0,0,0.35);
+    }
+    .adjust-btn:hover{
+      box-shadow: 0 0 0 3px rgba(255,0,170,0.12), 0 0 26px rgba(0,234,255,0.22), 0 14px 34px rgba(0,0,0,0.40);
+    }
+
+    /* ETH / USD toggle — subtle neon rim */
+    .stake-toggle button.connected{
+      border-color: rgba(0,234,255,0.85) !important;
+      box-shadow:
+        0 0 0 3px rgba(0,234,255,0.14),
+        0 0 0 5px rgba(255,0,170,0.08),
+        0 0 22px rgba(0,234,255,0.16);
+    }
+
+    /* Chips feel more “South Beach” but still clean */
+    .quick-chip, .quick-amt, .chip{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)) !important;
+    }
+    .chip.connected{
+      border-color: rgba(0,234,255,0.78) !important;
+      box-shadow:
+        0 0 0 3px rgba(0,234,255,0.12),
+        0 0 18px rgba(255,0,170,0.10);
+    }
+
+    /* Links / highlights */
+    a, .link{
+      color: rgba(0,234,255,0.95);
+    }
+
+/* =========================================================
+   Miami Beach Postcard Theme (visual only)
+   - Inspired by the vintage Miami Beach palette (mauve sky, dusty rose, sun-faded sand)
+   - No logic changes
+   ========================================================= */
+:root{
+  /* Core surfaces */
+  --bg:#07050a;
+  --text:#fbf7f9;
+  --muted:#cbb9bf;
+  --border:rgba(255,245,250,0.14);
+  --chip:rgba(255,245,250,0.06);
+
+  /* Postcard tints (pulled from image: mauve/dusty-rose) */
+  --miami-mauve:#614f6a;
+  --miami-dusty-rose:#bd938f;
+  --miami-plum:#966f7d;
+  --miami-sand:#e8d6c9;
+
+  /* App cards */
+  --card:rgba(22,14,22,0.72);
+  --card-soft:rgba(18,12,18,0.62);
+
+  /* Accent: sun-faded aqua (instead of neon cyan) */
+  --accent:#6dd6d1;
+  --accent-ink:#062221;
+  --glow:0 0 18px rgba(109,214,209,0.35);
+
+  /* Secondary glow for subtle “sunset” moments */
+  --miami-coral:#e7a3b6;
+  --glow-coral:0 0 22px rgba(231,163,182,0.22);
+}
+
+/* Background: mauve sky → dusty rose → sand, with soft vignette */
+body{
+  background:
+    radial-gradient(1200px 520px at 50% -140px, rgba(97,79,106,0.55), transparent 60%),
+    radial-gradient(900px 520px at 18% 8%, rgba(189,147,143,0.30), transparent 58%),
+    radial-gradient(900px 620px at 82% 18%, rgba(231,163,182,0.16), transparent 60%),
+    radial-gradient(1100px 700px at 50% 120%, rgba(232,214,201,0.12), transparent 65%),
+    linear-gradient(180deg, #17111e 0%, #0b0710 48%, #07050a 100%);
+}
+
+/* Softer grid/grain */
+body::before{
+  opacity:0.14;
+  background-size: 96px 96px;
+}
+
+/* Cards: warm glass */
+.card, .share-card, .summary-card, .site-footer, .error-modal-card{
+  border-color: var(--border) !important;
+  background: var(--card) !important;
+  box-shadow: 0 16px 54px rgba(0,0,0,0.55) !important;
+}
+.share-card, .summary-card, .site-footer{
+  background: var(--card-soft) !important;
+}
+
+/* Inputs: warm glass + aqua focus */
+.input, .idea-input{
+  border-color: rgba(255,245,250,0.14) !important;
+  background: rgba(255,245,250,0.04) !important;
+}
+.input:focus, .idea-input:focus{
+  outline:none !important;
+  border-color: rgba(109,214,209,0.70) !important;
+  box-shadow: 0 0 0 4px rgba(109,214,209,0.16) !important;
+}
+
+/* Chips: sun-faded */
+.chip{
+  border-color: rgba(255,245,250,0.14) !important;
+  background: rgba(255,245,250,0.05) !important;
+  color: rgba(251,247,249,0.82) !important;
+}
+.chip.badge{
+  border-color: rgba(109,214,209,0.55) !important;
+  background: rgba(109,214,209,0.12) !important;
+  color: rgba(109,214,209,0.95) !important;
+  box-shadow: var(--glow) !important;
+}
+.chip.network-active{
+  border-color: rgba(109,214,209,0.70) !important;
+  box-shadow: var(--glow), var(--glow-coral) !important;
+}
+
+/* Buttons: keep your layout, just re-skin */
+.btn{
+  border-color: rgba(255,245,250,0.14) !important;
+  background: rgba(255,245,250,0.05) !important;
+}
+.btn:hover{
+  background: rgba(255,245,250,0.08) !important;
+}
+.btn.primary{
+  background: rgba(232,214,201,0.92) !important;
+  border-color: rgba(232,214,201,0.92) !important;
+  color: #1a1118 !important;
+}
+.btn.primary:hover{
+  background: rgba(232,214,201,0.84) !important;
+  border-color: rgba(232,214,201,0.84) !important;
+}
+.btn.accent{
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-ink) !important;
+  box-shadow: 0 12px 30px rgba(109,214,209,0.22) !important;
+}
+.btn.accent:hover{
+  filter:saturate(1.05);
+  box-shadow: var(--glow), var(--glow-coral) !important;
+}
+
+/* Quick chips/amounts: warm glass */
+.quick-chip, .quick-amt, .stake-toggle button{
+  border-color: rgba(255,245,250,0.14) !important;
+  background: rgba(255,245,250,0.05) !important;
+}
+.quick-chip:hover, .quick-amt:hover, .stake-toggle button:hover{
+  background: rgba(255,245,250,0.08) !important;
+}
+
+/* Deadline highlight stays “paper” but with postcard rim */
+.deadline-highlight{
+  border-color: rgba(109,214,209,0.70) !important;
+  box-shadow: 0 0 0 4px rgba(109,214,209,0.12), 0 0 0 6px rgba(231,163,182,0.06) !important;
+}
+
+/* Address pill: subtle aqua rim */
+.addr{
+  border-color: rgba(109,214,209,0.55) !important;
+  box-shadow: 0 0 0 1px rgba(109,214,209,0.12), 0 12px 30px rgba(0,0,0,0.40) !important;
+}
+
+/* Stake accents */
+.adjust-btn{
+  border-color: rgba(109,214,209,0.60) !important;
+  color: rgba(109,214,209,0.95) !important;
+}
+.adjust-btn:hover{
+  background: rgba(109,214,209,0.95) !important;
+  color: var(--accent-ink) !important;
+  box-shadow: var(--glow), var(--glow-coral) !important;
+}
+.stake-toggle button.connected{
+  border-color: rgba(109,214,209,0.75) !important;
+  box-shadow: 0 0 0 3px rgba(109,214,209,0.14), 0 0 18px rgba(231,163,182,0.10) !important;
+}
+
+/* Make the “ETH / USD” preview numbers match the new accent */
+#sbPotEth,#sbPotUsd,#sbWinEth,#sbWinUsd{
+  color: rgba(109,214,209,0.98) !important;
+}
+
+/* Link color */
+a, .summary-link{
+  color: rgba(109,214,209,0.98) !important;
+}
+
+
+
+/* =========================================================
+   Mobile polish + extra 80s Miami energy
+   (layout unchanged on desktop; improves wrapping on phones)
+   ========================================================= */
+header::after{
+  content:"";
+  display:block;
+  height:2px;
+  margin-top:10px;
+  border-radius:999px;
+  background: linear-gradient(90deg,
+    rgba(109,214,209,0) 0%,
+    rgba(109,214,209,0.55) 20%,
+    rgba(231,163,182,0.35) 50%,
+    rgba(109,214,209,0.55) 80%,
+    rgba(109,214,209,0) 100%);
+  box-shadow: 0 0 18px rgba(109,214,209,0.16);
+}
+
+@media (max-width: 520px){
+  /* Header stack + button wrap */
+  header{
+    padding-bottom: 8px !important;
+  }
+  #chipNetwork{
+    width: 100% !important;
+    text-align:center !important;
+    margin-top: 10px !important;
+  }
+  .top-actions{
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+  }
+  #btnWalletConnect{
+    grid-column: 1 / -1 !important; /* full-width on its own row */
+  }
+  .top-actions .btn{
+    width: 100% !important;
+    white-space: nowrap !important;
+  }
+
+  /* Address pill: prevent overflow */
+  .subbar{
+    gap: 10px !important;
+  }
+  .addr{
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 12px !important;
+    padding: 10px 12px !important;
+  }
+  #networkWarning{
+    width: 100% !important;
+  }
+
+  /* Tabs / big action buttons: keep them from “breaking” */
+  .tabs, .big-tabs, .tab-row{
+    gap: 10px !important;
+  }
+  .tab, .tab-btn, .big-tab, .big-tab-btn{
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+     /* Stake area: clean mobile layout */
+  .stake-main{
+    display:grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-areas:
+      "box box"
+      "adjust toggle" !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+
+  .stake-box{
+    grid-area: box !important;
+    width: 100% !important;
+  }
+
+  .stake-box .stake-amount{
+    font-size: 18px !important;
+    line-height: 1.2 !important;
+  }
+
+  .stake-adjust{
+    grid-area: adjust !important;
+    display:flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .adjust-btn{
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 16px !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+  }
+
+  .stake-toggle{
+    grid-area: toggle !important;
+    display:flex !important;
+    flex-direction: row !important; /* ETH + USD side-by-side */
+    gap: 10px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    min-width: 0 !important;
+  }
+
+  .stake-toggle button{
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 12px 0 !important;
+  }
+
+  .adjust-btn{
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 16px !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+  }
+
+  /* Quick amount chips: slightly tighter */
+  .quick-row{
+    gap: 10px !important;
+  }
+  .quick-amt{
+    padding: 10px 0 !important;
+  }
+}
+
+/* Extra Miami “neon edge” for primary elements (subtle) */
+.btn.accent, .chip.badge, .deadline-highlight{
+  position: relative;
+}
+.btn.accent::after, .chip.badge::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg,
+    rgba(109,214,209,0.35),
+    rgba(231,163,182,0.20),
+    rgba(232,214,201,0.18));
+  filter: blur(10px);
+  z-index:-1;
+  opacity:0.55;
+  pointer-events:none;
+}
+html, body{
+  min-height: 100%;
+  background-color: var(--bg);
+}
+
+body{
+  min-height: 100vh;
+  background-attachment: fixed;
+}
+
+
+/* V2 Markets */
+#panelMarkets input[type="range"]{width:100%}
+#mOfferDetails{white-space:pre-wrap}
+
+#panelMarkets .note{color:var(--muted);font-size:12px;line-height:1.4}
+#panelMarkets .muted{color:var(--muted);font-size:12px}
+#panelMarkets .sep{border:0;height:1px;background:rgba(255,245,250,0.10)}
+#panelMarkets .market-preview{border-radius:18px;background:var(--card-soft);border:1px solid var(--border);padding:14px 16px}
+#panelMarkets .market-preview .chip{white-space:nowrap}
+@media(max-width:640px){
+  #panelMarkets .row.wrap{align-items:stretch}
+  #panelMarkets .row.wrap .btn.small{flex:1; min-width: 0}
+  #panelMarkets #mOfferId{flex:1; min-width: 0}
+}
+
+
+/* ---------- Final polish (UI only) ---------- */
+:root{
+  --radius-card: 22px;
+  --radius-input: 16px;
+  --ring: rgba(0,234,255,0.22);
+}
+
+/* constrain overall width + center */
+.wrap, .container, .page, main{
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* cards */
+.card, .market-preview{
+  border-radius: var(--radius-card) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.22);
+}
+.card-header{
+  align-items: center;
+  gap: 10px;
+}
+.card-title{
+  letter-spacing: .2px;
+}
+
+/* tabs */
+.tabs{
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tab{
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 999px;
+}
+
+/* form controls */
+.input, input[type="number"], input[type="text"], input[type="range"], select{
+  border-radius: var(--radius-input) !important;
+}
+.input, input[type="number"], input[type="text"], select{
+  min-height: 44px;
+  padding: 10px 12px;
+}
+.row{
+  align-items: center;
+}
+.row.wrap{
+  row-gap: 10px;
+  column-gap: 10px;
+}
+
+/* buttons */
+.btn{
+  min-height: 44px;
+  border-radius: 999px;
+}
+.btn.small{
+  min-height: 40px;
+  padding: 8px 12px;
+}
+
+/* quick chips */
+.quick-chip{
+  border-radius: 999px;
+  padding: 10px 14px;
+  min-height: 44px;
+}
+
+/* section separators */
+#panelMarkets .sep, #panelOffer .sep{
+  opacity: .8;
+}
+
+/* Offer details box */
+#mOfferDetails{
+  margin-top: 12px !important;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+}
+
+/* nicer focus ring */
+.input:focus, input:focus, select:focus, .btn:focus, button:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* make primary sections breathe */
+.panel .card{
+  padding: 18px 18px;
+}
+
+/* mobile polish */
+@media(max-width:640px){
+  .tabs{gap: 8px}
+  .tab{flex: 1; text-align:center}
+  .card, .market-preview{padding: 14px}
+  .row.wrap .btn.small{flex: 1; min-width: 0}
+  .row.wrap .quick-chip{flex: 1; text-align:center}
+}
+
+
+/* center card headings */
+.card-header{justify-content: space-between}
+.card-header .card-title{font-weight: 700}
+
+
+/* center top brand area */
+header, .topbar, .hero{
+  text-align: center;
+}
+header .row, .topbar .row, .hero .row{
+  justify-content: center;
+}
+
+
+@media(min-width:641px){
+  #mOfferId{max-width: 220px}
+}
+
+
+/* mobile tabs: prevent bunching */
+@media(max-width:640px){
+  .tabs{display:flex; flex-wrap:wrap; justify-content:center; gap:8px}
+  .tabs .tab{
+    flex: 0 0 calc(50% - 8px);
+    max-width: calc(50% - 8px);
+    padding: 10px 10px;
+    font-size: 13px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+
+/* ---------- Final FINAL polish (UI only) ---------- */
+/* smoother text + spacing rhythm */
+body{letter-spacing:.15px}
+.label{margin-top:10px}
+.note{opacity:.92}
+.muted{opacity:.9}
+
+/* consistent vertical rhythm inside cards */
+.card > *{margin-left:auto; margin-right:auto}
+.card-sub{margin-top:6px}
+.card .row{margin-top:10px}
+.card .row:first-of-type{margin-top:0}
+
+/* make preview chips readable + aligned */
+.market-preview .row{align-items:center}
+.market-preview .chip{padding:8px 12px; border-radius:999px}
+.market-preview .chip + .chip{margin-left:8px}
+@media(max-width:640px){
+  .market-preview .row{flex-wrap:wrap; gap:8px}
+  .market-preview .chip{flex: 1 1 auto; text-align:center}
+}
+
+/* tighten the number inputs so they feel intentional */
+#panelMarkets input[type="number"], #panelOffer input[type="number"]{
+  font-variant-numeric: tabular-nums;
+}
+
+/* center cards and prevent edge hugging */
+.panel{padding-left:12px; padding-right:12px}
+@media(max-width:640px){
+  .panel{padding-left:10px; padding-right:10px}
+}
+
+/* reduce heavy shadow on mobile for a cleaner look */
+@media(max-width:640px){
+  .card, .market-preview{box-shadow: 0 8px 24px rgba(0,0,0,0.20)}
+}
+
+/* avoid any accidental horizontal scroll */
+html, body{overflow-x:hidden}
+
+
+/* =========================================================
+   Markets — small layout tweaks (UI only)
+   ========================================================= */
+
+/* Center YES / NO side buttons (only inside Markets panel) */
+#panelMarkets .quick-row{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+}
+#panelMarkets .quick-row .quick-chip{
+  min-width:96px;
+  text-align:center;
+}
+
+/* Center Join / Resolve deadline boxes */
+#panelMarkets .deadline-grid{
+  justify-content:center;
+  text-align:center;
+}
+#panelMarkets .deadline-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+
+/* =========================================================
+   Markets — layout tweaks v2 (UI only)
+   ========================================================= */
+
+/* Wider YES/NO buttons */
+#panelMarkets .quick-row .quick-chip{
+  min-width:140px;
+}
+
+/* Wider Join/Resolve inputs */
+#panelMarkets .deadline-col{min-width:210px;}
+#panelMarkets .deadline-input.deadline-small{
+  width:220px;
+  max-width:220px;
+}
+@media(max-width:640px){
+  #panelMarkets .deadline-input.deadline-small{
+    width:100%;
+    max-width:100%;
+  }
+  #panelMarkets .deadline-col{min-width:0;}
+}
+
+
+/* =========================================================
+   Markets — final polish (spacing + alignment only)
+   ========================================================= */
+#panelMarkets .card{
+  padding-top: 22px;
+  padding-bottom: 20px;
+}
+#panelMarkets .card-sub{
+  margin-bottom: 12px;
+}
+
+/* Make the long flow copy breathe */
+#panelMarkets .note{
+  line-height: 1.45;
+}
+#panelMarkets .note b{
+  font-weight: 700;
+}
+
+/* Center the "Side" label and keep the pills centered */
+#panelMarkets .row.wrap[style*="Side"]{
+  justify-content: center;
+  text-align: center;
+}
+#panelMarkets .row.wrap[style*="Side"] .label{
+  width: 100%;
+  text-align: center;
+}
+
+/* Odds row: align chip and slider nicely */
+#panelMarkets #mOdds{
+  margin-top: 2px;
+}
+#panelMarkets .chip{
+  align-items:center;
+}
+
+/* Stake row: keep label + USD preview visually paired */
+#panelMarkets .row[style*="align-items:baseline"]{
+  padding: 0 2px;
+}
+#panelMarkets .row[style*="align-items:baseline"] .muted{
+  font-variant-numeric: tabular-nums;
+}
+
+/* Update preview button: slightly tighter */
+#panelMarkets #btnMarketUpdate{
+  margin-top: 12px !important;
+}
+
+/* Deadlines: more uniform + less cramped */
+#panelMarkets .deadline-grid{
+  gap: 16px;
+  margin-top: 14px !important;
+}
+#panelMarkets .deadline-col .label{
+  margin-bottom: 8px;
+}
+#panelMarkets .deadline-col .row{
+  width: 100%;
+  justify-content: center;
+  gap: 10px !important;
+}
+#panelMarkets .deadline-input.deadline-small{
+  height: 44px;
+}
+
+/* Primary action row: consistent height + spacing */
+#panelMarkets #btnOpenOffer,
+#panelMarkets #btnGoOfferActions{
+  min-height: 48px;
+}
+#panelMarkets #btnOpenOffer{
+  border-radius: 16px !important;
+}
+#panelMarkets #btnGoOfferActions{
+  border-radius: 16px !important;
+}
+
+/* Hint under buttons: smaller, cleaner */
+#panelMarkets .muted[style*="Have an"]{
+  opacity: 0.88;
+  margin-top: 10px !important;
+  line-height: 1.35;
+}
+
+/* Mobile: keep everything tight */
+@media(max-width:640px){
+  #panelMarkets .deadline-grid{gap: 12px;}
+  #panelMarkets .row[style*="gap:12px; margin-top:14px;"]{
+    flex-direction: column;
+  }
+  #panelMarkets #btnOpenOffer,
+  #panelMarkets #btnGoOfferActions{
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   Markets — final micro-tweaks (UI only)
+   ========================================================= */
+
+/* 1) Add breathing room between summary and Markets card */
+#panelMarkets .card{
+  margin-top: 18px !important;
+}
+
+/* 2) Side label centered + larger */
+#panelMarkets .mSideLabel{
+  text-align:center;
+  font-size:14px;
+  letter-spacing:0.2px;
+  margin: 0 0 10px 0;
+  color: rgba(251,247,249,0.90);
+}
+#panelMarkets .mSideRow{
+  justify-content:center;
+}
+
+/* 4) Put "min" tight next to the inputs */
+#panelMarkets .deadline-col .row{
+  gap:6px !important;
+}
+#panelMarkets .deadline-col .muted{
+  margin-left:0 !important;
+  white-space:nowrap;
+}
+
+/* 5) Make Update preview look clickable (secondary accent) */
+#panelMarkets #btnMarketUpdate{
+  background: rgba(109,214,209,0.12) !important;
+  border-color: rgba(109,214,209,0.45) !important;
+  color: rgba(109,214,209,0.95) !important;
+  font-weight: 700;
+}
+#panelMarkets #btnMarketUpdate:hover{
+  background: rgba(109,214,209,0.16) !important;
+  border-color: rgba(109,214,209,0.65) !important;
+  box-shadow: 0 0 0 4px rgba(109,214,209,0.10) !important;
+}
+
+/* Keep mobile tidy */
+@media(max-width:640px){
+  #panelMarkets .card{margin-top: 14px !important;}
+  #panelMarkets .mSideLabel{font-size:15px;}
+}
+
+
+/* =========================================================
+   Markets — final spacing cleanup
+   ========================================================= */
+
+/* Remove extra gap under Markets card */
+#panelMarkets .card{
+  margin-bottom: 10px !important;
+}
+
+/* Tighten footer spacing */
+.site-footer{
+  margin-top: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+/* Reduce global bottom padding slightly */
+.app{
+  padding-bottom: 20px !important;
+}
+
+/* Ensure no accidental extra space */
+body{
+  margin-bottom: 0 !important;
+}
+
+
+/* Slightly tighten vertical rhythm for zoomed feel */
+#panelMarkets .card{
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+#panelMarkets .label{
+  font-size: 13.5px;
+}
+
+#panelMarkets input.input{
+  height: 46px;
+}
+
+#panelMarkets .deadline-input{
+  height: 46px;
+}
+
+
+/* =========================================================
+   Markets — footer gap fix
+   ========================================================= */
+.site-footer{
+  margin-top: 14px !important;
+}
+.site-footer + *{margin-top:0 !important;}
+
+
+/* =========================================================
+   Remove gap between Markets card and footer
+   ========================================================= */
+
+/* Reduce separator spacing */
+hr.sep{
+  margin: 10px 0 6px 0 !important;
+}
+
+/* Pull footer up */
+.site-footer{
+  margin-top: 6px !important;
+}
+
+/* Remove spacing under Markets */
+#panelMarkets{
+  margin-bottom: 0 !important;
+}
+
+#panelMarkets .card{
+  margin-bottom: 4px !important;
+}
+
+/* Reduce global bottom padding */
+.app{
+  padding-bottom: 6px !important;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="favicon.png" alt="The Juice logo" onerror="this.style.display='none'"/>
+      </div>
+      <span>The Juice</span>
+    </div>
+    <div id="chipNetwork" class="chip">Base • Mainnet • (8453)</div>
+    <div class="top-actions">
+      <button id="btnSwitch" class="btn small ghost">Switch network</button>
+      <button id="btnConnect" class="btn small ghost" onclick="connect()">Connect Wallet</button>
+      <button id="btnWalletConnect" class="btn small ghost">Wallet Connect</button>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <a id="addrPill"
+       class="addr"
+       title="View verified contract on Basescan"
+       target="_blank"
+       rel="noopener noreferrer">
+    </a>
+  </div>
+  <div id="networkWarning" class="network-warning-bar">
+    ⚠️ Base Mainnet — Real ETH. Start with small stakes.
+  </div>
+
+  <div class="tabs">
+    <button id="tabCreate" class="tab active">Create Challenge</button>
+    <button id="tabJoin" class="tab">Join &amp; Resolve</button>
+  
+    <button id="tabMarkets" class="tab">Markets</button>
+    <button id="tabOffer" class="tab">Offer Actions</button>
+  </div>
+
+  <div id="panelCreate" class="panel active">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Create Challenge</div>
+      </div>
+      <div class="card-sub">Set the Challenge, deadlines, and fund the escrow in one step.</div>
+
+      <div class="idea-row">
+        <input id="ideaBox" class="idea-input" type="text" value="Click 🎲 to generate a random challenge idea!"/>
+        <button id="btnShuffle" class="idea-dice" aria-label="Random bet idea">🎲</button>
+      </div>
+
+      <div class="stake-area">
+        <div class="stake-label">Challenge Amount</div>
+        <div class="stake-main">
+          <div class="stake-box">
+            <span id="stakeSymbol" class="stake-symbol">$</span>
+            <input id="stakeMain" class="stake-amount" type="number" value="5"/>
+          </div>
+
+          <div class="stake-adjust">
+            <button id="ethMinus" class="adjust-btn">−</button>
+            <button id="ethPlus" class="adjust-btn">+</button>
+          </div>
+          <div class="stake-toggle">
+            <button id="stakeModeEth">ETH</button>
+            <button id="stakeModeUsd" class="connected">USD</button>
+          </div>
+        </div>
+
+        <input id="stakeEth" type="hidden" value="0.0014"/>
+        <input id="stakeUsd" type="hidden" value="5"/>
+
+        <div class="quick-row amount-row">
+          <button id="usd1" class="quick-amt">$1</button>
+          <button id="usd5" class="quick-amt">$5</button>
+          <button id="usd10" class="quick-amt">$10</button>
+          <button id="usd20" class="quick-amt">$20</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="label">Join Deadline</div>
+        <div class="row wrap">
+          <div class="quick-row">
+            <button class="quick-chip" data-join="15">15m</button>
+            <button class="quick-chip" data-join="60">1h</button>
+            <button class="quick-chip" data-join="1440">1 Day</button>
+             <input
+              id="joinMins"
+              class="input deadline-input deadline-highlight"
+              type="number"
+              min="1"
+              max="43200"
+              value="15"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="label">Resolve deadline</div>
+        <div class="row wrap">
+          <div class="quick-row">
+            <button class="quick-chip" data-resolve="30">+30m</button>
+            <button class="quick-chip" data-resolve="120">+2h</button>
+            <button class="quick-chip" data-resolve="2880">+2 Days</button>
+            <input
+              id="resolveMins"
+              class="input deadline-input deadline-highlight"
+              type="number"
+              min="30"
+              max="43200"
+              value="30"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note" id="usdNote">USD values are estimates only.</div>
+
+      <div class="row" style="margin-top:16px;gap:10px">
+        <button id="btnCreate" class="btn accent" style="flex:1">Create &amp; Fund</button>
+        <button id="btnReset" class="btn" style="min-width:90px">Reset</button>
+      </div>
+
+      <div id="createStatus" class="status"></div>
+    </div>
+  </div>
+
+  <div id="panelJoin" class="panel">
+    <div class="card">
+      <div id="resolveNote" class="card-sub">Paste a Challenge ID to join, refund, or finalize.</div>
+
+      <div class="join-input-row row">
+        <input id="betId" class="input join-input" placeholder="Paste Challenge ID…"/>
+        <button class="btn-clear" onclick="document.getElementById('betId').value=''">Clear</button>
+      </div>
+
+      <div class="stack" style="margin-top:8px">
+        <button id="btnJoin" class="btn primary" style="width:100%">Join Challenge</button>
+        <button id="btnRefund" class="btn ghost" style="width:100%">Request Refund</button>
+      </div>
+
+      <div class="resolve-section">
+        <div class="resolve-title">Resolve winner</div>
+        <div class="resolve-sub">
+          Each player only sees their own vote. If both pick the same winner, payout is automatic.
+        </div>
+
+        <div class="vote-buttons">
+          <button id="btnIWon" class="btn ghost" style="width:100%">I Won</button>
+          <button id="btnILost" class="btn ghost" style="width:100%">Opponent Won</button>
+        </div>
+
+        <button id="btnPayout" class="btn accent" style="width:100%;margin-top:6px">
+          Finalize &amp; Payout
+        </button>
+      </div>
+
+      <div id="actionStatus" class="status"></div>
+      <div id="newBetNote" class="status" style="text-align:center;display:none">🆕 New Challenge link prepared — share the QR!</div>
+    </div>
+
+    <div class="share-card">
+      <div class="share-title">Share link &amp; QR</div>
+      <div class="share-help">Send this link or QR to your opponent so they open the exact Challenge</div>
+
+      <div class="qr-row">
+        <div class="stack" style="flex:1;min-width:200px">
+          <input id="shareUrl" class="input" readonly/>
+          <div class="row wrap" style="gap:8px">
+            <button id="btnCopyLink" class="btn small ghost" style="flex:1">Copy link</button>
+            <button id="btnCopyId" class="btn small ghost" style="flex:1">Copy ID</button>
+            <button id="btnNewBet" class="btn small ghost" style="flex:1">New</button>
+          </div>
+        </div>
+        <div class="qr-box" id="qrBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-top">
+      <div id="sbState" class="state-pill">Not connected</div>
+      <div id="chipFeeBottom" class="chip badge">Fee 2.5%</div>
+      <div id="chipNetworkBottom" class="chip">Base • Mainnet • (8453)</div>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Wallet</span>
+      <span id="sbWalletNet" class="summary-value">Wallet: not connected</span>
+    </div>
+
+    <div class="summary-row">
+      <span class="summary-label">Pot value</span>
+      <span class="summary-value"><span id="sbPotEth">0.000000</span> ETH (<span id="sbPotUsd">$0.00</span>)</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Winner gets</span>
+      <span class="summary-value"><span id="sbWinEth">0.000000</span> ETH (<span id="sbWinUsd">$0.00</span>)</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Fee</span>
+      <span class="summary-value">
+        <span id="chipFeeMain" class="chip badge">Fee 2.5%</span>
+      </span>
+    </div>
+    <div class="summary-row" style="margin-top:6px">
+      <span class="summary-label">Last transaction</span>
+      <a id="lastTx" class="summary-link" href="#" target="_blank" rel="noopener">View on Basescan</a>
+    </div>
+    <div class="help-line">Refunds are fee-free if deadlines pass.</div>
+  </div>
+
+  
+  <div id="panelMarkets" class="panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Markets</div>
+      </div>
+      <div class="card-sub">Create or take an odds-based offer (V2). Real odds = asymmetric stakes.</div>
+
+      <div class="note" style="margin-top:10px;">
+        Simple flow: <b>Create</b> an offer → share the <b>Offer ID</b> → opponent <b>Takes</b> it → both <b>Vote</b> → <b>Resolve</b> (or <b>Refund</b> after deadlines).
+      </div>
+<div style="margin-top:14px;">
+  <div class="label mSideLabel">Side</div>
+  <div class="quick-row mSideRow" style="gap:12px;">
+    <button id="mSideYes" class="quick-chip connected">YES</button>
+    <button id="mSideNo" class="quick-chip">NO</button>
+  </div>
+</div>
+
+      <div style="margin-top:14px;">
+        <div class="label">Implied chance</div>
+        <div class="row wrap" style="gap:12px; align-items:center;">
+          <input id="mOdds" type="range" min="500" max="9500" step="50" value="5000" style="flex:1; min-width:220px;">
+          <div class="chip" style="min-width:150px; justify-content:center;">
+            YES <span id="mYesPrice">50</span>% · NO <span id="mNoPrice">50</span>%
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+  <div class="row" style="justify-content:space-between; align-items:baseline; gap:10px;">
+    <div class="label" style="margin:0;">Your stake (ETH)</div>
+    <div class="muted" style="margin:0;">≈ <span id="mPayUsd">$0.00</span></div>
+  </div>
+  <input id="mPayEth" class="input" type="number" step="0.0001" min="0" value="0.01"/>
+  <button id="btnMarketUpdate" class="btn ghost" style="margin-top:10px; width:100%;">Update preview</button>
+</div>
+
+      <div class="deadline-grid" style="margin-top:12px;">
+  <div class="deadline-col">
+    <div class="label">Join Deadline (min)</div>
+    <div class="row" style="gap:8px; align-items:center;">
+      <input id="mJoinMins" class="input deadline-input deadline-highlight deadline-small" type="number" min="1" max="43200" value="15"/>
+    </div>
+  </div>
+  <div class="deadline-col">
+    <div class="label">Resolve Deadline (min)</div>
+    <div class="row" style="gap:8px; align-items:center;">
+      <input id="mResolveMins" class="input deadline-input deadline-highlight deadline-small" type="number" min="30" max="43200" value="30"/>
+    </div>
+  </div>
+</div>
+
+      <div class="row" style="gap:12px; margin-top:14px;">
+  <button id="btnOpenOffer" class="btn primary" style="flex:1;">Create Offer</button>
+  <button id="btnGoOfferActions" class="btn ghost" style="flex:1;">Offer Actions</button>
+</div>
+<div class="muted" style="margin-top:8px; text-align:center; font-size:11px;">
+  Have an <b>Offer ID</b>? Use <b>Offer Actions</b> to <b>Take</b>, <b>Vote</b>, <b>Resolve</b>, or <b>Refund</b>.
+</div>
+      </div>
+
+      <hr class="sep" style="margin:16px 0;"/>
+<div class="status">
+        <div id="mActionStatus" class="status-text"></div>
+      </div>
+    
+</div>
+  </div>
+
+  <div id="panelOffer" class="panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Offer Actions (V2)</div>
+      </div>
+      <div class="card-sub">Use an existing Offer ID to join and finish an offer.</div>
+
+      <div class="note" style="margin-top:10px;">
+        Steps: <b>Load</b> → (if open) <b>Take</b> → both parties <b>Vote</b> → <b>Resolve</b>. If deadlines pass, use <b>Refund</b>.
+      </div>
+
+
+      <hr class="sep" style="margin:16px 0;"/>
+
+      <div class="label">Manage an existing offer</div>
+
+      <div class="row wrap" style="gap:10px; align-items:center;">
+        <input id="mOfferId" class="input" type="number" min="1" placeholder="Offer ID"/>
+        <button id="btnLoadOffer" class="btn small ghost">Load</button>
+        <button id="btnTakeOffer" class="btn small primary">Take</button>
+      </div>
+
+      <div class="row wrap" style="gap:10px; align-items:center; margin-top:10px;">
+        <button id="btnVoteYesOffer" class="btn small ghost">Vote YES</button>
+        <button id="btnVoteNoOffer" class="btn small ghost">Vote NO</button>
+        <button id="btnResolveOffer" class="btn small ghost">Resolve</button>
+        <button id="btnRefundOffer" class="btn small ghost">Refund</button>
+      </div>
+
+      <div class="muted" style="margin-top:8px;">
+        Voting is only available after the offer is taken (Filled). Refunds follow the contract deadlines.
+      </div>
+
+      <div id="mOfferDetails" class="note" style="margin-top:12px; display:none;"></div>
+
+      
+      <div class="status">
+        <div id="mActionStatus" class="status-text"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+  </div>
+
+<footer class="site-footer">
+    <div>© <span id="yearNow"></span> Edison Labs LLC • Experimental software. Use at your own risk.</div>
+    <nav>
+      <a href="about.html">About</a>
+      <a href="terms.html">Terms of Use</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="risk.html">Risk Disclosure</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+  </footer>
+
+  <div id="errorModal" class="error-modal">
+    <div class="error-modal-backdrop" onclick="closeErrorModal()"></div>
+    <div class="error-modal-card">
+      <div class="error-modal-header">
+        <span>Error</span>
+        <button type="button" class="error-modal-close" onclick="closeErrorModal()">✕</button>
+      </div>
+      <div id="errorModalMessage" class="error-modal-body"></div>
+      <button type="button" class="btn accent" style="width:100%;margin-top:12px" onclick="closeErrorModal()">
+        Got it
+      </button>
+    </div>
+  </div>
+</div>
+  <div id="txModal" class="error-modal">
+  <div class="error-modal-backdrop"></div>
+  <div class="error-modal-card">
+    <div class="error-modal-header">
+      <span>Transaction</span>
+      <button type="button" class="error-modal-close" onclick="closeTxModal()">✕</button>
+    </div>
+    <div id="txModalMessage" class="error-modal-body"></div>
+    <button
+      id="txModalBtn"
+      type="button"
+      class="btn accent"
+      style="width:100%;margin-top:12px;display:none"
+      onclick="closeTxModal()"
+    >
+      Got it
+    </button>
+  </div>
+</div>
+
+<script>
+/* ---------- Config ---------- */
+const NETWORKS = {
+  mainnet:{
+    key:'mainnet',
+    label:'Base • Mainnet • (8453)',
+    chainName:'Base Mainnet',
+    idHex:'0x2105',
+    rpc:'https://mainnet.base.org',
+    explorer:'https://basescan.org',
+    contract:'0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
+    v2contract:'', // TODO: deploy V2 on Base mainnet and paste address
+
+    warning:'⚠️ Base Mainnet — Real ETH. Start with small stakes.'
+  },
+  testnet:{
+    key:'testnet',
+    label:'Base • Testnet • (84532)',
+    chainName:'Base Sepolia',
+    idHex:'0x14A34',
+    rpc:'https://sepolia.base.org',
+    explorer:'https://sepolia.basescan.org',
+    contract:'0x61eD264AAEF359717B2070E0426B26aa27D54890',
+    v2contract:'', // TODO: deploy V2 on Base Sepolia and paste address
+
+    warning:'🧪 Base Sepolia — Test ETH only.'
+  }
+};
+
+let CURRENT_NETWORK = 'mainnet';
+const FEE_BPS = 250; // Fallback only
+let currentFeeBps = FEE_BPS; // updated after wallet connects (protocolFeeBps)
+let ETH_USD = 3500;
+
+async function refreshEthUsd(){
+  try{
+    const res = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
+    const data = await res.json();
+    const price = parseFloat(data?.data?.amount);
+    if(!isNaN(price) && price>0){
+      ETH_USD = price;
+      const note = $('usdNote');
+      if(note) note.textContent = `USD values use ETH ≈ $${price.toFixed(2)} (preview only).`;
+      updatePreview();
+      return;
+    }
+  }catch(e){}
+  const note = $('usdNote');
+  if(note) note.textContent = 'USD values are estimates only and may be outdated.';
+}
+
+function currentBase(){return NETWORKS[CURRENT_NETWORK];}
+function currentContract(){return currentBase().contract;}
+
+
+async function refreshProtocolFeeBps(){
+  // Read protocolFeeBps() from the active contract so UI + tx params stay in sync
+  try{
+    if(!signer) return;
+    const c = getContract();
+    const feeBpsRaw = await c.protocolFeeBps();
+    const bps = Number(feeBpsRaw);
+    if(Number.isFinite(bps) && bps >= 0){
+      currentFeeBps = bps;
+      const feePct = (bps / 100).toFixed(2).replace(/\.00$/, '');
+      const chipMain = $('chipFeeMain');
+      const chipBtm  = $('chipFeeBottom');
+      if(chipMain) chipMain.textContent = `Fee ${feePct}%`;
+      if(chipBtm)  chipBtm.textContent  = `Fee ${feePct}%`;
+      updatePreview();
+    }
+  }catch(e){
+    console.warn('Could not fetch protocolFeeBps()', e);
+  }
+}
+
+/* ---------- Network UI helpers ---------- */
+function applyNetworkUI(){
+  const net = currentBase();
+
+  const chipTop = $('chipNetwork');
+  if(chipTop) chipTop.textContent = net.label;
+
+  const chipBottom = $('chipNetworkBottom');
+  if(chipBottom) chipBottom.textContent = net.label;
+
+  const warning = $('networkWarning');
+  if(warning) warning.textContent = net.warning;
+
+  const addr = $('addrPill');
+  if (addr) {
+    addr.textContent = `Contract: ${currentContract()}`;
+    addr.href = `${net.explorer}/address/${currentContract()}#code`;
+  }
+
+  const switchBtn = $('btnSwitch');
+  if(switchBtn){
+    switchBtn.textContent = (CURRENT_NETWORK==='mainnet') ? 'Use Base Sepolia' : 'Use Base Mainnet';
+  }
+  updateWalletNetworkLabel();
+}
+
+async function updateWalletNetworkLabel(){
+  const el = $('sbWalletNet');
+  if(!el) return;
+  if(!provider){
+    el.textContent = 'Wallet: not connected';
+    return;
+  }
+  try{
+    const net = await provider.getNetwork();
+    const chainId = Number(net.chainId.toString());
+    let label;
+    if(chainId===8453){
+      label = 'Wallet: Base Mainnet (8453)';
+    }else if(chainId===84532){
+      label = 'Wallet: Base Sepolia (84532)';
+    }else{
+      label = `Wallet: chainId ${chainId}`;
+    }
+    el.textContent = label;
+
+    const chipTop = $('chipNetwork');
+    const chipBottom = $('chipNetworkBottom');
+    chipTop?.classList.remove('network-active');
+    chipBottom?.classList.remove('network-active');
+
+    if(chainId===8453 && CURRENT_NETWORK==='mainnet'){
+      chipTop?.classList.add('network-active');
+      chipBottom?.classList.add('network-active');
+    }
+    if(chainId===84532 && CURRENT_NETWORK==='testnet'){
+      chipTop?.classList.add('network-active');
+      chipBottom?.classList.add('network-active');
+    }
+  }catch(e){
+    console.error('updateWalletNetworkLabel failed',e);
+    el.textContent = 'Wallet: unknown network';
+  }
+}
+
+async function toggleNetwork(){
+  CURRENT_NETWORK = (CURRENT_NETWORK==='mainnet') ? 'testnet' : 'mainnet';
+  applyNetworkUI();
+  try{
+    await ensureBase();
+    refreshProtocolFeeBps().catch(()=>{});
+  }catch(e){
+    console.error('Network switch canceled or failed',e);
+  }
+}
+
+/* ---------- Shortcuts ---------- */
+const $ = id => document.getElementById(id);
+const fmtUsd = v => '$' + v.toFixed(2);
+
+/* ---------- V2 Markets ---------- */
+let mSideYes = true; // creatorSideYes for offers
+
+function mSetSide(isYes){
+  mSideYes = !!isYes;
+  if($('mSideYes')) $('mSideYes').classList.toggle('connected', mSideYes);
+  if($('mSideNo'))  $('mSideNo').classList.toggle('connected', !mSideYes);
+  marketsUpdatePreview();
+}
+
+function mCeilDiv(n,d){
+  if(d===0n) throw new Error('DIV0');
+  return (n + d - 1n) / d;
+}
+
+function mComputeTakerStake(Awei, creatorSideYes, pBps){
+  // pBps: 500..9500
+  const p = BigInt(pBps);
+  if(p < 500n || p > 9500n) throw new Error('BAD_ODDS');
+  if(Awei <= 0n) throw new Error('BAD_STAKE');
+  if(creatorSideYes){
+    const num = Awei * p;
+    const den = 10000n - p;
+    return mCeilDiv(num, den);
+  }else{
+    const num = Awei * (10000n - p);
+    const den = p;
+    return mCeilDiv(num, den);
+  }
+}
+
+function mFmtEth(wei){
+  try{
+    return ethers.formatEther(wei);
+  }catch(e){
+    return String(wei);
+  }
+}
+
+function getV2Contract(readOnly=false){
+  const net = NETWORKS[CURRENT_NETWORK];
+  if(!net || !net.v2contract) return null;
+  const addr = net.v2contract;
+  if(!addr) return null;
+  if(readOnly){
+    const prov = new ethers.JsonRpcProvider(net.rpc);
+    return new ethers.Contract(addr, ABI_V2, prov);
+  }
+  if(!signer) return null;
+  return new ethers.Contract(addr, ABI_V2, signer);
+}
+
+async function marketsSyncUi(){
+  const net = NETWORKS[CURRENT_NETWORK];
+  const has = !!(net && net.v2contract);
+  if($('v2DeployNote')) $('v2DeployNote').style.display = has ? 'none' : 'block';
+  if($('mSideYes')) $('mSideYes').onclick = ()=>mSetSide(true);
+  if($('mSideNo'))  $('mSideNo').onclick  = ()=>mSetSide(false);
+
+  if($('mOdds')){
+    $('mOdds').oninput = marketsUpdatePreview;
+  }
+  if($('mPayEth')) $('mPayEth').oninput = marketsUpdatePreview;
+  if($('mJoinMins')) $('mJoinMins').oninput = marketsUpdatePreview;
+  if($('mResolveMins')) $('mResolveMins').oninput = marketsUpdatePreview;
+  if($('btnMarketUpdate')) $('btnMarketUpdate').onclick = marketsUpdatePreview;
+
+  if($('btnOpenOffer')) $('btnOpenOffer').onclick = doOpenOffer;
+  if($('btnLoadOffer')) $('btnLoadOffer').onclick = doLoadOffer;
+  if($('btnTakeOffer')) $('btnTakeOffer').onclick = doTakeOffer;
+  if($('btnVoteYesOffer')) $('btnVoteYesOffer').onclick = ()=>doVoteOffer(true);
+  if($('btnVoteNoOffer'))  $('btnVoteNoOffer').onclick  = ()=>doVoteOffer(false);
+  if($('btnResolveOffer')) $('btnResolveOffer').onclick = doResolveOffer;
+  if($('btnRefundOffer'))  $('btnRefundOffer').onclick  = doRefundOffer;
+
+  marketsUpdatePreview();
+}
+
+async function marketsUpdatePreview(){
+  if(!$('mOdds')) return;
+
+  const pBps = parseInt($('mOdds').value || '5000', 10);
+  const yes = Math.round(pBps/100);
+  const no  = 100 - yes;
+  if($('mYesPrice')) $('mYesPrice').textContent = String(yes);
+  if($('mNoPrice'))  $('mNoPrice').textContent  = String(no);
+
+  let Aeth = parseFloat(($('mPayEth')?.value || '0') + '');
+  if(!isFinite(Aeth) || Aeth <= 0) Aeth = 0;
+  if($('mPayUsd')) $('mPayUsd').textContent = Aeth>0 ? `$${(Aeth*ETH_USD).toFixed(2)}` : '$0.00';
+
+
+  try{
+    const Awei = Aeth>0 ? ethers.parseEther(String(Aeth)) : 0n;
+    if(Awei <= 0n){
+      if($('mOppPays')) $('mOppPays').textContent = '—';
+      if($('mGross')) $('mGross').textContent = '—';
+      if($('mFee')) $('mFee').textContent = '—';
+      if($('mWinner')) $('mWinner').textContent = '—';
+
+
+      // keep the top summary in sync while editing V2 inputs
+      if($('sbPotEth')) $('sbPotEth').textContent = '0.000000';
+      if($('sbPotUsd')) $('sbPotUsd').textContent = '$0.00';
+      if($('sbWinEth')) $('sbWinEth').textContent = '0.000000';
+      if($('sbWinUsd')) $('sbWinUsd').textContent = '$0.00';
+
+      return;
+    }
+
+    const Bwei = mComputeTakerStake(Awei, mSideYes, pBps);
+    const gross = Awei + Bwei;
+
+    // fee bps: prefer V2 chain value if available, else currentFeeBps
+    let feeBps = currentFeeBps;
+    try{
+      const c = getV2Contract(true);
+      if(c){
+        feeBps = Number(await c.protocolFeeBps());
+      }
+    }catch(e){}
+
+    const fee = (gross * BigInt(feeBps)) / 10000n;
+    const winner = gross - fee;
+
+    if($('mOppPays')) $('mOppPays').textContent = Number(ethers.formatEther(Bwei)).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    if($('mGross'))   $('mGross').textContent   = Number(ethers.formatEther(gross)).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    if($('mFee'))     $('mFee').textContent     = Number(ethers.formatEther(fee)).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    if($('mWinner'))  $('mWinner').textContent  = Number(ethers.formatEther(winner)).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+
+    // Mirror V2 preview into the top summary box (Pot value / Winner gets)
+    try{
+      const potEthNum = Number(ethers.formatEther(gross));
+      const winEthNum = Number(ethers.formatEther(winner));
+      if(isFinite(potEthNum)){
+        if($('sbPotEth')) $('sbPotEth').textContent = potEthNum.toFixed(6);
+        if($('sbPotUsd')) $('sbPotUsd').textContent = fmtUsd(potEthNum * ETH_USD);
+      }
+      if(isFinite(winEthNum)){
+        if($('sbWinEth')) $('sbWinEth').textContent = winEthNum.toFixed(6);
+        if($('sbWinUsd')) $('sbWinUsd').textContent = fmtUsd(winEthNum * ETH_USD);
+      }
+      const feePct = (Number(feeBps) / 100).toFixed(2);
+      if($('chipFeeBottom')) $('chipFeeBottom').textContent = `Fee ${feePct}%`;
+      if($('chipFeeMain')) $('chipFeeMain').textContent = `Fee ${feePct}%`;
+    }catch(e){}
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '⚠️ Preview error: ' + (e?.message || e);
+  }
+}
+
+
+function offerUpdateTopSummary(){
+  try{
+    if(!lastV2Offer) return;
+    const A = lastV2Offer.Awei;
+    const B = lastV2Offer.Bwei;
+    const feeBps = Number(lastV2Offer.feeBps||0);
+    const gross = A + B;
+    const fee = (gross * BigInt(feeBps)) / 10000n;
+    const payout = gross - fee;
+
+    const potEthNum = Number(ethers.formatEther(gross));
+    const winEthNum = Number(ethers.formatEther(payout));
+
+    if(isFinite(potEthNum)){
+      if($('sbPotEth')) $('sbPotEth').textContent = potEthNum.toFixed(6);
+      if($('sbPotUsd')) $('sbPotUsd').textContent = fmtUsd(potEthNum * ETH_USD);
+    }
+    if(isFinite(winEthNum)){
+      if($('sbWinEth')) $('sbWinEth').textContent = winEthNum.toFixed(6);
+      if($('sbWinUsd')) $('sbWinUsd').textContent = fmtUsd(winEthNum * ETH_USD);
+    }
+    const feePct = (feeBps / 100).toFixed(2);
+    if($('chipFeeBottom')) $('chipFeeBottom').textContent = `Fee ${feePct}%`;
+    if($('chipFeeMain')) $('chipFeeMain').textContent = `Fee ${feePct}%`;
+  }catch(e){}
+}
+
+function offerClearTopSummary(){
+  if($('sbPotEth')) $('sbPotEth').textContent = '0.000000';
+  if($('sbPotUsd')) $('sbPotUsd').textContent = '$0.00';
+  if($('sbWinEth')) $('sbWinEth').textContent = '0.000000';
+  if($('sbWinUsd')) $('sbWinUsd').textContent = '$0.00';
+}
+
+async function doOpenOffer(){
+  try{
+    if(!$('mActionStatus')) return;
+    $('mActionStatus').textContent = '';
+    const net = NETWORKS[CURRENT_NETWORK];
+    if(!net || !net.v2contract) throw new Error('V2 contract address not set for this network.');
+    if(!signer) throw new Error('Connect wallet first.');
+
+    const pBps = parseInt($('mOdds').value || '5000', 10);
+    const joinMins = parseInt($('mJoinMins').value || '15', 10);
+    const resolveMins = parseInt($('mResolveMins').value || '30', 10);
+
+    const Aeth = String($('mPayEth').value || '0');
+    const Awei = ethers.parseEther(Aeth);
+
+    const c = getV2Contract(false);
+    if(!c) throw new Error('V2 contract not available.');
+
+    const joinSecs = BigInt(joinMins) * 60n;
+    const resolveSecs = BigInt(resolveMins) * 60n;
+
+    $('mActionStatus').textContent = '⏳ Creating offer… confirm in wallet';
+    const tx = await c.openOffer(mSideYes, pBps, Number(joinSecs), Number(resolveSecs), { value: Awei });
+    $('mActionStatus').textContent = '⏳ Waiting for confirmation…';
+    const r = await tx.wait();
+    // Try to pull offerId from logs (OfferOpened indexed offerId)
+    let offerId = '';
+    try{
+      for(const log of r.logs){
+        // decode with iface
+        const iface = new ethers.Interface(ABI_V2);
+        const parsed = iface.parseLog(log);
+        if(parsed && parsed.name === 'OfferOpened'){
+          offerId = String(parsed.args.offerId);
+          break;
+        }
+      }
+    }catch(e){}
+    $('mActionStatus').textContent = offerId ? ('✅ Offer created. ID: ' + offerId) : '✅ Offer created.';
+    if(offerId && $('mOfferId')) $('mOfferId').value = offerId;
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '❌ ' + (e?.shortMessage || e?.message || e);
+  }
+}
+
+async function doLoadOffer(){
+  try{
+    if(!$('mActionStatus')) return;
+    $('mActionStatus').textContent = '';
+    const net = NETWORKS[CURRENT_NETWORK];
+    if(!net || !net.v2contract) throw new Error('V2 contract address not set for this network.');
+
+    const id = BigInt($('mOfferId').value || '0');
+    if(id <= 0n) throw new Error('Enter Offer ID');
+
+    const c = getV2Contract(true);
+    if(!c) throw new Error('V2 contract not available.');
+
+    const o = await c.getOffer(id);
+    const creator = o[0], taker = o[1], sideYes = o[2], pBps = Number(o[3]);
+    const A = o[4], B = o[5];
+
+    // Cache for top summary when on Offer Actions tab
+    let feeBps = 0;
+    try{ feeBps = Number(await c.protocolFeeBps()); }catch(e){}
+    lastV2Offer = { Awei: A, Bwei: B, feeBps };
+    offerUpdateTopSummary();
+    const joinDl = Number(o[6]), resDl = Number(o[7]);
+    const state = Number(o[9]);
+    const cv = Number(o[10]), tv = Number(o[11]);
+    const paid = o[12];
+
+    const lines = [];
+    lines.push('Offer #' + id);
+    lines.push('Creator: ' + creator);
+    lines.push('Taker:   ' + (taker === ethers.ZeroAddress ? '(none)' : taker));
+    lines.push('Creator side: ' + (sideYes ? 'YES' : 'NO'));
+    lines.push('Odds: YES ' + Math.round(pBps/100) + '% / NO ' + (100 - Math.round(pBps/100)) + '%');
+    lines.push('Creator stake (A): ' + ethers.formatEther(A) + ' ETH');
+    lines.push('Taker stake (B):   ' + ethers.formatEther(B) + ' ETH');
+    lines.push('Join deadline:     ' + new Date(joinDl*1000).toLocaleString());
+    lines.push('Resolve deadline:  ' + new Date(resDl*1000).toLocaleString());
+    lines.push('State: ' + ['Open','Filled','Resolved','Refunded'][state] + ' | Paid: ' + paid);
+    lines.push('Votes: creator=' + cv + ' taker=' + tv);
+
+    const el = $('mOfferDetails');
+    if(el){
+      el.style.display = 'block';
+      el.textContent = lines.join('\n');
+    }
+    $('mActionStatus').textContent = '✅ Loaded.';
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '❌ ' + (e?.shortMessage || e?.message || e);
+  }
+}
+
+async function doTakeOffer(){
+  try{
+    if(!$('mActionStatus')) return;
+    $('mActionStatus').textContent = '';
+    const net = NETWORKS[CURRENT_NETWORK];
+    if(!net || !net.v2contract) throw new Error('V2 contract address not set for this network.');
+    if(!signer) throw new Error('Connect wallet first.');
+
+    const id = BigInt($('mOfferId').value || '0');
+    if(id <= 0n) throw new Error('Enter Offer ID');
+
+    const cr = getV2Contract(true);
+    const o = await cr.getOffer(id);
+    const B = o[5];
+
+    const c = getV2Contract(false);
+    $('mActionStatus').textContent = '⏳ Taking offer… confirm in wallet';
+    const tx = await c.takeOffer(id, { value: B });
+    $('mActionStatus').textContent = '⏳ Waiting for confirmation…';
+    await tx.wait();
+    $('mActionStatus').textContent = '✅ Offer taken.';
+    await doLoadOffer();
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '❌ ' + (e?.shortMessage || e?.message || e);
+  }
+}
+
+async function doVoteOffer(outcomeYes){
+  try{
+    if(!$('mActionStatus')) return;
+    $('mActionStatus').textContent = '';
+    const net = NETWORKS[CURRENT_NETWORK];
+    if(!net || !net.v2contract) throw new Error('V2 contract address not set for this network.');
+    if(!signer) throw new Error('Connect wallet first.');
+
+    const id = BigInt($('mOfferId').value || '0');
+    if(id <= 0n) throw new Error('Enter Offer ID');
+
+    const c = getV2Contract(false);
+    $('mActionStatus').textContent = '⏳ Submitting vote… confirm in wallet';
+    const tx = await c.submitOfferVote(id, outcomeYes);
+    $('mActionStatus').textContent = '⏳ Waiting for confirmation…';
+    await tx.wait();
+    $('mActionStatus').textContent = '✅ Vote submitted.';
+    await doLoadOffer();
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '❌ ' + (e?.shortMessage || e?.message || e);
+  }
+}
+
+async function doResolveOffer(){
+  try{
+    if(!$('mActionStatus')) return;
+    $('mActionStatus').textContent = '';
+    const net = NETWORKS[CURRENT_NETWORK];
+    if(!net || !net.v2contract) throw new Error('V2 contract address not set for this network.');
+    if(!signer) throw new Error('Connect wallet first.');
+
+    const id = BigInt($('mOfferId').value || '0');
+    if(id <= 0n) throw new Error('Enter Offer ID');
+
+    const c = getV2Contract(false);
+    $('mActionStatus').textContent = '⏳ Resolving… confirm in wallet';
+    const tx = await c.resolveOffer(id);
+    $('mActionStatus').textContent = '⏳ Waiting for confirmation…';
+    await tx.wait();
+    $('mActionStatus').textContent = '✅ Resolved.';
+    await doLoadOffer();
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '❌ ' + (e?.shortMessage || e?.message || e);
+  }
+}
+
+async function doRefundOffer(){
+  try{
+    if(!$('mActionStatus')) return;
+    $('mActionStatus').textContent = '';
+    const net = NETWORKS[CURRENT_NETWORK];
+    if(!net || !net.v2contract) throw new Error('V2 contract address not set for this network.');
+    if(!signer) throw new Error('Connect wallet first.');
+
+    const id = BigInt($('mOfferId').value || '0');
+    if(id <= 0n) throw new Error('Enter Offer ID');
+
+    const c = getV2Contract(false);
+    $('mActionStatus').textContent = '⏳ Requesting refund… confirm in wallet';
+    const tx = await c.refundOffer(id);
+    $('mActionStatus').textContent = '⏳ Waiting for confirmation…';
+    await tx.wait();
+    $('mActionStatus').textContent = '✅ Refund submitted.';
+    await doLoadOffer();
+  }catch(e){
+    if($('mActionStatus')) $('mActionStatus').textContent = '❌ ' + (e?.shortMessage || e?.message || e);
+  }
+}
+
+/* ---------- Smart status + outcome messaging ---------- */
+function nowSec(){ return Math.floor(Date.now()/1000); }
+
+function shortAddr(a){
+  if(!a) return '';
+  return a.slice(0,6) + '…' + a.slice(-4);
+}
+
+function fmtTimeFromSec(ts){
+  if(!ts || ts<=0) return '';
+  try{
+    const d = new Date(ts*1000);
+    return d.toLocaleString();
+  }catch{
+    return String(ts);
+  }
+}
+
+function txLink(hash){
+  const net = currentBase();
+  return `${net.explorer}/tx/${hash}`;
+}
+
+function setStatus(targetId, msg){
+  const el = $(targetId);
+  if(el) el.textContent = msg || '';
+}
+
+async function readChallenge(betId){
+  const c = getContract();
+  const b = await c.getChallenge(betId);
+  // ABI: (challenger, participant, stakeWei, feeBps, joinDeadline, resolveDeadline, createdAt, state, challengerVote, participantVote)
+  return {
+    challenger: b[0],
+    participant: b[1],
+    stakeWei: b[2],
+    feeBps: Number(b[3]),
+    joinDeadline: Number(b[4]),
+    resolveDeadline: Number(b[5]),
+    createdAt: Number(b[6]),
+    state: Number(b[7]),
+    challengerVote: Number(b[8]),
+    participantVote: Number(b[9]),
+  };
+}
+
+// vote encoding: your contract stores int8; most common pattern is:
+//  0 = none
+//  1 = challenger won (true)
+// -1 = challenger lost (false)
+function voteLabel(v){
+  if(v === 0) return 'No vote yet';
+  if(v === 1) return 'Voted: Challenger won';
+  if(v === -1) return 'Voted: Opponent won';
+  return `Voted: ${v}`;
+}
+
+function whoAmI(ch, me){
+  if(!me) return 'viewer';
+  const m = me.toLowerCase();
+  if(ch.challenger?.toLowerCase() === m) return 'challenger';
+  if(ch.participant?.toLowerCase() === m) return 'participant';
+  return 'viewer';
+}
+
+// Works even if your contract "state" meanings change,
+// because we also infer from addresses + deadlines + votes.
+function inferOutcome(ch){
+  const t = nowSec();
+  const joined = ch.participant && ch.participant !== ethers.ZeroAddress;
+  const joinExpired = ch.joinDeadline > 0 && t > ch.joinDeadline;
+  const resolveExpired = ch.resolveDeadline > 0 && t > ch.resolveDeadline;
+
+  const hasBothVotes = ch.challengerVote !== 0 && ch.participantVote !== 0;
+  const votesAgree = hasBothVotes && (ch.challengerVote === ch.participantVote);
+  const votesConflict = hasBothVotes && !votesAgree;
+
+  // "finished" heuristic:
+  // - your earlier code treated state > 1 as "finished" :contentReference[oaicite:3]{index=3}
+  const finished = (ch.state > 1) && votesAgree;
+
+  // "refunded" heuristic:
+  // If contract marks refunded as finished without votes, you may want to tighten this later.
+  const likelyRefunded = (ch.state > 1) && !joined; // optional heuristic
+
+  return { t, joined, joinExpired, resolveExpired, hasBothVotes, votesAgree, votesConflict, finished, likelyRefunded };
+}
+
+async function refreshBetStatus(targetId = 'actionStatus'){
+  const raw = String(($('betId')?.value || '')).trim();
+  if(!/^\d+$/.test(raw)){
+    setStatus(targetId, 'Paste a Challenge ID to see status.');
+    return;
+  }
+  if(!signer){
+    setStatus(targetId, 'Connect your wallet to check live on-chain status.');
+    return;
+  }
+
+  try{
+    const betId = BigInt(raw);
+    const ch = await readChallenge(betId);
+
+    if(!ch.challenger || ch.challenger === ethers.ZeroAddress){
+      setStatus(targetId, '❌ Challenge not found. Double-check the ID.');
+      return;
+    }
+
+    const stakeEth = Number(ethers.formatEther(ch.stakeWei || 0n));
+    const potEth = stakeEth * 2;
+    const joinBy = fmtTimeFromSec(ch.joinDeadline);
+    const resolveBy = fmtTimeFromSec(ch.resolveDeadline);
+
+    const inf = inferOutcome(ch);
+
+    // Most helpful “what should I do now?” messages:
+    if(!inf.joined){
+      if(inf.joinExpired){
+        setStatus(targetId,
+          `⏳ Not joined. Join window closed (${joinBy}).\n` +
+          `If you funded this challenge, use “Request Refund” to get your stake back.`
+        );
+      }else{
+        setStatus(targetId,
+          `🟢 Open & joinable.\n` +
+          `Stake: ${stakeEth.toFixed(6)} ETH (pot ≈ ${potEth.toFixed(6)} ETH).\n` +
+          `Join by: ${joinBy}.\n` +
+          `Creator: ${shortAddr(ch.challenger)}`
+        );
+      }
+      return;
+    }
+
+    // Joined
+    if(inf.finished){
+      setStatus(targetId,
+        `🏁 Completed.\n✅ Paid out on-chain (votes matched).\n` +
+        `Resolve deadline was: ${resolveBy}.`
+      );
+      return;
+    }
+
+    if(inf.votesConflict){
+      setStatus(targetId,
+        `⚠️ Votes conflict.\n` +
+        `Creator: ${voteLabel(ch.challengerVote)}\n` +
+        `Opponent: ${voteLabel(ch.participantVote)}\n\n` +
+        `For payout, both votes must match. If this is wrong, both players should re-check and submit the same result.`
+      );
+      return;
+    }
+
+    if(inf.resolveExpired){
+      setStatus(targetId,
+        `⏳ Resolve deadline passed (${resolveBy}).\n` +
+        `Refund should be available now. Use “Request Refund”.\n` +
+        `Creator: ${voteLabel(ch.challengerVote)} • Opponent: ${voteLabel(ch.participantVote)}`
+      );
+      return;
+    }
+
+    // Still active
+    setStatus(targetId,
+      `🟣 Joined & active.\n` +
+      `Resolve by: ${resolveBy}.\n` +
+      `Creator: ${voteLabel(ch.challengerVote)} • Opponent: ${voteLabel(ch.participantVote)}\n` +
+      `Next: both players vote, then “Finalize & Payout”.`
+    );
+
+  }catch(e){
+    console.error('refreshBetStatus failed', e);
+    setStatus(targetId, '❌ Could not load challenge status. Make sure you are on the correct network and try again.');
+  }
+}
+
+async function runTxWithUX({ title, targetId, sendTx }){
+  // Title shown to user, plus clean lifecycle messages
+  openTxModal(`${title}\n\n1) Waiting for signature…`, false);
+
+  try{
+    const tx = await sendTx(); // should return populated tx response
+    if(!tx?.hash){
+      updateTxModal(`${title}\n\n✅ Submitted. Waiting for confirmation…`, false);
+    }else{
+      updateTxModal(
+        `${title}\n\n✅ Submitted.\nTx: ${tx.hash}\n\n2) Waiting for confirmation…`,
+        true
+      );
+      const linkEl = $('lastTx');
+      if(linkEl){
+        linkEl.href = txLink(tx.hash);
+        linkEl.textContent = 'View on Basescan';
+      }
+    }
+
+    const receipt = await tx.wait();
+    updateTxModal(`${title}\n\n✅ Confirmed on-chain.\n\nRefreshing status…`, true);
+
+    // refresh UI
+    await refreshBetStatus(targetId);
+    maybeShowOutcomePopup(true).catch(()=>{});
+    return receipt;
+
+  }catch(e){
+    console.error('runTxWithUX failed', e);
+
+    const msg = (() => {
+      const m = (e?.shortMessage || e?.info?.error?.message || e?.message || String(e)).toLowerCase();
+      if(m.includes('user rejected') || m.includes('rejected')){
+        return 'You rejected the transaction in your wallet.';
+      }
+      if(m.includes('insufficient funds')){
+        return 'Insufficient funds for stake + gas.';
+      }
+      if(m.includes('wrong network') || m.includes('chain') || m.includes('switch')){
+        return 'Wrong network. Switch your wallet to match the selected Base network and try again.';
+      }
+      return (e?.shortMessage || e?.info?.error?.message || e?.message || String(e));
+    })();
+
+    showError(`❌ ${title} failed.\n\n${msg}`, targetId);
+    throw e;
+  }
+}
+
+  
+/* ---------- Error modal helpers ---------- */
+function openErrorModal(message){
+  const modal = $('errorModal');
+  const msgEl = $('errorModalMessage');
+  if (!modal || !msgEl) return;
+  msgEl.textContent = message;
+  modal.classList.add('visible');
+}
+/* ---------- Transaction modal helpers ---------- */
+function openTxModal(message, showButton = false){
+  const modal = $('txModal');
+  const msgEl = $('txModalMessage');
+  const btn   = $('txModalBtn');
+  if (!modal || !msgEl) return;
+
+  msgEl.textContent = message || '';
+  modal.classList.add('visible');
+
+  if (btn){
+    btn.style.display = showButton ? 'block' : 'none';
+  }
+}
+
+function updateTxModal(message, showButton = false){
+  const msgEl = $('txModalMessage');
+  const btn   = $('txModalBtn');
+
+  if (msgEl) msgEl.textContent = message || '';
+  if (btn) btn.style.display = showButton ? 'block' : 'none';
+}
+
+function closeTxModal(){
+  const modal = $('txModal');
+  if (modal) modal.classList.remove('visible');
+}
+function closeErrorModal(){
+  const modal = $('errorModal');
+  if (modal) modal.classList.remove('visible');
+}
+
+function showError(message, targetId){
+  let msg = '';
+  if (message == null){
+    msg = '';
+  } else if (typeof message === 'string'){
+    msg = message;
+  } else if (message?.shortMessage){
+    msg = message.shortMessage;
+  } else if (message?.info?.error?.message){
+    msg = message.info.error.message;
+  } else if (message?.message){
+    msg = message.message;
+  } else {
+    msg = String(message);
+  }
+
+  const lower = msg.toLowerCase();
+  if (lower.includes('missing revert data') || lower.includes('call_exception')){
+    let netLabel = 'Base';
+    try {
+      const net = currentBase();
+      netLabel = (net.key === 'mainnet') ? 'Base Mainnet (chain 8453)' : 'Base Sepolia Testnet (chain 84532)';
+    } catch(e) {}
+    msg = '❌ Your wallet rejected this transaction or is on the wrong network.\n\n' + `Open your wallet and switch to ${netLabel}, then try again.`;
+  } else {
+    if (!msg.startsWith('❌')){
+      msg = '❌ ' + msg;
+    }
+  }
+
+  if (targetId && $(targetId)){
+    $(targetId).textContent = msg;
+  }
+  openErrorModal(msg);
+}
+async function maybeShowOutcomePopup(force = false){
+  try{
+    const raw = String(($('betId')?.value || '')).trim();
+    if(!/^\d+$/.test(raw)) return;
+
+    const betId = BigInt(raw);
+    const key = `juice_outcome_seen_${CURRENT_NETWORK}_${betId}`;
+
+    if(!force && localStorage.getItem(key) === '1') return;
+    if(!signer) return;
+
+    const c = getContract();
+    const b = await c.getChallenge(betId);
+    if (b[0] === ethers.ZeroAddress) return;
+
+    const creator = b[0];
+    const opponent = b[1];
+
+    const joinDeadline    = Number(b[4]);
+    const resolveDeadline = Number(b[5]);
+    const state           = Number(b[7]);
+    const creatorVote     = Number(b[8]);
+    const opponentVote    = Number(b[9]);
+
+    // Only show once the challenge is actually closed on-chain
+    if (state <= 1) return;
+
+    const now = Math.floor(Date.now()/1000);
+    const short = (a)=> a ? (a.slice(0,6) + '…' + a.slice(-4)) : '';
+
+    const noOpponent = (opponent === ethers.ZeroAddress);
+
+    // Votes agree if both non-zero and equal (covers your current pattern)
+    const votesAgree = (creatorVote === opponentVote) && !(creatorVote === 0 && opponentVote === 0 && now > resolveDeadline);
+
+    // Determine winner if payout happened
+    // Supports common encodings:
+    // - creatorWon stored as 1 / -1
+    // - OR creatorWon stored as 1 / 0
+    // - OR creatorWon stored as 1 / 2
+    const creatorWon =
+      (creatorVote === 1) ? true :
+      (creatorVote === -1) ? false :
+      (creatorVote === 0) ? false :
+      (creatorVote === 2) ? false :
+      null;
+
+    // If no opponent ever joined, this can only be a solo-refund close
+    if (noOpponent){
+      if (now > joinDeadline){
+        openTxModal(
+          `🏁 Challenge closed\n\n↩️ Refunded on-chain (no one joined before the join deadline).`,
+          true
+        );
+        localStorage.setItem(key, '1');
+      }
+      return;
+    }
+
+    // If votes matched, payout was executed
+    if (votesAgree && creatorWon !== null){
+      const winnerAddr = creatorWon ? creator : opponent;
+
+      // Optional: personalized line if YOU are the winner
+      let youLine = '';
+      try{
+        const me = (await signer.getAddress()).toLowerCase();
+        if (winnerAddr.toLowerCase() === me) youLine = `\n\n✅ You won — payout sent on-chain.`;
+      }catch(e){}
+
+      openTxModal(
+        `🏁 Challenge complete!\n\n✅ Winner has been paid out on-chain.\nWinner: ${short(winnerAddr)}${youLine}`,
+        true
+      );
+      localStorage.setItem(key, '1');
+      return;
+    }
+
+    // Otherwise: closed via refund path (vote mismatch + deadline, etc.)
+    let reason = 'Refunded on-chain.';
+    const votesMismatch = (creatorVote !== 0 && opponentVote !== 0 && creatorVote !== opponentVote);
+
+    if (votesMismatch && now > resolveDeadline){
+      reason = 'Refunded on-chain (votes did not match before the resolve deadline).';
+    } else if (now > resolveDeadline){
+      reason = 'Refunded on-chain (resolve deadline passed).';
+    }
+
+    openTxModal(`🏁 Challenge closed\n\n↩️ ${reason}`, true);
+    localStorage.setItem(key, '1');
+
+  }catch(e){
+    // silently ignore
+  }
+}
+
+/* ---------- QR + share helpers ---------- */
+function currentShareUrl(){
+  const betIdRaw = String(($('betId')?.value || '')).trim();
+  const ideaRaw  = String(($('ideaBox')?.value || '')).trim();
+
+  try{
+    const u = new URL(location.href);
+    if(/^\d+$/.test(betIdRaw)){
+      u.searchParams.set('bet',betIdRaw);
+    }else{
+      u.searchParams.delete('bet');
+    }
+    if(ideaRaw){
+      u.searchParams.set('idea',ideaRaw);
+    }else{
+      u.searchParams.delete('idea');
+    }
+    return u.toString();
+  }catch{
+    return location.href;
+  }
+}
+
+let qr = null;
+function renderQR(){
+  const node = $('qrBox');
+  if(!node) return;
+  node.innerHTML = '';
+  qr = new QRCode(node,{
+    text:currentShareUrl(),
+    width:140,
+    height:140,
+    colorDark:'#ffffff',
+    colorLight:'#0b0b10',
+    correctLevel:QRCode.CorrectLevel.M
+  });
+}
+function setCopyPulse(el){
+  el.classList.add('connected');
+  setTimeout(()=>el.classList.remove('connected'),800);
+}
+
+/* ---------- USD/ETH preview ---------- */
+function updatePreview(){
+  const eth = parseFloat($('stakeEth').value || '0') || 0;
+  const pot = eth*2;
+  const feeBps = (Number.isFinite(currentFeeBps) ? Number(currentFeeBps) : FEE_BPS);
+  const win = pot*(1-feeBps/10000);
+
+  const potEthEl = $('sbPotEth');
+  // Precision fix: increased to 6 decimals
+  if(potEthEl) potEthEl.textContent = pot.toFixed(6);
+
+  const potUsdEl = $('sbPotUsd');
+  if(potUsdEl) potUsdEl.textContent = fmtUsd(pot*ETH_USD);
+
+  const winEthEl = $('sbWinEth');
+  // Precision fix: increased to 6 decimals
+  if(winEthEl) winEthEl.textContent = win.toFixed(6);
+
+  const winUsdEl = $('sbWinUsd');
+  if(winUsdEl) winUsdEl.textContent = fmtUsd(win*ETH_USD);
+}
+
+function applyStakeFromEth(rawEth){
+  const eth = Math.max(0,Number(rawEth) || 0);
+  // Precision fix: increased to 6 decimals
+  $('stakeEth').value = eth.toFixed(6);
+  $('stakeUsd').value = (eth*ETH_USD).toFixed(0);
+  updatePreview();
+
+  if(stakeMode==='ETH'){
+    $('stakeSymbol').textContent = 'Ξ';
+    $('stakeMain').value = eth.toFixed(6);
+  }else{
+    $('stakeSymbol').textContent = '$';
+    $('stakeMain').value = (eth*ETH_USD).toFixed(0);
+  }
+}
+
+function applyStakeFromUsd(usd){
+  const u = Math.max(0,Number(usd) || 0);
+  $('stakeUsd').value = u.toFixed(0);
+  const eth = (u/ETH_USD) || 0;
+  // Precision fix: increased to 6 decimals
+  $('stakeEth').value = eth.toFixed(6);
+  updatePreview();
+
+  if(stakeMode==='USD'){
+    $('stakeSymbol').textContent = '$';
+    $('stakeMain').value = u.toFixed(0);
+  }else{
+    $('stakeSymbol').textContent = 'Ξ';
+    $('stakeMain').value = eth.toFixed(6);
+  }
+}
+
+let stakeMode = 'USD';
+function setStakeMode(mode){
+  stakeMode = mode;
+  if(mode==='ETH'){
+    $('stakeModeEth').classList.add('connected');
+    $('stakeModeUsd').classList.remove('connected');
+    $('stakeSymbol').textContent = 'Ξ';
+    // Precision fix: increased to 6 decimals
+    $('stakeMain').value = Number($('stakeEth').value || '0').toFixed(6);
+  }else{
+    $('stakeModeUsd').classList.add('connected');
+    $('stakeModeEth').classList.remove('connected');
+    $('stakeSymbol').textContent = '$';
+    $('stakeMain').value = Number($('stakeUsd').value || '0').toFixed(0);
+  }
+}
+
+function handleStakeMainInput(){
+  const raw = $('stakeMain').value;
+  if(stakeMode==='ETH'){
+    applyStakeFromEth(raw);
+  }else{
+    applyStakeFromUsd(raw);
+  }
+}
+
+/* ---------- Bet ideas ---------- */
+const IDEAS = [
+  "Basketball 🏀: Make a 3",
+  "Darts 🎯: Hit any double in 3 throws",
+  "Darts 🎯: You vs Me",
+  "Darts 🎯: Bullseye",
+  "Drink 🥛: Chug under 1 minute",
+  "Hockey 🥅: Hit the crossbar",
+  "Lacrosse 🥍: Top right corner",
+  "Human 🥇: No way you can..!",
+  "Human 🥇: I bet you can't",
+  "Cornhole 🥇: 2 in a row",
+  "Bottle Flip 🍼: 3 out of 5",
+  "Soccer ⚽️: Crossbar in 3 tries",
+  "Golf ⛳️: Hole in one!",
+  "Golf 🏌️‍♂️: 3-putt?",
+  "Golf 🏌️‍♂️: 2-putt or better",
+  "Golf 🏌️‍♂️: Long-drive",
+  "Golf 🏌️‍♂️: On the Green",
+  "Golf 🏌️‍♂️: Closest to the pin",
+  "Ping pong 🏓: First to 11",
+  "🥅 First to 3 goals 🥅",
+  "Next hole ⛳️: low score wins",
+  "Basketball 🏀: Next free throw 🏀",
+  "BasketBall ⛹️: You vs Me",
+  "🏈 Next field goal attempt 🏈",
+  "⚽️ Penalty kick showdown ⚽️",
+  "💰 Coin flip, best of 3",
+  "✂️ Rock–paper–scissors 🗒️",
+  "Dice 🎲",
+  "Bowling 🎳: Perfect Game",
+  "Bowling 🎳: You vs Me",
+  "Chess ♟️: You vs Me",
+  "Video Game 🎮: You vs Me",
+  "Pool 🎱: Team 1 vs Team 2",
+  "Ping Pong 🏓: You vs Me",
+  "Badminton 🏸: Team 1 vs Team 2",
+  "Tennis 🎾: Team 1 vs Team 2",
+  "Volleyball 🏐: Team 1 vs Team 2",
+  "Baseball ⚾️: Team 1 vs Team 2",
+  "Softball 🥎: Team 1 vs Team 2",
+  "Archery 🏹: Best score",
+  "1v1"
+];
+
+function shuffleIdea(){
+  const input = $('ideaBox');
+  if(!input) return;
+  const idx = Math.floor(Math.random()*IDEAS.length);
+  input.value = IDEAS[idx];
+}
+
+/* ---------- New challenge link ---------- */
+function startNewBet(){
+  $('newBetNote').style.display = 'none';
+  $('betId').value = '';
+  $('ideaBox').value = '';
+  const url = currentShareUrl();
+  $('shareUrl').value = url;
+  renderQR();
+}
+
+/* ---------- ABI ---------- */
+const ABI = [
+  'function getChallenge(uint256 challengeId) view returns (address challenger, address participant, uint256 stakeWei, uint16 feeBps, uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 challengerVote, int8 participantVote)',
+  'function nextChallengeId() view returns (uint256)',
+  'function protocolFeeBps() view returns (uint16)',
+  'function MIN_PROTOCOL_FEE_BPS() view returns (uint16)',
+  'function MAX_PROTOCOL_FEE_BPS() view returns (uint16)',
+  'function refundPenaltyBps() view returns (uint16)',
+  'function MIN_REFUND_PENALTY_BPS() view returns (uint16)',
+  'function MAX_REFUND_PENALTY_BPS() view returns (uint16)',
+  'function paused() view returns (bool)',
+  'function openChallenge(uint256 stakeWei, uint16 feeBps, uint64 joinWindowSeconds, uint64 resolveWindowSeconds) payable returns (uint256 challengeId)',
+  'function joinChallenge(uint256 challengeId) payable',
+  'function submitOutcomeVote(uint256 challengeId, bool challengerWon)',
+  'function resolveChallenge(uint256 challengeId)',
+  'function issueRefund(uint256 challengeId)',
+  'function setProtocolFeeBps(uint16 newFeeBps)',
+  'function setRefundPenaltyBps(uint16 newPenaltyBps)',
+  'function setPaused(bool paused_)',
+  'function withdrawProtocolFees(address to)'
+];
+
+
+const ABI_V2 = [
+  'function protocolFeeBps() view returns (uint16)',
+  'function openOffer(bool creatorSideYes,uint16 pBps,uint64 joinWindowSeconds,uint64 resolveWindowSeconds) payable returns (uint256)',
+  'function takeOffer(uint256 offerId) payable',
+  'function submitOfferVote(uint256 offerId,bool outcomeYes)',
+  'function resolveOffer(uint256 offerId)',
+  'function refundOffer(uint256 offerId)',
+  'function getOffer(uint256 offerId) view returns (address creator,address taker,bool creatorSideYes,uint16 pBps,uint256 creatorStakeWei,uint256 takerStakeWei,uint64 joinDeadline,uint64 resolveDeadline,uint64 createdAt,uint8 state,int8 creatorVote,int8 takerVote,bool paid)'
+];
+
+
+
+/* ---------- Wallet / ethers ---------- */
+let provider,signer;
+let lastV2Offer = null; // {Awei,Bwei,feeBps}
+let wcProvider = null;
+let activeConnector = 'injected';
+const WC_PROJECT_ID = '0a7260b6b9e686ea7a8bcd57085eac0e';
+
+function getEth(){
+  const eth = window.ethereum;
+  if(!eth) return null;
+  if(eth.providers && eth.providers.length){
+    const mm = eth.providers.find(p=>p.isMetaMask);
+    return mm || eth.providers[0];
+  }
+  return eth;
+}
+
+async function ensureBase(){
+  const net = currentBase();
+  const expectedChainId = net.key==='mainnet' ? 8453 : 84532;
+
+  if (activeConnector === 'walletconnect' && wcProvider) {
+    await ensureWalletOnChain(wcProvider, expectedChainId);
+    return;
+  }
+
+  const eth = getEth();
+  if(!eth){
+    alert('Wallet not found (MetaMask / Coinbase / Brave).');
+    throw new Error('no wallet');
+  }
+
+  const chain = await eth.request({method:'eth_chainId'});
+  
+  // FIX: Use BigInt comparison to handle "0x2105" vs "0x02105" mismatches
+  if(BigInt(chain) !== BigInt(net.idHex)){
+    try{
+      await eth.request({
+        method:'wallet_switchEthereumChain',
+        params:[{chainId:net.idHex}]
+      });
+    }catch(e){
+      if(e.code===4902){
+        await eth.request({
+          method:'wallet_addEthereumChain',
+          params:[{
+            chainId:net.idHex,
+            chainName:net.chainName,
+            nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18},
+            rpcUrls:[net.rpc],
+            blockExplorerUrls:[net.explorer]
+          }]
+        });
+      }else{
+        console.error('ensureBase() failed',e);
+        throw e;
+      }
+    }
+  }
+}
+
+async function connect(){
+  try{
+    await ensureBase();
+    const eth = getEth();
+    if(!eth){
+      alert('Wallet not found (MetaMask / Coinbase / Brave).');
+      throw new Error('no wallet');
+    }
+    await eth.request({method:'eth_requestAccounts'});
+
+    provider = new ethers.BrowserProvider(eth);
+    signer = await provider.getSigner();
+    activeConnector = 'injected';
+
+    $('sbState').textContent = 'Connected';
+    updateWalletNetworkLabel();
+
+    const netChipTop = $('chipNetwork');
+    const netChipBottom = $('chipNetworkBottom');
+    if(netChipTop) netChipTop.classList.add('badge');
+    if(netChipBottom) netChipBottom.classList.add('badge');
+
+    $('sbState').classList.add('ok');
+    $('btnConnect').classList.add('connected');
+    updateWalletNetworkLabel();
+    // Fetch protocol fee (BPS) so UI + tx params match the contract
+    await refreshProtocolFeeBps();
+
+// NEW: If a bet is already finished, show the “winner paid out” popup (safe no-op if no betId)
+    maybeShowOutcomePopup().catch(()=>{});
+
+
+  }catch(e){
+    console.error('connect() failed',e);
+    $('sbState').textContent = 'Not connected';
+    $('sbState').classList.remove('ok');
+    const w = $('sbWalletNet');
+    if(w) w.textContent = 'Wallet: not connected';
+  }
+}
+
+async function ensureWalletOnChain(wcProvider,chainId){
+  const chainIdHex = chainId===8453 ? '0x2105' : '0x14a34';
+  const isMainnet = chainId===8453;
+
+  try{
+    await wcProvider.request({
+      method:'wallet_switchEthereumChain',
+      params:[{chainId:chainIdHex}]
+    });
+  }catch(err){
+    const code = err.code || (err.data && err.data.originalError && err.data.originalError.code);
+    if(code===4902){
+      await wcProvider.request({
+        method:'wallet_addEthereumChain',
+        params:[{
+          chainId:chainIdHex,
+          chainName:isMainnet ? 'Base Mainnet' : 'Base Sepolia',
+          nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},
+          rpcUrls:[isMainnet ? 'https://mainnet.base.org' : 'https://sepolia.base.org'],
+          blockExplorerUrls:[isMainnet ? 'https://basescan.org' : 'https://sepolia.basescan.org']
+        }]
+      });
+    }else{
+      console.error('wallet_switchEthereumChain failed',err);
+      throw err;
+    }
+  }
+
+  const walletChainHex = await wcProvider.request({method:'eth_chainId'});
+  if(walletChainHex.toLowerCase()!==chainIdHex){
+    throw new Error(`Wallet still not on expected chain ${chainIdHex}, got ${walletChainHex}`);
+  }
+}
+
+async function connectWithWalletConnect(){
+  try{
+    if(!WC_PROJECT_ID || WC_PROJECT_ID==='YOUR_PROJECT_ID_HERE'){
+      alert('Add your WalletConnect project ID in WC_PROJECT_ID before using this.');
+      return;
+    }
+
+    const net = currentBase();
+    const chainId = net.key==='mainnet' ? 8453 : 84532;
+
+    const wcModule = window['@walletconnect/ethereum-provider'] || window.WalletConnectEthereumProvider;
+    const EthereumProvider = wcModule?.EthereumProvider || wcModule?.default || wcModule;
+
+    if(!EthereumProvider || !EthereumProvider.init){
+      console.error('WalletConnect provider not found.',wcModule);
+      alert('WalletConnect library failed to load. Check the <script> tag in <head>.');
+      return;
+    }
+
+    wcProvider = await EthereumProvider.init({
+      projectId:WC_PROJECT_ID,
+      chains: [8453, 84532],
+      optionalChains: [8453, 84532],
+      showQrModal:true,
+      metadata:{
+        name:'The Juice',
+        description:'Peer-to-peer crypto escrow challenges on Base',
+        url:window.location.origin,
+        icons:[window.location.origin + '/favicon.png'],
+      },
+    });
+
+    await wcProvider.connect();
+    await ensureWalletOnChain(wcProvider,chainId);
+
+    provider = new ethers.BrowserProvider(wcProvider);
+    signer   = await provider.getSigner();
+    activeConnector = 'walletconnect';
+
+    $('sbState').textContent = 'Connected (WalletConnect)';
+
+    $('sbState').classList.add('ok');
+    $('btnConnect').classList.add('connected');
+
+    const netChipTop = $('chipNetwork');
+    const netChipBottom = $('chipNetworkBottom');
+    if(netChipTop) netChipTop.classList.add('badge');
+    if(netChipBottom) netChipBottom.classList.add('badge');
+
+    updateWalletNetworkLabel();
+    applyNetworkUI();
+    await refreshProtocolFeeBps();
+    maybeShowOutcomePopup().catch(()=>{});
+
+  }catch(e){
+    console.error('WalletConnect failed',e);
+    $('sbState').textContent = 'WalletConnect failed or canceled';
+    $('sbState').classList.remove('ok');
+    const w = $('sbWalletNet');
+    if(w) w.textContent = 'Wallet: not connected';
+    if(wcProvider){
+      wcProvider = null;
+    }
+  }
+}
+
+function getContract(){
+  if(!signer) throw new Error('Connect your wallet first.');
+  return new ethers.Contract(currentContract(),ABI,signer);
+}
+
+function requireBetId(){
+  const raw = String(($('betId').value || '').trim());
+  if(!raw) throw new Error('Enter a challenge ID first.');
+  if(!/^\d+$/.test(raw)) throw new Error('Challenge ID must be a number.');
+  return BigInt(raw);
+}
+
+/* ---------- Actions ---------- */
+async function doCreate(){
+  const btn = $('btnCreate');
+  if (btn) btn.disabled = true;
+
+  $('createStatus').textContent = 'Waiting for wallet…';
+
+  try{
+    try{
+      await ensureBase();
+      if (!signer) await connect();
+    }catch(e){
+      showError('❌ Please approve the request in your wallet, then try again.', 'createStatus');
+      return;
+    }
+
+    const c = getContract();
+    const stakeEthStrRaw = String($('stakeEth').value || '0').trim();
+    const stakeEthStr = stakeEthStrRaw.replace(/,/g,'');
+    // Preserve user precision (no rounding) to avoid underpayment / reverts
+    if(!/^\d+(?:\.\d+)?$/.test(stakeEthStr)){
+      showError('❌ Enter a valid stake amount (e.g., 0.01).', 'createStatus');
+      return;
+    }
+    const stakeEthNum = Number(stakeEthStr);
+    if (!Number.isFinite(stakeEthNum) || stakeEthNum <= 0){
+      throw new Error('Stake must be greater than zero.');
+    }
+
+    let jm = Math.max(5, Math.min(43200, parseInt($('joinMins').value || '15', 10)));
+    let rm = Math.max(30, Math.min(43200, parseInt($('resolveMins').value || '30', 10)));
+
+    if (rm <= jm){
+      throw new Error('Resolve deadline must be greater than join deadline.');
+    }
+
+    $('joinMins').value = jm;
+    $('resolveMins').value = rm;
+
+    // Precision fix: Ensure we parse the high-precision string
+    const stakeWei = ethers.parseEther(stakeEthStr);
+    $('createStatus').textContent = 'Sending transaction…';
+    openTxModal('⏳ Confirm the transaction in your wallet');
+
+    const tx = await c.openChallenge(
+      stakeWei,
+      Math.round(Number.isFinite(currentFeeBps) ? currentFeeBps : FEE_BPS),
+      BigInt(jm * 60),
+      BigInt(rm * 60),
+      { value: stakeWei }
+    );
+
+    $('createStatus').textContent = '⏳ Transaction sent, waiting for confirmation…';
+    updateTxModal('⛓️ Transaction submitted.\nWaiting for on-chain confirmation…');
+    const receipt = await tx.wait();
+    $('lastTx').href = `${currentBase().explorer}/tx/${receipt.hash}`;
+    $('createStatus').textContent = '✅ Challenge created!';
+    updateTxModal('✅ Challenge created successfully!', true);
+
+    try{
+      const nextId = await c.nextChallengeId();
+      const betId = BigInt(nextId) - 1n;
+      $('betId').value = betId.toString();
+      $('actionStatus').textContent = `Loaded challenge #${betId}`;
+    }catch(e){
+      console.warn('could not fetch nextChallengeId', e);
+    }
+
+    const tabJoin = $('tabJoin');
+    if (tabJoin) tabJoin.click();
+
+  }catch(e){
+    console.error('openChallenge error', e);
+    showError(e, 'createStatus');
+  }finally{
+    if (btn) btn.disabled = false;
+  }
+  closeTxModal();
+}
+
+async function doJoin(){
+  const btn = $('btnJoin');
+  if (btn) btn.disabled = true;
+
+  $('actionStatus').textContent = 'Waiting for wallet…';
+
+  try{
+    try{
+      await ensureBase();
+      if (!signer) await connect();
+    }catch(e){
+      showError('❌ Please approve the request in your wallet, then try again.', 'actionStatus');
+      return;
+    }
+
+    const c = getContract();
+    const betId = requireBetId();
+
+    const b = await c.getChallenge(betId);
+    if (b[0] === ethers.ZeroAddress){
+      showError('❌ Challenge not found', 'actionStatus');
+      return;
+    }
+
+    const stakeWei     = b[2];
+    const joinDeadline = Number(b[4]);
+    const state        = Number(b[7]);
+    const now          = Math.floor(Date.now()/1000);
+
+    if (state !== 0){
+      showError('❌ Challenge is not open to join', 'actionStatus');
+      return;
+    }
+    if (now > joinDeadline){
+      showError('❌ Join deadline has passed for this challenge', 'actionStatus');
+      return;
+    }
+
+   $('actionStatus').textContent = 'Sending transaction…';
+   await runTxWithUX({
+      title: 'Join challenge',
+      targetId: 'actionStatus',
+      sendTx: async () => c.joinChallenge(betId, { value: stakeWei })
+    });
+
+    $('actionStatus').textContent = '✅ Joined challenge';
+}catch(e){
+    console.error('joinChallenge error', e);
+    showError(e, 'actionStatus');
+  }finally{
+    if (btn) btn.disabled = false;
+  }
+  closeTxModal();
+}
+
+async function doVote(iWon){
+  const btnIWon   = $('btnIWon');
+  const btnILost  = $('btnILost');
+  const btnPayout = $('btnPayout');
+
+  [btnIWon, btnILost, btnPayout].forEach(b => { if (b) b.disabled = true; });
+  $('actionStatus').textContent = 'Waiting for wallet…';
+
+  try{
+    try{
+      await ensureBase();
+      if (!signer) await connect();
+    }catch(e){
+      showError('❌ Please approve the request in your wallet, then try again.', 'actionStatus');
+      return;
+    }
+
+    const c = getContract();
+    const betId = requireBetId();
+
+    const b = await c.getChallenge(betId);
+    if (b[0] === ethers.ZeroAddress){
+      showError('❌ Challenge not found', 'actionStatus');
+      return;
+    }
+
+    const caller   = (await signer.getAddress()).toLowerCase();
+    const creator  = b[0].toLowerCase();
+    const opponent = b[1].toLowerCase();
+
+    if (caller !== creator && caller !== opponent){
+      showError('❌ You are not part of this challenge', 'actionStatus');
+      return;
+    }
+
+    let creatorWon;
+    if (caller === creator){
+      creatorWon = !!iWon;
+    }else{
+      creatorWon = !iWon;
+    }
+
+    $('actionStatus').textContent = 'Sending transaction…';
+    await runTxWithUX({
+      title: creatorWon ? 'Vote: I won' : 'Vote: I lost',
+      targetId: 'actionStatus',
+      sendTx: async () => c.submitOutcomeVote(betId, creatorWon)
+    });
+
+    $('actionStatus').textContent = '✅ Vote recorded';
+
+  }catch(e){
+    console.error('submitOutcomeVote error', e);
+    closeTxModal();
+    showError(e, 'actionStatus');
+  }finally{
+    [btnIWon, btnILost, btnPayout].forEach(b => { if (b) b.disabled = false; });
+  }
+}
+
+async function doRefund(){
+  const btn = $('btnRefund');
+  if (btn) btn.disabled = true;
+  $('actionStatus').textContent = 'Waiting for wallet…';
+
+  try{
+    try{
+      await ensureBase();
+      if (!signer) await connect();
+    }catch(e){
+      showError('❌ Please approve the request in your wallet, then try again.', 'actionStatus');
+      return;
+    }
+
+    const c = getContract();
+    const betId = requireBetId();
+
+    const b = await c.getChallenge(betId);
+    if (b[0] === ethers.ZeroAddress){
+      showError('❌ Challenge not found', 'actionStatus');
+      return;
+    }
+
+// Caller must be one of the parties (avoids revert-data spam)
+const me = (await signer.getAddress()).toLowerCase();
+const creatorAddr = String(b[0]).toLowerCase();
+const opponentAddr = String(b[1]).toLowerCase();
+
+if (me !== creatorAddr && me !== opponentAddr){
+  showError('❌ Only the creator or opponent can request a refund for this challenge.', 'actionStatus');
+  return;
+}
+if (b[1] === ethers.ZeroAddress && me !== creatorAddr){
+  showError('❌ Only the creator can refund an unjoined challenge.', 'actionStatus');
+  return;
+}
+
+    const opponent       = b[1];
+    const joinDeadline   = Number(b[4]);
+    const resolveDeadline= Number(b[5]);
+    const state          = Number(b[7]);
+    const creatorVote    = Number(b[8]);
+    const opponentVote   = Number(b[9]);
+
+    const now = Math.floor(Date.now()/1000);
+
+    const noOpponent     = opponent === ethers.ZeroAddress;
+    const votesMismatch  = (creatorVote !== 0 && opponentVote !== 0 && creatorVote !== opponentVote);
+    const canSoloRefund  = (noOpponent && now > joinDeadline);
+    const canSplitRefund = (state === 1 && votesMismatch && now > resolveDeadline);
+
+    if (!canSoloRefund && !canSplitRefund){
+      showError('❌ Refund not available yet for this challenge', 'actionStatus');
+      return;
+    }
+
+    $('actionStatus').textContent = 'Sending transaction…';
+    await runTxWithUX({
+      title: 'Request refund',
+      targetId: 'actionStatus',
+      sendTx: async () => c.issueRefund(betId)
+    });
+
+    $('actionStatus').textContent = '✅ Refund sent';
+
+
+  }catch(e){
+    console.error('refund error', e);
+    closeTxModal();
+    showError(e, 'actionStatus');
+  }finally{
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function doPayout(){
+  const btn = $('btnPayout');
+  if (btn) btn.disabled = true;
+  $('actionStatus').textContent = 'Waiting for wallet…';
+
+  try{
+    try{
+      await ensureBase();
+      if (!signer) await connect();
+    }catch(e){
+      showError('❌ Please approve the request in your wallet, then try again.', 'actionStatus');
+      return;
+    }
+
+    const c = getContract();
+    const betId = requireBetId();
+
+    const b = await c.getChallenge(betId);
+    if (b[0] === ethers.ZeroAddress){
+      showError('❌ Challenge not found', 'actionStatus');
+      return;
+    }
+
+    const state = Number(b[7]);
+    if (state !== 1){
+      showError('❌ This challenge is not ready to finalize.', 'actionStatus');
+      return;
+    }
+
+const creatorVote  = Number(b[8]);
+const opponentVote = Number(b[9]);
+
+const hasBothVotes = (creatorVote !== 0 && opponentVote !== 0);
+const votesAgree   = (hasBothVotes && creatorVote === opponentVote);
+
+if (!hasBothVotes){
+  showError('❌ Both players must vote before payout can be finalized.', 'actionStatus');
+  return;
+}
+if (!votesAgree){
+  showError('❌ Votes do not match. If the resolve deadline passes, use “Request Refund”.', 'actionStatus');
+  return;
+}
+
+    $('actionStatus').textContent = 'Sending transaction…';
+    await runTxWithUX({
+      title: 'Finalize payout',
+      targetId: 'actionStatus',
+      sendTx: async () => c.resolveChallenge(betId)
+    });
+
+    $('actionStatus').textContent = '✅ Payout sent';
+
+  }catch(e){
+    console.error('resolve error', e);
+    closeTxModal();
+    showError(e, 'actionStatus');
+  }finally{
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* ---------- Wire UI ---------- */
+window.addEventListener('DOMContentLoaded',()=>{
+  applyNetworkUI();
+    // Auto-refresh + check completion/refund when a bet ID is entered/changed
+const betEl = $('betId');
+if (betEl) {
+  betEl.addEventListener('input', () => {
+    refreshBetStatus('actionStatus').catch(()=>{});
+    maybeShowOutcomePopup().catch(()=>{});
+  });
+}
+
+// Check once on load (safe no-op until wallet is connected)
+maybeShowOutcomePopup().catch(()=>{});
+
+// Poll so BOTH sides see the “paid/refunded” popup when the other side finalizes
+setInterval(() => {
+  const raw = String(($('betId')?.value || '')).trim();
+  if (!signer) return;
+  if (!/^\d+$/.test(raw)) return;
+
+  refreshBetStatus('actionStatus').catch(()=>{});
+  maybeShowOutcomePopup().catch(()=>{});
+}, 12000);
+
+  const btnSwitch = $('btnSwitch'); if(btnSwitch) btnSwitch.onclick = toggleNetwork;
+  const btnWC = $('btnWalletConnect'); if(btnWC) btnWC.onclick = connectWithWalletConnect;
+
+  // Precision fix: default to 6 decimals
+  applyStakeFromEth(0.0014);
+  setStakeMode('USD');
+  $('stakeMain').addEventListener('input',handleStakeMainInput);
+
+  refreshEthUsd();
+
+  $('stakeModeEth').onclick = ()=>setStakeMode('ETH');
+  $('stakeModeUsd').onclick = ()=>setStakeMode('USD');
+
+  $('usd1').onclick  = ()=>{setStakeMode('USD');$('stakeMain').value=1;handleStakeMainInput();};
+  $('usd5').onclick  = ()=>{setStakeMode('USD');$('stakeMain').value=5;handleStakeMainInput();};
+  $('usd10').onclick = ()=>{setStakeMode('USD');$('stakeMain').value=10;handleStakeMainInput();};
+  $('usd20').onclick = ()=>{setStakeMode('USD');$('stakeMain').value=20;handleStakeMainInput();};
+
+  $('ethPlus').onclick = ()=>{
+    if(stakeMode==='ETH'){
+      const v = Math.max(0,parseFloat($('stakeEth').value || '0') + 0.0001);
+      applyStakeFromEth(v);
+    }else{
+      const usd = (Number($('stakeMain').value) || 0) + 1;
+      $('stakeMain').value = usd;
+      handleStakeMainInput();
+    }
+  };
+  $('ethMinus').onclick = ()=>{
+    if(stakeMode==='ETH'){
+      const v = Math.max(0,parseFloat($('stakeEth').value || '0') - 0.0001);
+      applyStakeFromEth(v);
+    }else{
+      const usd = Math.max(0,(Number($('stakeMain').value) || 0) - 1);
+      $('stakeMain').value = usd;
+      handleStakeMainInput();
+    }
+  };
+
+  document.querySelectorAll('[data-join]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      $('joinMins').value = btn.getAttribute('data-join');
+    });
+  });
+  document.querySelectorAll('[data-resolve]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      $('resolveMins').value = btn.getAttribute('data-resolve');
+    });
+  });
+
+  $('btnCreate').onclick = doCreate;
+  $('btnJoin').onclick   = doJoin;
+  $('btnRefund').onclick = doRefund;
+  $('btnPayout').onclick = doPayout;
+
+  const btnIWon  = $('btnIWon');
+  const btnILost = $('btnILost');
+  if (btnIWon)  btnIWon.onclick  = ()=> doVote(true);
+  if (btnILost) btnILost.onclick = ()=> doVote(false);
+
+  $('btnShuffle').onclick = shuffleIdea;
+
+  const btnReset = $('btnReset');
+  if(btnReset){
+    btnReset.onclick = ()=>{
+      $('joinMins').value = '15';
+      $('resolveMins').value = '30';
+      applyStakeFromEth(0.0014);
+      startNewBet();
+    };
+  }
+
+  $('shareUrl').value = currentShareUrl();
+  renderQR();
+
+  $('btnCopyLink').onclick = ()=>{
+    navigator.clipboard.writeText($('shareUrl').value || '').then(()=>{
+      setCopyPulse($('btnCopyLink'));
+    });
+  };
+  $('btnCopyId').onclick = ()=>{
+    const id = String(($('betId').value || '').trim());
+    if(!id){
+      alert('No challenge ID to copy yet.');
+      return;
+    }
+    navigator.clipboard.writeText(id).then(()=>{
+      setCopyPulse($('btnCopyId'));
+    });
+  };
+  $('btnNewBet').onclick = ()=>{
+    startNewBet();
+    setCopyPulse($('btnNewBet'));
+  };
+
+  const tabCreate   = $('tabCreate');
+  const tabJoin     = $('tabJoin');
+  const tabMarkets  = $('tabMarkets');
+  const tabOffer    = $('tabOffer');
+  const panelCreate = $('panelCreate');
+  const panelJoin   = $('panelJoin');
+  const panelMarkets= $('panelMarkets');
+
+  const panelOffer  = $('panelOffer');
+  function setTab(which){
+    // tabs
+    tabCreate.classList.toggle('active', which==='create');
+    tabJoin.classList.toggle('active', which==='join');
+    if(tabMarkets) tabMarkets.classList.toggle('active', which==='markets');
+    if(tabOffer)   tabOffer.classList.toggle('active', which==='offer');
+
+    // panels
+    panelCreate.classList.toggle('active', which==='create');
+    panelJoin.classList.toggle('active', which==='join');
+    if(panelMarkets) panelMarkets.classList.toggle('active', which==='markets');
+    if(panelOffer) panelOffer.classList.toggle('active', which==='offer');
+
+    if($('createStatus')) $('createStatus').textContent='';
+    if($('actionStatus')) $('actionStatus').textContent='';
+    if($('mActionStatus')) $('mActionStatus').textContent='';
+
+    // Keep the top preview in sync with the active tab
+    try{
+      if(which === 'markets'){
+        marketsSyncUi();
+        marketsUpdatePreview(); // mirrors into top summary
+      } else if(which === 'offer'){
+        if(lastV2Offer) offerUpdateTopSummary();
+        else offerClearTopSummary();
+      } else {
+        // V1 tabs already drive the top summary via updatePreview()
+        updatePreview();
+      }
+    }catch(e){}
+  }
+
+  tabCreate.onclick = ()=> setTab('create');
+  tabJoin.onclick   = ()=> setTab('join');
+  if(tabMarkets) tabMarkets.onclick = ()=> { setTab('markets'); marketsSyncUi(); };
+  
+
+  const btnGoOfferActions = $('btnGoOfferActions');
+  if(btnGoOfferActions) btnGoOfferActions.onclick = ()=> { if(tabOffer) tabOffer.click(); };
+if(tabOffer) tabOffer.onclick = ()=> { setTab('offer'); marketsSyncUi(); };
+
+
+  try{
+    const u = new URL(location.href);
+    const bet  = u.searchParams.get('bet');
+    const idea = u.searchParams.get('idea');
+
+    if(bet && /^\d+$/.test(bet)){
+      $('betId').value = bet;
+      $('shareUrl').value = currentShareUrl();
+      renderQR();
+      tabJoin.click();
+    }
+    if(idea){
+      $('ideaBox').value = idea;
+    }
+  }catch(e){}
+
+  const y = $('yearNow');
+  if(y) y.textContent = String(new Date().getFullYear());
+
+  if(window.ethereum?.on){
+    window.ethereum.on('chainChanged',()=>{
+      signer = null;
+      $('sbState').textContent = 'Network changed — reconnect';
+      $('sbState').classList.remove('ok');
+      $('btnConnect').classList.remove('connected');
+    });
+    window.ethereum.on('accountsChanged',()=>{
+      signer = null;
+      $('sbState').textContent = 'Account changed — reconnect';
+      $('sbState').classList.remove('ok');
+      $('btnConnect').classList.remove('connected');
+    });
+  }
+});
+</script>
+</body>
+</html>
