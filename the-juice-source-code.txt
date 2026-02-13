@@ -1,0 +1,2026 @@
+// ============================================
+// THE JUICE - P2P Betting on Base
+// Full Source Code
+// ============================================
+
+
+// ============================================
+// FILE: client/src/lib/contracts.ts
+// ============================================
+
+export const NETWORKS = {
+  mainnet: {
+    key: 'mainnet',
+    chainId: 8453,
+    idHex: '0x2105',
+    chainName: 'Base Mainnet',
+    rpc: 'https://mainnet.base.org',
+    explorer: 'https://basescan.org',
+    contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
+    v2contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
+  },
+  testnet: {
+    key: 'testnet',
+    chainId: 84532,
+    idHex: '0x14a34',
+    chainName: 'Base Sepolia',
+    rpc: 'https://sepolia.base.org',
+    explorer: 'https://sepolia.basescan.org',
+    contract: '0x61eD264AAEF359717B2070E0426B26aa27D54890',
+    v2contract: '0x61eD264AAEF359717B2070E0426B26aa27D54890',
+  },
+} as const;
+
+export type NetworkKey = keyof typeof NETWORKS;
+
+export const ABI_V1 = [
+  'function openChallenge(uint256 stakeWei, uint16 feeBps, uint64 joinWindowSeconds, uint64 resolveWindowSeconds) payable returns (uint256)',
+  'function joinChallenge(uint256 challengeId) payable',
+  'function submitOutcomeVote(uint256 challengeId, bool challengerWon)',
+  'function resolveChallenge(uint256 challengeId)',
+  'function issueRefund(uint256 challengeId)',
+  'function getChallenge(uint256 challengeId) view returns (address challenger, address participant, uint256 stakeWei, uint16 feeBps, uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 challengerVote, int8 participantVote)',
+  'function nextChallengeId() view returns (uint256)',
+  'function protocolFeeBps() view returns (uint16)',
+  'function setProtocolFeeBps(uint16 newFeeBps)',
+  'function setRefundPenaltyBps(uint16 newPenaltyBps)',
+  'function setPaused(bool paused_)',
+  'function withdrawProtocolFees(address to)',
+];
+
+export const ABI_V2 = [
+  'function protocolFeeBps() view returns (uint16)',
+  'function openOffer(bool creatorSideYes, uint16 pBps, uint64 joinWindowSeconds, uint64 resolveWindowSeconds) payable returns (uint256)',
+  'function takeOffer(uint256 offerId) payable',
+  'function submitOfferVote(uint256 offerId, bool outcomeYes)',
+  'function resolveOffer(uint256 offerId)',
+  'function refundOffer(uint256 offerId)',
+  'function getOffer(uint256 offerId) view returns (address creator, address taker, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei, uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 creatorVote, int8 takerVote, bool paid)',
+  'event OfferOpened(uint256 indexed offerId, address indexed creator, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei, uint64 joinDeadline, uint64 resolveDeadline)',
+];
+
+export function computeTakerStake(creatorWei: bigint, creatorSideYes: boolean, pBps: number): bigint {
+  const p = BigInt(pBps);
+  if (p < 500n || p > 9500n) throw new Error('Odds out of range');
+  if (creatorWei <= 0n) throw new Error('Invalid stake');
+  const ceilDiv = (n: bigint, d: bigint) => (n + d - 1n) / d;
+  if (creatorSideYes) {
+    return ceilDiv(creatorWei * p, 10000n - p);
+  } else {
+    return ceilDiv(creatorWei * (10000n - p), p);
+  }
+}
+
+export const RANDOM_IDEAS = [
+  "BTC hits $150K by end of Q1",
+  "ETH flips SOL in daily volume this week",
+  "Lakers win the NBA Finals",
+  "Taylor Swift announces retirement",
+  "Trump tweets about crypto today",
+  "Apple stock closes above $250 Friday",
+  "It rains in Miami tomorrow",
+  "Elon posts on X before midnight",
+  "Gold hits a new all-time high this month",
+  "FIFA announces new World Cup host",
+  "Next iPhone has no port",
+  "Fed cuts rates at next meeting",
+  "Dogecoin hits $1 this year",
+  "Base TVL exceeds $10B",
+  "OpenAI releases GPT-5",
+];
+
+
+// ============================================
+// FILE: client/src/lib/wallet.tsx
+// ============================================
+
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { ethers } from 'ethers';
+import { NETWORKS, ABI_V1, ABI_V2, type NetworkKey } from './contracts';
+
+interface WalletState {
+  provider: ethers.BrowserProvider | null;
+  signer: ethers.Signer | null;
+  address: string;
+  connected: boolean;
+  network: NetworkKey;
+  ethUsd: number;
+  feeBps: number;
+  connecting: boolean;
+}
+
+interface WalletContextType extends WalletState {
+  connect: () => Promise<void>;
+  switchNetwork: () => void;
+  getV1Contract: (readOnly?: boolean) => ethers.Contract | null;
+  getV2Contract: (readOnly?: boolean) => ethers.Contract | null;
+  shortAddress: string;
+  explorerUrl: string;
+}
+
+const WalletContext = createContext<WalletContextType | null>(null);
+
+export function useWallet() {
+  const ctx = useContext(WalletContext);
+  if (!ctx) throw new Error('useWallet must be inside WalletProvider');
+  return ctx;
+}
+
+function getEth() {
+  const eth = (window as any).ethereum;
+  if (!eth) return null;
+  if (eth.providers?.length) {
+    const mm = eth.providers.find((p: any) => p.isMetaMask);
+    return mm || eth.providers[0];
+  }
+  return eth;
+}
+
+export function WalletProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<WalletState>({
+    provider: null,
+    signer: null,
+    address: '',
+    connected: false,
+    network: 'mainnet',
+    ethUsd: 3500,
+    feeBps: 250,
+    connecting: false,
+  });
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+        const data = await res.json();
+        if (data?.ethereum?.usd) {
+          setState(s => ({ ...s, ethUsd: data.ethereum.usd }));
+        }
+      } catch {
+        // fallback price
+      }
+    };
+    fetchPrice();
+    const iv = setInterval(fetchPrice, 60000);
+    return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    const eth = getEth();
+    if (!eth) return;
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        setState(s => ({ ...s, connected: false, signer: null, provider: null, address: '' }));
+      } else if (state.connected) {
+        const provider = new ethers.BrowserProvider(eth);
+        provider.getSigner().then(async (signer) => {
+          const address = await signer.getAddress();
+          setState(s => ({ ...s, provider, signer, address }));
+        }).catch(() => {
+          setState(s => ({ ...s, connected: false, signer: null, provider: null, address: '' }));
+        });
+      }
+    };
+    const handleChainChanged = () => {
+      setState(s => ({ ...s, connected: false, signer: null, provider: null, address: '' }));
+    };
+    eth.on('accountsChanged', handleAccountsChanged);
+    eth.on('chainChanged', handleChainChanged);
+    return () => {
+      eth.removeListener('accountsChanged', handleAccountsChanged);
+      eth.removeListener('chainChanged', handleChainChanged);
+    };
+  }, [state.connected]);
+
+  const net = NETWORKS[state.network];
+
+  const ensureBase = useCallback(async () => {
+    const eth = getEth();
+    if (!eth) throw new Error('No wallet found');
+    const chain = await eth.request({ method: 'eth_chainId' });
+    if (BigInt(chain) !== BigInt(net.idHex)) {
+      try {
+        await eth.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: net.idHex }],
+        });
+      } catch (e: any) {
+        if (e.code === 4902) {
+          await eth.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: net.idHex,
+              chainName: net.chainName,
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: [net.rpc],
+              blockExplorerUrls: [net.explorer],
+            }],
+          });
+        } else throw e;
+      }
+    }
+  }, [net]);
+
+  const connect = useCallback(async () => {
+    setState(s => ({ ...s, connecting: true }));
+    try {
+      await ensureBase();
+      const eth = getEth();
+      if (!eth) throw new Error('Install MetaMask or Coinbase Wallet');
+      await eth.request({ method: 'eth_requestAccounts' });
+      const provider = new ethers.BrowserProvider(eth);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+
+      let feeBps = 250;
+      try {
+        const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
+        const c = new ethers.Contract(net.contract, ABI_V1, rpcProvider);
+        feeBps = Number(await c.protocolFeeBps());
+      } catch {}
+
+      setState(s => ({
+        ...s,
+        provider,
+        signer,
+        address,
+        connected: true,
+        connecting: false,
+        feeBps,
+      }));
+    } catch (e) {
+      setState(s => ({ ...s, connecting: false }));
+      throw e;
+    }
+  }, [ensureBase, net]);
+
+  const switchNetwork = useCallback(() => {
+    setState(s => ({
+      ...s,
+      network: s.network === 'mainnet' ? 'testnet' : 'mainnet',
+      connected: false,
+      signer: null,
+      provider: null,
+      address: '',
+    }));
+  }, []);
+
+  const getV1Contract = useCallback((readOnly = false) => {
+    if (readOnly) {
+      const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
+      return new ethers.Contract(net.contract, ABI_V1, rpcProvider);
+    }
+    if (!state.signer) return null;
+    return new ethers.Contract(net.contract, ABI_V1, state.signer);
+  }, [net, state.signer]);
+
+  const getV2Contract = useCallback((readOnly = false) => {
+    if (!net.v2contract) return null;
+    if (readOnly) {
+      const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
+      return new ethers.Contract(net.v2contract, ABI_V2, rpcProvider);
+    }
+    if (!state.signer) return null;
+    return new ethers.Contract(net.v2contract, ABI_V2, state.signer);
+  }, [net, state.signer]);
+
+  const shortAddress = state.address
+    ? `${state.address.slice(0, 6)}...${state.address.slice(-4)}`
+    : '';
+
+  const explorerUrl = net.explorer;
+
+  return (
+    <WalletContext.Provider value={{
+      ...state,
+      connect,
+      switchNetwork,
+      getV1Contract,
+      getV2Contract,
+      shortAddress,
+      explorerUrl,
+    }}>
+      {children}
+    </WalletContext.Provider>
+  );
+}
+
+
+// ============================================
+// FILE: client/src/App.tsx
+// ============================================
+
+import { Switch, Route, useLocation, Link } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { WalletProvider, useWallet } from "@/lib/wallet";
+import { NETWORKS } from "@/lib/contracts";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Markets from "@/pages/markets";
+import CreateChallenge from "@/pages/create-challenge";
+import JoinResolve from "@/pages/join-resolve";
+import OfferActions from "@/pages/offer-actions";
+import NotFound from "@/pages/not-found";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import {
+  TrendingUp,
+  Zap,
+  Users,
+  ArrowDownToLine,
+  Wallet,
+  ExternalLink,
+  Globe,
+  Loader2,
+} from "lucide-react";
+
+const navItems = [
+  { title: "Markets", url: "/", icon: TrendingUp },
+  { title: "Create Challenge", url: "/challenge", icon: Zap },
+  { title: "Join & Resolve", url: "/join", icon: Users },
+  { title: "Offer Actions", url: "/offers", icon: ArrowDownToLine },
+];
+
+function WalletButton() {
+  const { connected, connect, shortAddress, network, switchNetwork, connecting, explorerUrl, address } = useWallet();
+  const net = NETWORKS[network];
+
+  return (
+    <div className="space-y-2 p-2">
+      {connected ? (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
+              {shortAddress}
+            </Badge>
+            <a
+              href={`${explorerUrl}/address/${address}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground"
+              data-testid="link-explorer"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+          <button
+            data-testid="button-switch-network"
+            onClick={switchNetwork}
+            className="flex items-center gap-1.5 w-full text-[10px] text-muted-foreground py-1 px-2 rounded-md border border-border"
+          >
+            <Globe className="w-3 h-3" />
+            <span>{net.chainName}</span>
+          </button>
+        </>
+      ) : (
+        <Button
+          data-testid="button-connect-wallet"
+          onClick={connect}
+          disabled={connecting}
+          className="w-full"
+          size="sm"
+        >
+          {connecting ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+          ) : (
+            <Wallet className="w-4 h-4 mr-1.5" />
+          )}
+          {connecting ? "Connecting..." : "Connect Wallet"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function AppSidebar() {
+  const [location] = useLocation();
+
+  return (
+    <Sidebar data-testid="app-sidebar">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
+        <Link href="/" data-testid="link-logo">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-[hsl(var(--primary))] flex items-center justify-center">
+              <Zap className="w-5 h-5 text-[hsl(var(--primary-foreground))]" />
+            </div>
+            <div>
+              <div className="text-base font-bold tracking-tight leading-none">The Juice</div>
+              <div className="text-[10px] text-muted-foreground leading-none mt-0.5">P2P Betting on Base</div>
+            </div>
+          </div>
+        </Link>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border">
+        <WalletButton />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/" component={Markets} />
+      <Route path="/challenge" component={CreateChallenge} />
+      <Route path="/join" component={JoinResolve} />
+      <Route path="/offers" component={OfferActions} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <WalletProvider>
+          <SidebarProvider style={style as React.CSSProperties}>
+            <div className="flex h-screen w-full">
+              <AppSidebar />
+              <div className="flex flex-col flex-1 min-w-0">
+                <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
+                  <SidebarTrigger data-testid="button-sidebar-toggle" />
+                  <div className="flex-1" />
+                  <EthPrice />
+                </header>
+                <main className="flex-1 overflow-auto p-4">
+                  <Router />
+                </main>
+              </div>
+            </div>
+          </SidebarProvider>
+          <Toaster />
+        </WalletProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+function EthPrice() {
+  const { ethUsd } = useWallet();
+  return (
+    <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-eth-price">
+      ETH ${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+    </Badge>
+  );
+}
+
+export default App;
+
+
+// ============================================
+// FILE: client/src/pages/markets.tsx
+// ============================================
+
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useWallet } from '@/lib/wallet';
+import { computeTakerStake, ABI_V2 } from '@/lib/contracts';
+import { useToast } from '@/hooks/use-toast';
+import { RANDOM_IDEAS } from '@/lib/contracts';
+import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare } from 'lucide-react';
+
+export default function Markets() {
+  const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network, explorerUrl, connecting } = useWallet();
+  const { toast } = useToast();
+
+  const [question, setQuestion] = useState('');
+  const [sideYes, setSideYes] = useState(true);
+  const [oddsBps, setOddsBps] = useState(5000);
+  const [stakeEth, setStakeEth] = useState('0.01');
+  const [joinMins, setJoinMins] = useState(15);
+  const [resolveMins, setResolveMins] = useState(30);
+  const [loading, setLoading] = useState(false);
+  const [lastOfferId, setLastOfferId] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const shuffleQuestion = () => {
+    setQuestion(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
+  };
+
+  const yesPercent = Math.round(oddsBps / 100);
+  const noPercent = 100 - yesPercent;
+
+  const preview = useMemo(() => {
+    try {
+      const ethVal = parseFloat(stakeEth);
+      if (!isFinite(ethVal) || ethVal <= 0) return null;
+      const weiVal = ethers.parseEther(String(ethVal));
+      const takerWei = computeTakerStake(weiVal, sideYes, oddsBps);
+      const gross = weiVal + takerWei;
+      const fee = (gross * BigInt(feeBps)) / 10000n;
+      const winnerPayout = gross - fee;
+
+      return {
+        yourStake: ethVal,
+        yourStakeUsd: ethVal * ethUsd,
+        opponentStake: Number(ethers.formatEther(takerWei)),
+        opponentStakeUsd: Number(ethers.formatEther(takerWei)) * ethUsd,
+        totalPot: Number(ethers.formatEther(gross)),
+        totalPotUsd: Number(ethers.formatEther(gross)) * ethUsd,
+        fee: Number(ethers.formatEther(fee)),
+        feeUsd: Number(ethers.formatEther(fee)) * ethUsd,
+        winnerPayout: Number(ethers.formatEther(winnerPayout)),
+        winnerPayoutUsd: Number(ethers.formatEther(winnerPayout)) * ethUsd,
+        multiplier: Number(ethers.formatEther(winnerPayout)) / ethVal,
+        takerWei,
+      };
+    } catch {
+      return null;
+    }
+  }, [stakeEth, sideYes, oddsBps, feeBps, ethUsd]);
+
+  const handleCreateOffer = useCallback(async () => {
+    if (!connected) {
+      try { await connect(); } catch { return; }
+    }
+    setLoading(true);
+    try {
+      const ethVal = parseFloat(stakeEth);
+      if (!isFinite(ethVal) || ethVal <= 0) throw new Error('Enter a valid stake amount');
+      const c = getV2Contract(false);
+      if (!c) throw new Error('Contract not available');
+      const Awei = ethers.parseEther(ethVal.toFixed(18));
+      const joinSecs = joinMins * 60;
+      const resolveSecs = resolveMins * 60;
+
+      const tx = await c.openOffer(sideYes, oddsBps, joinSecs, resolveSecs, { value: Awei });
+      toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
+      const receipt = await tx.wait();
+
+      let offerId = '';
+      try {
+        const iface = new ethers.Interface(ABI_V2);
+        for (const log of receipt.logs) {
+          const parsed = iface.parseLog(log);
+          if (parsed?.name === 'OfferOpened') {
+            offerId = String(parsed.args.offerId);
+            break;
+          }
+        }
+      } catch {}
+
+      setLastOfferId(offerId);
+      toast({
+        title: 'Offer Created',
+        description: offerId ? `Offer #${offerId} is live` : 'Your offer is live on-chain',
+      });
+    } catch (e: any) {
+      const msg = e?.shortMessage || e?.message || String(e);
+      toast({ title: 'Failed', description: msg, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [connected, connect, signer, stakeEth, sideYes, oddsBps, joinMins, resolveMins, getV2Contract, toast]);
+
+  const yesPriceDisplay = `${yesPercent}¢`;
+  const noPriceDisplay = `${noPercent}¢`;
+
+  return (
+    <div className="space-y-4 max-w-xl mx-auto" data-testid="markets-page">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Markets</h1>
+        <p className="text-sm text-muted-foreground mt-1">Create odds-based offers. Set your price, pick a side.</p>
+      </div>
+
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
+          <span className="text-sm font-semibold">New Market Offer</span>
+        </div>
+
+        <div className="mb-5">
+          <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2 block">Market Question</label>
+          <div className="relative">
+            <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              data-testid="input-market-question"
+              type="text"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Will BTC hit $150K by end of Q1?"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+            />
+            <button
+              data-testid="button-shuffle-question"
+              onClick={shuffleQuestion}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-[hsl(var(--primary))]/40 text-[hsl(var(--primary))]"
+            >
+              <Shuffle className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">Off-chain reference only. Both parties vote to resolve.</p>
+        </div>
+
+        <div className="mb-5">
+          <label className="text-xs text-muted-foreground mb-2 block font-medium uppercase tracking-wider">Pick Your Side</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              data-testid="button-side-yes"
+              onClick={() => setSideYes(true)}
+              className={`relative flex flex-col items-center justify-center py-4 rounded-md border transition-all ${
+                sideYes
+                  ? 'border-emerald-500/60 bg-emerald-500/10'
+                  : 'border-border bg-card'
+              }`}
+            >
+              <TrendingUp className={`w-5 h-5 mb-1 ${sideYes ? 'text-emerald-400' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold ${sideYes ? 'text-emerald-400' : 'text-foreground'}`}>YES</span>
+              <span className={`text-xs mt-0.5 font-mono ${sideYes ? 'text-emerald-400/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
+            </button>
+            <button
+              data-testid="button-side-no"
+              onClick={() => setSideYes(false)}
+              className={`relative flex flex-col items-center justify-center py-4 rounded-md border transition-all ${
+                !sideYes
+                  ? 'border-rose-500/60 bg-rose-500/10'
+                  : 'border-border bg-card'
+              }`}
+            >
+              <TrendingDown className={`w-5 h-5 mb-1 ${!sideYes ? 'text-rose-400' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold ${!sideYes ? 'text-rose-400' : 'text-foreground'}`}>NO</span>
+              <span className={`text-xs mt-0.5 font-mono ${!sideYes ? 'text-rose-400/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Implied Probability</label>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="font-mono text-xs">
+                YES {yesPercent}%
+              </Badge>
+              <Badge variant="secondary" className="font-mono text-xs">
+                NO {noPercent}%
+              </Badge>
+            </div>
+          </div>
+          <div className="relative">
+            <input
+              data-testid="input-odds"
+              type="range"
+              min={500}
+              max={9500}
+              step={50}
+              value={oddsBps}
+              onChange={(e) => setOddsBps(Number(e.target.value))}
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, rgb(16,185,129) ${yesPercent}%, rgb(244,63,94) ${yesPercent}%)`,
+              }}
+            />
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[10px] text-muted-foreground">5%</span>
+              <span className="text-[10px] text-muted-foreground">50%</span>
+              <span className="text-[10px] text-muted-foreground">95%</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-1.5 mt-3">
+            {[1500, 2500, 5000, 7500, 8500].map((bps) => (
+              <button
+                key={bps}
+                data-testid={`button-odds-${bps}`}
+                onClick={() => setOddsBps(bps)}
+                className={`py-1.5 rounded-md text-xs font-medium border transition-all ${
+                  oddsBps === bps
+                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    : 'border-border bg-card text-muted-foreground'
+                }`}
+              >
+                {Math.round(bps / 100)}%
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Your Stake</label>
+            <span className="text-xs text-muted-foreground font-mono" data-testid="text-stake-usd">
+              {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
+            </span>
+          </div>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              data-testid="input-stake"
+              type="number"
+              step="0.001"
+              min="0"
+              value={stakeEth}
+              onChange={(e) => setStakeEth(e.target.value)}
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-8 pr-14 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              placeholder="0.01"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">ETH</span>
+          </div>
+          <div className="grid grid-cols-4 gap-1.5 mt-2">
+            {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+              <button
+                key={amt}
+                data-testid={`button-stake-${amt}`}
+                onClick={() => setStakeEth(amt)}
+                className={`py-1.5 rounded-md text-xs font-mono border transition-all ${
+                  stakeEth === amt
+                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    : 'border-border bg-card text-muted-foreground'
+                }`}
+              >
+                {amt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          data-testid="button-toggle-advanced"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3"
+        >
+          {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          <span>Deadlines</span>
+        </button>
+
+        {showAdvanced && (
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div>
+              <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1 block">Join Window</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  data-testid="input-join-mins"
+                  type="number"
+                  min={1}
+                  max={43200}
+                  value={joinMins}
+                  onChange={(e) => setJoinMins(Number(e.target.value))}
+                  className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                />
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
+              </div>
+              <div className="flex gap-1 mt-1">
+                {[15, 60, 1440].map(m => (
+                  <button key={m} onClick={() => setJoinMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1 block">Resolve Window</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  data-testid="input-resolve-mins"
+                  type="number"
+                  min={1}
+                  max={43200}
+                  value={resolveMins}
+                  onChange={(e) => setResolveMins(Number(e.target.value))}
+                  className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                />
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
+              </div>
+              <div className="flex gap-1 mt-1">
+                {[30, 120, 2880].map(m => (
+                  <button key={m} onClick={() => setResolveMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {preview && (
+          <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="market-preview">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Info className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Order Preview</span>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Your stake</span>
+                <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
+                  {preview.yourStake.toFixed(6)} ETH
+                  <span className="text-muted-foreground ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Opponent pays</span>
+                <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
+                  {preview.opponentStake.toFixed(6)} ETH
+                  <span className="text-muted-foreground ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                </span>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Total pot</span>
+                <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
+                  {preview.totalPot.toFixed(6)} ETH
+                  <span className="text-muted-foreground ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
+                <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
+                  -{preview.fee.toFixed(6)} ETH
+                </span>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-emerald-400">If you win</span>
+                <div className="text-right">
+                  <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
+                    {preview.winnerPayout.toFixed(6)} ETH
+                  </span>
+                  <span className="text-xs text-emerald-400/70 ml-1">(${preview.winnerPayoutUsd.toFixed(2)})</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Return</span>
+                <span className="text-sm font-mono font-bold text-[hsl(var(--primary))]" data-testid="text-preview-multiplier">
+                  {preview.multiplier.toFixed(2)}x
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
+                </div>
+                <span>Network: {network === 'mainnet' ? 'Base' : 'Sepolia'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Button
+          data-testid="button-create-offer"
+          onClick={handleCreateOffer}
+          disabled={loading || !preview}
+          className="w-full"
+          size="lg"
+        >
+          {loading ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Confirming...</>
+          ) : connected ? (
+            <><Zap className="w-4 h-4 mr-2" /> Create Offer</>
+          ) : (
+            <>Connect Wallet & Create</>
+          )}
+        </Button>
+
+        {lastOfferId && (
+          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5" data-testid="offer-created-success">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-emerald-400 font-medium">Offer Created</p>
+                <p className="text-sm font-mono mt-0.5">ID: {lastOfferId}</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  data-testid="button-copy-offer-id"
+                  onClick={() => {
+                    navigator.clipboard.writeText(lastOfferId);
+                    toast({ title: 'Copied', description: 'Offer ID copied to clipboard' });
+                  }}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-4">
+        <div className="flex items-center gap-1.5 mb-3">
+          <Info className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">How Market Odds Work</span>
+        </div>
+        <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+          <p>Market offers use <span className="text-foreground font-medium">asymmetric stakes</span> based on implied probability, just like Kalshi prediction markets.</p>
+          <p>If you set YES at <span className="text-foreground font-medium">70%</span>, you risk more for a smaller return. Your opponent gets a better payout if they're right.</p>
+          <p>Both sides vote on the outcome. If votes match, the winner is paid automatically. If they disagree, funds are refunded after the deadline.</p>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+
+// ============================================
+// FILE: client/src/pages/create-challenge.tsx
+// ============================================
+
+import { useState, useCallback, useMemo } from 'react';
+import { ethers } from 'ethers';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useWallet } from '@/lib/wallet';
+import { RANDOM_IDEAS } from '@/lib/contracts';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap } from 'lucide-react';
+
+export default function CreateChallenge() {
+  const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting } = useWallet();
+  const { toast } = useToast();
+
+  const [idea, setIdea] = useState("Click the shuffle button for a random challenge idea");
+  const [stakeMode, setStakeMode] = useState<'USD' | 'ETH'>('USD');
+  const [stakeUsd, setStakeUsd] = useState(5);
+  const [stakeEthDirect, setStakeEthDirect] = useState('0.0014');
+  const [joinMins, setJoinMins] = useState(15);
+  const [resolveMins, setResolveMins] = useState(30);
+  const [loading, setLoading] = useState(false);
+  const [lastChallengeId, setLastChallengeId] = useState('');
+
+  const stakeEthValue = useMemo(() => {
+    if (stakeMode === 'USD') {
+      return ethUsd > 0 ? stakeUsd / ethUsd : 0;
+    }
+    return parseFloat(stakeEthDirect) || 0;
+  }, [stakeMode, stakeUsd, stakeEthDirect, ethUsd]);
+
+  const displayValue = stakeMode === 'USD' ? stakeUsd : stakeEthDirect;
+
+  const shuffleIdea = () => {
+    setIdea(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
+  };
+
+  const adjustStake = (dir: number) => {
+    if (stakeMode === 'USD') {
+      setStakeUsd(Math.max(1, stakeUsd + dir));
+    } else {
+      const v = Math.max(0.0001, parseFloat(stakeEthDirect || '0') + dir * 0.001);
+      setStakeEthDirect(v.toFixed(6));
+    }
+  };
+
+  const handleCreate = useCallback(async () => {
+    if (!connected) {
+      try { await connect(); } catch { return; }
+    }
+    setLoading(true);
+    try {
+      const c = getV1Contract(false);
+      if (!c) throw new Error('Connect wallet first');
+
+      const stakeWei = ethers.parseEther(stakeEthValue.toFixed(18));
+      const jm = Math.max(5, Math.min(43200, joinMins));
+      const rm = Math.max(30, Math.min(43200, resolveMins));
+      if (rm <= jm) throw new Error('Resolve deadline must be after join deadline');
+
+      const tx = await c.openChallenge(stakeWei, feeBps, BigInt(jm * 60), BigInt(rm * 60), { value: stakeWei });
+      toast({ title: 'Transaction sent', description: 'Waiting for confirmation...' });
+      const receipt = await tx.wait();
+
+      let challengeId = '';
+      try {
+        const nextId = await c.nextChallengeId();
+        challengeId = String(BigInt(nextId) - 1n);
+      } catch {}
+
+      setLastChallengeId(challengeId);
+      toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Challenge live on-chain' });
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }, [connected, connect, stakeEthValue, joinMins, resolveMins, feeBps, getV1Contract, toast]);
+
+  const potEth = stakeEthValue * 2;
+  const potUsd = potEth * ethUsd;
+  const feeEth = (potEth * feeBps) / 10000;
+  const winnerEth = potEth - feeEth;
+
+  return (
+    <div className="space-y-4 max-w-xl mx-auto" data-testid="create-challenge-page">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Create Challenge</h1>
+        <p className="text-sm text-muted-foreground mt-1">Set the challenge, deadlines, and fund the escrow in one step.</p>
+      </div>
+
+      <Card className="p-5">
+        <div className="mb-5">
+          <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2 block">Challenge Idea</label>
+          <div className="relative">
+            <input
+              data-testid="input-challenge-idea"
+              type="text"
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-3 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+            />
+            <button
+              data-testid="button-shuffle-idea"
+              onClick={shuffleIdea}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-[hsl(var(--primary))]/40 text-[hsl(var(--primary))]"
+            >
+              <Shuffle className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Challenge Amount</label>
+            <div className="flex items-center gap-1.5">
+              <button
+                data-testid="button-mode-eth"
+                onClick={() => setStakeMode('ETH')}
+                className={`text-[10px] font-bold px-2.5 py-1 rounded-md border transition-all ${
+                  stakeMode === 'ETH' ? 'border-[hsl(var(--primary))]/60 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]' : 'border-border text-muted-foreground'
+                }`}
+              >ETH</button>
+              <button
+                data-testid="button-mode-usd"
+                onClick={() => setStakeMode('USD')}
+                className={`text-[10px] font-bold px-2.5 py-1 rounded-md border transition-all ${
+                  stakeMode === 'USD' ? 'border-[hsl(var(--primary))]/60 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]' : 'border-border text-muted-foreground'
+                }`}
+              >USD</button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button data-testid="button-stake-minus" onClick={() => adjustStake(-1)} className="p-2 rounded-md border border-border">
+              <Minus className="w-4 h-4" />
+            </button>
+            <div className="flex-1 relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-medium">
+                {stakeMode === 'USD' ? '$' : 'Ξ'}
+              </span>
+              <input
+                data-testid="input-stake-amount"
+                type="number"
+                value={displayValue}
+                onChange={(e) => {
+                  if (stakeMode === 'USD') setStakeUsd(Number(e.target.value) || 0);
+                  else setStakeEthDirect(e.target.value);
+                }}
+                className="w-full bg-muted/50 border border-border rounded-md py-4 pl-9 pr-3 text-2xl font-bold text-center font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+              />
+            </div>
+            <button data-testid="button-stake-plus" onClick={() => adjustStake(1)} className="p-2 rounded-md border border-border">
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="text-center mt-1.5">
+            <span className="text-xs text-muted-foreground font-mono">
+              {stakeMode === 'USD'
+                ? `${stakeEthValue.toFixed(6)} ETH`
+                : `$${(stakeEthValue * ethUsd).toFixed(2)}`}
+            </span>
+          </div>
+
+          {stakeMode === 'USD' && (
+            <div className="grid grid-cols-4 gap-2 mt-3">
+              {[1, 5, 10, 20].map((amt) => (
+                <button
+                  key={amt}
+                  data-testid={`button-quick-usd-${amt}`}
+                  onClick={() => setStakeUsd(amt)}
+                  className={`py-2 rounded-md text-sm font-medium border transition-all ${
+                    stakeUsd === amt
+                      ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                      : 'border-border bg-card text-muted-foreground'
+                  }`}
+                >${amt}</button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div>
+            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1.5 block">Join Deadline</label>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              <input
+                data-testid="input-join-deadline"
+                type="number"
+                min={1}
+                max={43200}
+                value={joinMins}
+                onChange={(e) => setJoinMins(Number(e.target.value))}
+                className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+              />
+              <span className="text-[10px] text-muted-foreground">min</span>
+            </div>
+            <div className="flex gap-1 mt-1">
+              {[15, 60, 1440].map(m => (
+                <button key={m} onClick={() => setJoinMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                  {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1.5 block">Resolve Deadline</label>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              <input
+                data-testid="input-resolve-deadline"
+                type="number"
+                min={1}
+                max={43200}
+                value={resolveMins}
+                onChange={(e) => setResolveMins(Number(e.target.value))}
+                className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+              />
+              <span className="text-[10px] text-muted-foreground">min</span>
+            </div>
+            <div className="flex gap-1 mt-1">
+              {[30, 120, 2880].map(m => (
+                <button key={m} onClick={() => setResolveMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                  {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-md border border-border bg-muted/30 p-3 mb-5">
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between"><span className="text-muted-foreground">Pot value</span><span className="font-mono">{potEth.toFixed(6)} ETH (${potUsd.toFixed(2)})</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Fee ({(feeBps/100).toFixed(1)}%)</span><span className="font-mono text-muted-foreground">-{feeEth.toFixed(6)} ETH</span></div>
+            <div className="h-px bg-border" />
+            <div className="flex justify-between"><span className="text-emerald-400 font-medium">Winner gets</span><span className="font-mono font-bold text-emerald-400">{winnerEth.toFixed(6)} ETH (${(winnerEth * ethUsd).toFixed(2)})</span></div>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            data-testid="button-create-challenge"
+            onClick={handleCreate}
+            disabled={loading || stakeEthValue <= 0}
+            className="flex-1"
+            size="lg"
+          >
+            {loading ? (
+              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Confirming...</>
+            ) : (
+              <><Zap className="w-4 h-4 mr-2" /> Create & Fund</>
+            )}
+          </Button>
+          <Button
+            data-testid="button-reset"
+            variant="outline"
+            onClick={() => {
+              setStakeUsd(5);
+              setStakeEthDirect('0.0014');
+              setJoinMins(15);
+              setResolveMins(30);
+              setIdea("Click the shuffle button for a random challenge idea");
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+
+        {lastChallengeId && (
+          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5" data-testid="challenge-created-success">
+            <p className="text-xs text-emerald-400 font-medium">Challenge #{lastChallengeId} Created</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Share this ID with your opponent on the Join & Resolve tab.</p>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+
+// ============================================
+// FILE: client/src/pages/join-resolve.tsx
+// ============================================
+
+import { useState, useCallback } from 'react';
+import { ethers } from 'ethers';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useWallet } from '@/lib/wallet';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown, Trophy, RefreshCw, Copy, ExternalLink, AlertTriangle } from 'lucide-react';
+
+interface ChallengeData {
+  challenger: string;
+  participant: string;
+  stakeWei: bigint;
+  feeBps: number;
+  joinDeadline: number;
+  resolveDeadline: number;
+  createdAt: number;
+  state: number;
+  challengerVote: number;
+  participantVote: number;
+}
+
+const STATE_LABELS = ['Open', 'Active', 'Resolved', 'Refunded'];
+
+function shortAddr(a: string) {
+  return a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '';
+}
+
+export default function JoinResolve() {
+  const { connected, connect, signer, address, ethUsd, getV1Contract, explorerUrl } = useWallet();
+  const { toast } = useToast();
+
+  const [challengeId, setChallengeId] = useState('');
+  const [challenge, setChallenge] = useState<ChallengeData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState('');
+
+  const loadChallenge = useCallback(async () => {
+    if (!challengeId.trim()) return;
+    setLoading(true);
+    try {
+      const c = getV1Contract(true);
+      if (!c) throw new Error('Contract not available');
+      const b = await c.getChallenge(BigInt(challengeId));
+      if (b[0] === ethers.ZeroAddress) throw new Error('Challenge not found');
+      setChallenge({
+        challenger: b[0], participant: b[1], stakeWei: b[2], feeBps: Number(b[3]),
+        joinDeadline: Number(b[4]), resolveDeadline: Number(b[5]), createdAt: Number(b[6]),
+        state: Number(b[7]), challengerVote: Number(b[8]), participantVote: Number(b[9]),
+      });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message || 'Challenge not found', variant: 'destructive' });
+      setChallenge(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [challengeId, getV1Contract, toast]);
+
+  const doAction = useCallback(async (action: string, fn: () => Promise<any>) => {
+    if (!connected) {
+      try { await connect(); } catch { return; }
+    }
+    setActionLoading(action);
+    try {
+      const tx = await fn();
+      toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
+      await tx.wait();
+      toast({ title: 'Success', description: `${action} completed` });
+      await loadChallenge();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+    } finally {
+      setActionLoading('');
+    }
+  }, [connected, connect, toast, loadChallenge]);
+
+  const handleJoin = () => doAction('Join', async () => {
+    const c = getV1Contract(false);
+    if (!c || !challenge) throw new Error('Not available');
+    return c.joinChallenge(BigInt(challengeId), { value: challenge.stakeWei });
+  });
+
+  const handleVote = (iWon: boolean) => doAction(iWon ? 'Vote: I Won' : 'Vote: Opponent Won', async () => {
+    const c = getV1Contract(false);
+    if (!c || !challenge) throw new Error('Not available');
+    const me = address.toLowerCase();
+    const isCreator = challenge.challenger.toLowerCase() === me;
+    const challengerWon = isCreator ? iWon : !iWon;
+    return c.submitOutcomeVote(BigInt(challengeId), challengerWon);
+  });
+
+  const handlePayout = () => doAction('Payout', async () => {
+    const c = getV1Contract(false);
+    if (!c) throw new Error('Not available');
+    return c.resolveChallenge(BigInt(challengeId));
+  });
+
+  const handleRefund = () => doAction('Refund', async () => {
+    const c = getV1Contract(false);
+    if (!c) throw new Error('Not available');
+    return c.issueRefund(BigInt(challengeId));
+  });
+
+  const now = Math.floor(Date.now() / 1000);
+  const joined = challenge && challenge.participant !== ethers.ZeroAddress;
+  const joinExpired = challenge && challenge.joinDeadline > 0 && now > challenge.joinDeadline;
+  const resolveExpired = challenge && challenge.resolveDeadline > 0 && now > challenge.resolveDeadline;
+
+  return (
+    <div className="space-y-4 max-w-xl mx-auto" data-testid="join-resolve-page">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Join & Resolve</h1>
+        <p className="text-sm text-muted-foreground mt-1">Paste a Challenge ID to join, vote, or finalize.</p>
+      </div>
+
+      <Card className="p-5">
+        <div className="flex gap-2 mb-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              data-testid="input-challenge-id"
+              type="text"
+              value={challengeId}
+              onChange={(e) => setChallengeId(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && loadChallenge()}
+              placeholder="Challenge ID..."
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+            />
+          </div>
+          <Button data-testid="button-load-challenge" onClick={loadChallenge} disabled={loading || !challengeId.trim()} variant="secondary">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          </Button>
+        </div>
+
+        {challenge && (
+          <div className="space-y-4" data-testid="challenge-details">
+            <div className="rounded-md border border-border bg-muted/30 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold">Challenge #{challengeId}</span>
+                <Badge variant={challenge.state === 0 ? 'default' : challenge.state === 1 ? 'secondary' : 'outline'}>
+                  {STATE_LABELS[challenge.state] || `State ${challenge.state}`}
+                </Badge>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Creator</span>
+                  <span className="font-mono">{shortAddr(challenge.challenger)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Opponent</span>
+                  <span className="font-mono">{joined ? shortAddr(challenge.participant) : 'Waiting...'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Each stake</span>
+                  <span className="font-mono">{Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Join by</span>
+                  <span className="font-mono text-[10px]">{new Date(challenge.joinDeadline * 1000).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Resolve by</span>
+                  <span className="font-mono text-[10px]">{new Date(challenge.resolveDeadline * 1000).toLocaleString()}</span>
+                </div>
+
+                <div className="h-px bg-border my-2" />
+
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Creator vote</span>
+                  <span className="font-mono">
+                    {challenge.challengerVote === 0 ? 'Pending' : challenge.challengerVote === 1 ? 'Creator won' : 'Opponent won'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Opponent vote</span>
+                  <span className="font-mono">
+                    {challenge.participantVote === 0 ? 'Pending' : challenge.participantVote === 1 ? 'Creator won' : 'Opponent won'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {challenge.state === 0 && !joined && !joinExpired && (
+              <Button data-testid="button-join" onClick={handleJoin} disabled={!!actionLoading} className="w-full" size="lg">
+                {actionLoading === 'Join' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+                Join Challenge ({Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH)
+              </Button>
+            )}
+
+            {challenge.state === 1 && joined && !resolveExpired && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center">Vote on the outcome. Both players must agree for payout.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button data-testid="button-vote-won" onClick={() => handleVote(true)} disabled={!!actionLoading} variant="outline">
+                    {actionLoading === 'Vote: I Won' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ThumbsUp className="w-4 h-4 mr-2" />}
+                    I Won
+                  </Button>
+                  <Button data-testid="button-vote-lost" onClick={() => handleVote(false)} disabled={!!actionLoading} variant="outline">
+                    {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ThumbsDown className="w-4 h-4 mr-2" />}
+                    Opponent Won
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote === challenge.participantVote && (
+              <Button data-testid="button-payout" onClick={handlePayout} disabled={!!actionLoading} className="w-full" size="lg">
+                {actionLoading === 'Payout' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
+                Finalize & Payout
+              </Button>
+            )}
+
+            {((challenge.state === 0 && joinExpired && !joined) || (challenge.state === 1 && resolveExpired)) && (
+              <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                Request Refund
+              </Button>
+            )}
+
+            {challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote && (
+              <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <p className="text-xs text-amber-400">Votes conflict. Refund available after the resolve deadline passes.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+
+// ============================================
+// FILE: client/src/pages/offer-actions.tsx
+// ============================================
+
+import { useState, useCallback } from 'react';
+import { ethers } from 'ethers';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useWallet } from '@/lib/wallet';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Search, ArrowDownToLine, ThumbsUp, ThumbsDown, Trophy, RefreshCw, Copy, ExternalLink, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+
+interface OfferData {
+  creator: string;
+  taker: string;
+  creatorSideYes: boolean;
+  pBps: number;
+  creatorStake: bigint;
+  takerStake: bigint;
+  joinDeadline: number;
+  resolveDeadline: number;
+  createdAt: number;
+  state: number;
+  creatorVote: number;
+  takerVote: number;
+  paid: boolean;
+}
+
+const STATE_LABELS = ['Open', 'Filled', 'Resolved', 'Refunded'];
+
+function shortAddr(a: string) {
+  return a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '';
+}
+
+export default function OfferActions() {
+  const { connected, connect, signer, address, ethUsd, feeBps, getV2Contract, explorerUrl } = useWallet();
+  const { toast } = useToast();
+
+  const [offerId, setOfferId] = useState('');
+  const [offer, setOffer] = useState<OfferData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState('');
+
+  const loadOffer = useCallback(async () => {
+    if (!offerId.trim()) return;
+    setLoading(true);
+    try {
+      const c = getV2Contract(true);
+      if (!c) throw new Error('V2 contract not available');
+      const o = await c.getOffer(BigInt(offerId));
+      setOffer({
+        creator: o[0], taker: o[1], creatorSideYes: o[2], pBps: Number(o[3]),
+        creatorStake: o[4], takerStake: o[5], joinDeadline: Number(o[6]),
+        resolveDeadline: Number(o[7]), createdAt: Number(o[8]), state: Number(o[9]),
+        creatorVote: Number(o[10]), takerVote: Number(o[11]), paid: o[12],
+      });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message || 'Offer not found', variant: 'destructive' });
+      setOffer(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [offerId, getV2Contract, toast]);
+
+  const doAction = useCallback(async (action: string, fn: () => Promise<any>) => {
+    if (!connected) {
+      try { await connect(); } catch { return; }
+    }
+    setActionLoading(action);
+    try {
+      const tx = await fn();
+      toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
+      await tx.wait();
+      toast({ title: 'Success', description: `${action} completed` });
+      await loadOffer();
+    } catch (e: any) {
+      toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+    } finally {
+      setActionLoading('');
+    }
+  }, [connected, connect, toast, loadOffer]);
+
+  const handleTake = () => doAction('Take Offer', async () => {
+    const c = getV2Contract(false);
+    if (!c || !offer) throw new Error('Not available');
+    return c.takeOffer(BigInt(offerId), { value: offer.takerStake });
+  });
+
+  const handleVote = (outcomeYes: boolean) => doAction(`Vote: ${outcomeYes ? 'YES' : 'NO'}`, async () => {
+    const c = getV2Contract(false);
+    if (!c) throw new Error('Not available');
+    return c.submitOfferVote(BigInt(offerId), outcomeYes);
+  });
+
+  const handleResolve = () => doAction('Resolve', async () => {
+    const c = getV2Contract(false);
+    if (!c) throw new Error('Not available');
+    return c.resolveOffer(BigInt(offerId));
+  });
+
+  const handleRefund = () => doAction('Refund', async () => {
+    const c = getV2Contract(false);
+    if (!c) throw new Error('Not available');
+    return c.refundOffer(BigInt(offerId));
+  });
+
+  const now = Math.floor(Date.now() / 1000);
+  const hasTaker = offer && offer.taker !== ethers.ZeroAddress;
+  const joinExpired = offer && offer.joinDeadline > 0 && now > offer.joinDeadline;
+  const resolveExpired = offer && offer.resolveDeadline > 0 && now > offer.resolveDeadline;
+
+  return (
+    <div className="space-y-4 max-w-xl mx-auto" data-testid="offer-actions-page">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Offer Actions</h1>
+        <p className="text-sm text-muted-foreground mt-1">Take, vote, resolve, or refund market offers.</p>
+      </div>
+
+      <Card className="p-5">
+        <div className="flex gap-2 mb-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              data-testid="input-offer-id"
+              type="text"
+              value={offerId}
+              onChange={(e) => setOfferId(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && loadOffer()}
+              placeholder="Offer ID..."
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+            />
+          </div>
+          <Button data-testid="button-load-offer" onClick={loadOffer} disabled={loading || !offerId.trim()} variant="secondary">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          </Button>
+        </div>
+
+        {offer && (
+          <div className="space-y-4" data-testid="offer-details">
+            <div className="rounded-md border border-border bg-muted/30 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold">Offer #{offerId}</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant={offer.state === 0 ? 'default' : offer.state === 1 ? 'secondary' : 'outline'}>
+                    {STATE_LABELS[offer.state] || `State ${offer.state}`}
+                  </Badge>
+                  {offer.paid && <Badge variant="outline" className="text-emerald-400 border-emerald-400/30">Paid</Badge>}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-4 mb-3 py-2">
+                <div className="text-center">
+                  <div className={`text-2xl font-bold ${offer.creatorSideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {offer.creatorSideYes ? 'YES' : 'NO'}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">Creator side</div>
+                </div>
+                <div className="text-center px-4 border-l border-r border-border">
+                  <div className="text-2xl font-bold font-mono text-[hsl(var(--primary))]">
+                    {Math.round(offer.pBps / 100)}%
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">YES odds</div>
+                </div>
+                <div className="text-center">
+                  <div className={`text-2xl font-bold ${!offer.creatorSideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {!offer.creatorSideYes ? 'YES' : 'NO'}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">Taker side</div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Creator</span>
+                  <span className="font-mono">{shortAddr(offer.creator)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taker</span>
+                  <span className="font-mono">{hasTaker ? shortAddr(offer.taker) : 'Waiting...'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Creator stake</span>
+                  <span className="font-mono">{Number(ethers.formatEther(offer.creatorStake)).toFixed(6)} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taker stake</span>
+                  <span className="font-mono">{Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total pot</span>
+                  <span className="font-mono font-medium">
+                    {Number(ethers.formatEther(offer.creatorStake + offer.takerStake)).toFixed(6)} ETH
+                  </span>
+                </div>
+                <div className="h-px bg-border" />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Join by</span>
+                  <span className="font-mono text-[10px]">{new Date(offer.joinDeadline * 1000).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Resolve by</span>
+                  <span className="font-mono text-[10px]">{new Date(offer.resolveDeadline * 1000).toLocaleString()}</span>
+                </div>
+                <div className="h-px bg-border" />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Creator vote</span>
+                  <span className="font-mono">{offer.creatorVote === 0 ? 'Pending' : offer.creatorVote === 1 ? 'YES' : 'NO'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taker vote</span>
+                  <span className="font-mono">{offer.takerVote === 0 ? 'Pending' : offer.takerVote === 1 ? 'YES' : 'NO'}</span>
+                </div>
+              </div>
+            </div>
+
+            {offer.state === 0 && !hasTaker && !joinExpired && (
+              <Button data-testid="button-take-offer" onClick={handleTake} disabled={!!actionLoading} className="w-full" size="lg">
+                {actionLoading === 'Take Offer' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowDownToLine className="w-4 h-4 mr-2" />}
+                Take Offer ({Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH)
+              </Button>
+            )}
+
+            {offer.state === 1 && hasTaker && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center">Vote on the outcome (YES or NO won?).</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button data-testid="button-vote-yes" onClick={() => handleVote(true)} disabled={!!actionLoading} variant="outline">
+                    {actionLoading === 'Vote: YES' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
+                    YES Won
+                  </Button>
+                  <Button data-testid="button-vote-no" onClick={() => handleVote(false)} disabled={!!actionLoading} variant="outline">
+                    {actionLoading === 'Vote: NO' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingDown className="w-4 h-4 mr-2" />}
+                    NO Won
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote === offer.takerVote && !offer.paid && (
+              <Button data-testid="button-resolve-offer" onClick={handleResolve} disabled={!!actionLoading} className="w-full" size="lg">
+                {actionLoading === 'Resolve' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
+                Resolve & Payout
+              </Button>
+            )}
+
+            {(
+              (offer.state === 0 && joinExpired && !hasTaker) ||
+              (offer.state === 1 && resolveExpired) ||
+              (offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote)
+            ) && !offer.paid && (
+              <Button data-testid="button-refund-offer" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                Request Refund
+              </Button>
+            )}
+
+            {offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote && (
+              <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <p className="text-xs text-amber-400">Votes disagree. Both parties will be refunded.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+
+// ============================================
+// FILE: client/src/index.css
+// ============================================
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
+  --background: 230 15% 6%;
+  --foreground: 220 20% 96%;
+  --border: 230 10% 16%;
+  --card: 230 12% 9%;
+  --card-foreground: 220 20% 96%;
+  --card-border: 230 10% 13%;
+  --sidebar: 230 12% 8%;
+  --sidebar-foreground: 220 20% 96%;
+  --sidebar-border: 230 10% 14%;
+  --sidebar-primary: 185 85% 45%;
+  --sidebar-primary-foreground: 185 100% 98%;
+  --sidebar-accent: 230 10% 14%;
+  --sidebar-accent-foreground: 220 20% 96%;
+  --sidebar-ring: 185 85% 45%;
+  --popover: 230 12% 11%;
+  --popover-foreground: 220 20% 96%;
+  --popover-border: 230 10% 16%;
+  --primary: 185 85% 45%;
+  --primary-foreground: 185 100% 4%;
+  --secondary: 230 10% 14%;
+  --secondary-foreground: 220 20% 90%;
+  --muted: 230 10% 15%;
+  --muted-foreground: 220 8% 55%;
+  --accent: 230 10% 14%;
+  --accent-foreground: 220 8% 90%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 230 10% 20%;
+  --ring: 185 85% 45%;
+  --chart-1: 185 85% 50%;
+  --chart-2: 320 70% 55%;
+  --chart-3: 35 90% 55%;
+  --chart-4: 145 60% 45%;
+  --chart-5: 260 65% 55%;
+  --font-sans: 'Inter', 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius: .5rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(220 6% 12% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(220 6% 12% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(220 6% 12% / 0.00), 0px 1px 2px -1px hsl(220 6% 12% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(220 6% 12% / 0.00), 0px 1px 2px -1px hsl(220 6% 12% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(220 6% 12% / 0.00), 0px 2px 4px -1px hsl(220 6% 12% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(220 6% 12% / 0.00), 0px 4px 6px -1px hsl(220 6% 12% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(220 6% 12% / 0.00), 0px 8px 10px -1px hsl(220 6% 12% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(220 6% 12% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+  --background: 230 15% 6%;
+  --foreground: 220 20% 96%;
+  --border: 230 10% 16%;
+  --card: 230 12% 9%;
+  --card-foreground: 220 20% 96%;
+  --card-border: 230 10% 13%;
+  --sidebar: 230 12% 8%;
+  --sidebar-foreground: 220 20% 96%;
+  --sidebar-border: 230 10% 14%;
+  --sidebar-primary: 185 85% 45%;
+  --sidebar-primary-foreground: 185 100% 98%;
+  --sidebar-accent: 230 10% 14%;
+  --sidebar-accent-foreground: 220 20% 96%;
+  --sidebar-ring: 185 85% 45%;
+  --popover: 230 12% 11%;
+  --popover-foreground: 220 20% 96%;
+  --popover-border: 230 10% 16%;
+  --primary: 185 85% 45%;
+  --primary-foreground: 185 100% 4%;
+  --secondary: 230 10% 14%;
+  --secondary-foreground: 220 20% 90%;
+  --muted: 230 10% 15%;
+  --muted-foreground: 220 8% 55%;
+  --accent: 230 10% 14%;
+  --accent-foreground: 220 8% 90%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --input: 230 10% 20%;
+  --ring: 185 85% 45%;
+  --chart-1: 185 85% 50%;
+  --chart-2: 320 70% 55%;
+  --chart-3: 35 90% 55%;
+  --chart-4: 145 60% 45%;
+  --chart-5: 260 65% 55%;
+  --shadow-2xs: 0px 2px 0px 0px hsl(220 6% 95% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(220 6% 95% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 1px 2px -1px hsl(220 6% 95% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 1px 2px -1px hsl(220 6% 95% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 2px 4px -1px hsl(220 6% 95% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 4px 6px -1px hsl(220 6% 95% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 8px 10px -1px hsl(220 6% 95% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(220 6% 95% / 0.00);
+
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  .no-default-hover-elevate {}
+  .no-default-active-elevate {}
+
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: 999;
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+    inset: -1px;
+  }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: hsl(var(--muted));
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 10px rgba(0, 208, 230, 0.4);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 0 10px rgba(0, 208, 230, 0.4);
+  cursor: pointer;
+}
+
