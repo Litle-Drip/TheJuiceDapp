@@ -35,6 +35,7 @@ import {
   ExternalLink,
   Globe,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_1771015761494.png";
 
@@ -152,6 +153,20 @@ function Router() {
   );
 }
 
+function MainnetBanner() {
+  const { network } = useWallet();
+  const net = NETWORKS[network];
+  if (net.contract) return null;
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30" data-testid="mainnet-banner">
+      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+      <p className="text-xs text-amber-400">
+        {net.chainName} contracts are not yet deployed. Switch to Base Sepolia to use the app.
+      </p>
+    </div>
+  );
+}
+
 function App() {
   const style = {
     "--sidebar-width": "16rem",
@@ -171,6 +186,7 @@ function App() {
                   <div className="flex-1" />
                   <EthPrice />
                 </header>
+                <MainnetBanner />
                 <main className="flex-1 overflow-auto p-4">
                   <Router />
                 </main>

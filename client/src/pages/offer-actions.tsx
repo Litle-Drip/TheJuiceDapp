@@ -248,21 +248,42 @@ export default function OfferActions() {
               </Button>
             )}
 
-            {(
-              (offer.state === 0 && joinExpired && !hasTaker) ||
-              (offer.state === 1 && resolveExpired) ||
-              (offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote)
-            ) && !offer.paid && (
-              <Button data-testid="button-refund-offer" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
-                {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                Request Refund
-              </Button>
+            {offer.state === 0 && joinExpired && !hasTaker && !offer.paid && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-400">Join deadline passed with no taker. Creator can reclaim funds.</p>
+                </div>
+                <Button data-testid="button-refund-offer" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                  {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Refund (No Taker)
+                </Button>
+              </div>
             )}
 
-            {offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote && (
-              <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <p className="text-xs text-amber-400">Votes disagree. Both parties will be refunded.</p>
+            {offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote && !offer.paid && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-400">Votes disagree - creator and taker voted differently. Both parties can claim a refund.</p>
+                </div>
+                <Button data-testid="button-refund-offer" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                  {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Refund (Vote Conflict)
+                </Button>
+              </div>
+            )}
+
+            {offer.state === 1 && resolveExpired && !(offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote) && !offer.paid && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
+                </div>
+                <Button data-testid="button-refund-offer" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                  {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Refund (Deadline Expired)
+                </Button>
               </div>
             )}
           </div>

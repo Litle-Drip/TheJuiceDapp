@@ -218,17 +218,42 @@ export default function JoinResolve() {
               </Button>
             )}
 
-            {((challenge.state === 0 && joinExpired && !joined) || (challenge.state === 1 && resolveExpired) || (challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote)) && (
-              <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
-                {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                Request Refund
-              </Button>
+            {challenge.state === 0 && joinExpired && !joined && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-400">Join deadline passed with no opponent. Creator can reclaim funds.</p>
+                </div>
+                <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                  {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Refund (No Opponent)
+                </Button>
+              </div>
             )}
 
-            {challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote && (
-              <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <p className="text-xs text-amber-400">Votes conflict. Refund available after the resolve deadline passes.</p>
+            {challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-400">Votes conflict - creator and opponent disagree on the outcome. Both parties can claim a refund.</p>
+                </div>
+                <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                  {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Refund (Vote Conflict)
+                </Button>
+              </div>
+            )}
+
+            {challenge.state === 1 && resolveExpired && !(challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote) && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
+                </div>
+                <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+                  {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  Refund (Deadline Expired)
+                </Button>
               </div>
             )}
           </div>

@@ -170,6 +170,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const getV1Contract = useCallback((readOnly = false) => {
+    if (!net.contract) return null;
     if (readOnly) {
       const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
       return new ethers.Contract(net.contract, ABI_V1, rpcProvider);
