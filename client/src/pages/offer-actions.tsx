@@ -30,7 +30,7 @@ function shortAddr(a: string) {
 }
 
 export default function OfferActions() {
-  const { connected, connect, signer, address, ethUsd, feeBps, getV2Contract, explorerUrl } = useWallet();
+  const { connected, connect, signer, address, ethUsd, feeBps, getV1Contract, getV2Contract, explorerUrl } = useWallet();
   const { toast } = useToast();
 
   const [offerId, setOfferId] = useState('');
@@ -40,17 +40,35 @@ export default function OfferActions() {
   const [lastTxHash, setLastTxHash] = useState('');
 
   const loadOffer = useCallback(async () => {
-    if (!offerId.trim()) return;
+    const raw = offerId.trim();
+    if (!raw) return;
+    if (raw.startsWith('0x') && raw.length > 10) {
+      toast({ title: 'Wrong format', description: 'Enter the numeric Offer ID (e.g. 3), not a transaction hash.', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     try {
       const c = getV2Contract(true);
       if (!c) throw new Error('V2 contract not available');
-      const id = BigInt(offerId);
+      const id = BigInt(raw);
       const [core, status] = await Promise.all([
         c.getOfferCore(id),
         c.getOfferStatus(id),
       ]);
-      if (core[0] === ethers.ZeroAddress) throw new Error('Offer not found');
+      if (core[0] === ethers.ZeroAddress) {
+        const c1 = getV1Contract(true);
+        if (c1) {
+          try {
+            const challCore = await c1.getChallengeCore(id);
+            if (challCore[0] !== ethers.ZeroAddress) {
+              toast({ title: 'This is a Challenge', description: `ID #${raw} is a V1 Challenge, not a V2 Market Offer. Go to the Join & Resolve page instead.`, variant: 'destructive' });
+              setOffer(null);
+              return;
+            }
+          } catch {}
+        }
+        throw new Error('Offer not found');
+      }
       setOffer({
         creator: core[0], taker: core[1], creatorSideYes: core[2], pBps: Number(core[3]),
         creatorStake: core[4], takerStake: core[5],
@@ -64,7 +82,7 @@ export default function OfferActions() {
     } finally {
       setLoading(false);
     }
-  }, [offerId, getV2Contract, toast]);
+  }, [offerId, getV1Contract, getV2Contract, toast]);
 
   const doAction = useCallback(async (action: string, fn: () => Promise<any>) => {
     if (!connected) {

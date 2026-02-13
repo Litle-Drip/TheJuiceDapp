@@ -27,7 +27,7 @@ function shortAddr(a: string) {
 }
 
 export default function JoinResolve() {
-  const { connected, connect, signer, address, ethUsd, getV1Contract, explorerUrl } = useWallet();
+  const { connected, connect, signer, address, ethUsd, getV1Contract, getV2Contract, explorerUrl } = useWallet();
   const { toast } = useToast();
 
   const [challengeId, setChallengeId] = useState('');
@@ -37,17 +37,35 @@ export default function JoinResolve() {
   const [lastTxHash, setLastTxHash] = useState('');
 
   const loadChallenge = useCallback(async () => {
-    if (!challengeId.trim()) return;
+    const raw = challengeId.trim();
+    if (!raw) return;
+    if (raw.startsWith('0x') && raw.length > 10) {
+      toast({ title: 'Wrong format', description: 'Enter the numeric Challenge ID (e.g. 3), not a transaction hash.', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     try {
       const c = getV1Contract(true);
       if (!c) throw new Error('Contract not available');
-      const id = BigInt(challengeId);
+      const id = BigInt(raw);
       const [core, status] = await Promise.all([
         c.getChallengeCore(id),
         c.getChallengeStatus(id),
       ]);
-      if (core[0] === ethers.ZeroAddress) throw new Error('Challenge not found');
+      if (core[0] === ethers.ZeroAddress) {
+        const c2 = getV2Contract(true);
+        if (c2) {
+          try {
+            const offerCore = await c2.getOfferCore(id);
+            if (offerCore[0] !== ethers.ZeroAddress) {
+              toast({ title: 'This is a Market Offer', description: `ID #${raw} is a V2 Market Offer, not a V1 Challenge. Go to the Offer Actions page instead.`, variant: 'destructive' });
+              setChallenge(null);
+              return;
+            }
+          } catch {}
+        }
+        throw new Error('Challenge not found');
+      }
       setChallenge({
         challenger: core[0], participant: core[1], stakeWei: core[2], feeBps: Number(core[3]),
         joinDeadline: Number(core[4]), resolveDeadline: Number(core[5]),
@@ -60,7 +78,7 @@ export default function JoinResolve() {
     } finally {
       setLoading(false);
     }
-  }, [challengeId, getV1Contract, toast]);
+  }, [challengeId, getV1Contract, getV2Contract, toast]);
 
   const doAction = useCallback(async (action: string, fn: () => Promise<any>) => {
     if (!connected) {
