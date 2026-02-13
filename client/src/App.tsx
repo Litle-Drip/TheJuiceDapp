@@ -41,9 +41,9 @@ import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_17710157614
 
 const navItems = [
   { title: "Markets", url: "/", icon: TrendingUp },
+  { title: "Offer Actions", url: "/offers", icon: ArrowDownToLine },
   { title: "Create Challenge", url: "/challenge", icon: Zap },
   { title: "Join & Resolve", url: "/join", icon: Users },
-  { title: "Offer Actions", url: "/offers", icon: ArrowDownToLine },
 ];
 
 function WalletButton() {
