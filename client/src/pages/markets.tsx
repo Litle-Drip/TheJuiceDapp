@@ -70,6 +70,9 @@ export default function Markets() {
     try {
       const ethVal = parseFloat(stakeEth);
       if (!isFinite(ethVal) || ethVal <= 0) throw new Error('Enter a valid stake amount');
+      if (oddsBps < 500 || oddsBps > 9500) throw new Error('Odds must be between 5% and 95%');
+      if (joinMins < 1) throw new Error('Join window must be at least 1 minute');
+      if (resolveMins < 1) throw new Error('Resolve window must be at least 1 minute');
       const net = NETWORKS[networkKey];
       if (!net.v2contract) throw new Error('Contract not deployed on this network');
       const c = activeSigner
@@ -123,13 +126,13 @@ export default function Markets() {
       </div>
 
       <Card className="p-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center justify-center gap-2 mb-4">
           <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
           <span className="text-sm font-semibold">New Market Offer</span>
         </div>
 
         <div className="mb-5">
-          <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2 block">Market Question</label>
+          <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-2 block">Market Question</label>
           <div className="relative">
             <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -152,7 +155,7 @@ export default function Markets() {
         </div>
 
         <div className="mb-5">
-          <label className="text-xs text-muted-foreground mb-2 block font-medium uppercase tracking-wider">Pick Your Side</label>
+          <label className="text-xs text-foreground mb-2 block font-semibold uppercase tracking-wider">Pick Your Side</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               data-testid="button-side-yes"
@@ -185,12 +188,12 @@ export default function Markets() {
 
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Implied Probability</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Implied Probability</label>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="font-mono text-xs">
+              <Badge variant={sideYes ? "default" : "outline"} className={`font-mono text-xs ${sideYes ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'text-muted-foreground'}`}>
                 YES {yesPercent}%
               </Badge>
-              <Badge variant="secondary" className="font-mono text-xs">
+              <Badge variant={!sideYes ? "default" : "outline"} className={`font-mono text-xs ${!sideYes ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' : 'text-muted-foreground'}`}>
                 NO {noPercent}%
               </Badge>
             </div>
@@ -236,8 +239,8 @@ export default function Markets() {
 
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Your Stake</label>
-            <span className="text-xs text-emerald-400 font-mono" data-testid="text-stake-usd">
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Your Stake</label>
+            <span className="text-xs text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
@@ -279,13 +282,13 @@ export default function Markets() {
           className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3"
         >
           {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          <span>Deadlines</span>
+          <span className="font-semibold text-foreground">Deadlines</span>
         </button>
 
         {showAdvanced && (
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div>
-              <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1 block">Join Window</label>
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider mb-1 block">Join Window</label>
               <div className="flex items-center gap-1.5">
                 <input
                   data-testid="input-join-mins"
@@ -307,7 +310,7 @@ export default function Markets() {
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1 block">Resolve Window</label>
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider mb-1 block">Resolve Window</label>
               <div className="flex items-center gap-1.5">
                 <input
                   data-testid="input-resolve-mins"
@@ -334,46 +337,46 @@ export default function Markets() {
         {preview && (
           <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="market-preview">
             <div className="flex items-center gap-1.5 mb-3">
-              <Info className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Order Preview</span>
+              <Info className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+              <span className="text-sm font-semibold">Order Preview</span>
             </div>
 
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Your stake</span>
+                <span className="text-sm text-muted-foreground">Your stake</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-muted-foreground ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                  <span className="text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Opponent pays</span>
+                <span className="text-sm text-muted-foreground">Opponent pays</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-muted-foreground ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                  <span className="text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Total pot</span>
+                <span className="text-sm text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-muted-foreground ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                  <span className="text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
+                <span className="text-sm text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
                 <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
-                  -{preview.fee.toFixed(6)} ETH
+                  -{preview.fee.toFixed(6)} ETH <span className="text-emerald-400/70">(${preview.feeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-emerald-400">If you win</span>
+                <span className="text-sm font-medium text-emerald-400">If you win</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
                     {preview.winnerPayout.toFixed(6)} ETH
@@ -382,7 +385,7 @@ export default function Markets() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Return</span>
+                <span className="text-sm text-muted-foreground">Return</span>
                 <span className="text-sm font-mono font-bold text-[hsl(var(--primary))]" data-testid="text-preview-multiplier">
                   {preview.multiplier.toFixed(2)}x
                 </span>
@@ -390,16 +393,16 @@ export default function Markets() {
             </div>
 
             <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+              <div className="flex items-center justify-between text-xs font-medium text-[hsl(var(--primary))]">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
                   <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
                   <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
                 </div>
-                <span>Network: {networkKey === 'mainnet' ? 'Base' : 'Sepolia'}</span>
+                <span className="font-semibold">Base</span>
               </div>
             </div>
           </div>

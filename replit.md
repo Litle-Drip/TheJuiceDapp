@@ -12,8 +12,9 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 ## Architecture
 - Frontend-only dApp (React + Vite) that interacts directly with smart contracts via ethers.js v6
 - No database needed - all state is on-chain
-- Dark crypto theme with teal/cyan primary (`hsl(185 85% 45%)`)
+- Dark neutral grey theme with steel blue primary (`hsl(207 30% 62%)`) and cool grey backgrounds (`hsl(220 4% 13%)`)
 - Sidebar navigation with wallet connection
+- Legal footer with links to About, Terms, Privacy, Risk Disclosure, FAQ
 
 ## Key Files
 - `client/src/lib/contracts.ts` - Contract ABIs, network config, odds computation
@@ -21,12 +22,30 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2)
 - `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1)
 - `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID
-- `client/src/App.tsx` - Main app with sidebar navigation
+- `client/src/pages/about.tsx` - About Edison Labs
+- `client/src/pages/terms.tsx` - Terms of Use
+- `client/src/pages/privacy.tsx` - Privacy Policy
+- `client/src/pages/risk.tsx` - Risk Disclosure
+- `client/src/pages/faq.tsx` - FAQ
+- `client/src/App.tsx` - Main app with sidebar navigation and legal footer
 
 ## Pages
 - `/` - Markets (create odds-based offers)
 - `/challenge` - Create Challenge (symmetric bets)
 - `/lookup` - Bet Lookup (unified join/vote/resolve/refund for both V1 and V2)
+- `/about` - About Edison Labs
+- `/terms` - Terms of Use
+- `/privacy` - Privacy Policy
+- `/risk` - Risk Disclosure
+- `/faq` - FAQ
+
+## Design
+- Primary color: Steel blue `hsl(207 30% 62%)`
+- Background: Cool neutral grey `hsl(220 4% 13%)`
+- Cards: `hsl(220 3% 17%)`
+- USD amounts: `text-emerald-400`
+- Form labels: Bold, uppercase, centered over inputs
+- Legal footer: Edison Labs LLC copyright + navigation links
 
 ## Technical Notes
 - Uses ethers.js v6 syntax (`ethers.parseEther`, `ethers.formatEther`, `ethers.BrowserProvider`)

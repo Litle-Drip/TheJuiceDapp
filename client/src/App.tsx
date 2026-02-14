@@ -10,6 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import Markets from "@/pages/markets";
 import CreateChallenge from "@/pages/create-challenge";
 import BetLookup from "@/pages/bet-lookup";
+import About from "@/pages/about";
+import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
+import RiskDisclosure from "@/pages/risk";
+import FAQ from "@/pages/faq";
 import NotFound from "@/pages/not-found";
 import {
   Sidebar,
@@ -50,30 +55,20 @@ function WalletButton() {
   return (
     <div className="space-y-2 p-2">
       {connected ? (
-        <>
-          <div className="flex items-center justify-between gap-2">
-            <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
-              {shortAddress}
-            </Badge>
-            <a
-              href={`${explorerUrl}/address/${address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground"
-              data-testid="link-explorer"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-          <button
-            data-testid="button-switch-network"
-            onClick={switchNetwork}
-            className="flex items-center gap-1.5 w-full text-[10px] text-muted-foreground py-1 px-2 rounded-md border border-border"
+        <div className="flex items-center justify-between gap-2">
+          <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
+            {shortAddress}
+          </Badge>
+          <a
+            href={`${explorerUrl}/address/${address}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground"
+            data-testid="link-explorer"
           >
-            <Globe className="w-3 h-3" />
-            <span>{net.chainName}</span>
-          </button>
-        </>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
       ) : (
         <Button
           data-testid="button-connect-wallet"
@@ -90,6 +85,18 @@ function WalletButton() {
           {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
       )}
+      <Button
+        data-testid="button-switch-network"
+        onClick={switchNetwork}
+        disabled={connecting}
+        variant="outline"
+        size="sm"
+        className="w-full text-xs justify-start gap-1.5 border-[hsl(var(--primary))]/30 text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5"
+      >
+        <Globe className="w-3.5 h-3.5" />
+        <span>{net.chainName}</span>
+        <span className="ml-auto text-[11px] text-white/80 font-medium">Switch</span>
+      </Button>
     </div>
   );
 }
@@ -144,6 +151,11 @@ function Router() {
       <Route path="/" component={Markets} />
       <Route path="/challenge" component={CreateChallenge} />
       <Route path="/lookup" component={BetLookup} />
+      <Route path="/about" component={About} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/risk" component={RiskDisclosure} />
+      <Route path="/faq" component={FAQ} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -163,6 +175,25 @@ function MainnetBanner() {
   );
 }
 
+function LegalFooter() {
+  return (
+    <footer className="mt-12 mb-4" data-testid="legal-footer">
+      <div className="max-w-xl mx-auto rounded-lg border border-border/60 px-6 py-5">
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4 text-center">
+          &copy; 2026 Edison Labs LLC &middot; Experimental software. Use at your own risk.
+        </p>
+        <div className="flex items-center justify-between">
+          <Link href="/about" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-about">About</Link>
+          <Link href="/terms" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-terms">Terms of Use</Link>
+          <Link href="/privacy" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-privacy">Privacy Policy</Link>
+          <Link href="/risk" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-risk">Risk Disclosure</Link>
+          <Link href="/faq" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-faq">FAQ</Link>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 function App() {
   const style = {
     "--sidebar-width": "16rem",
@@ -173,7 +204,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WalletProvider>
-          <SidebarProvider style={style as React.CSSProperties}>
+          <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
             <div className="flex h-screen w-full">
               <AppSidebar />
               <div className="flex flex-col flex-1 min-w-0">
@@ -185,6 +216,7 @@ function App() {
                 <MainnetBanner />
                 <main className="flex-1 overflow-auto p-4">
                   <Router />
+                  <LegalFooter />
                 </main>
               </div>
             </div>

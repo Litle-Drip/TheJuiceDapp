@@ -59,6 +59,7 @@ export default function CreateChallenge() {
         : getV1Contract(false);
       if (!c) throw new Error('Connect wallet first');
 
+      if (stakeEthValue <= 0) throw new Error('Enter a valid stake amount');
       const stakeWei = ethers.parseEther(stakeEthValue.toFixed(18));
       const jm = Math.max(5, Math.min(43200, joinMins));
       const rm = Math.max(30, Math.min(43200, resolveMins));
@@ -115,7 +116,7 @@ export default function CreateChallenge() {
 
       <Card className="p-5">
         <div className="mb-5">
-          <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2 block">Challenge Idea</label>
+          <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-2 block text-center">Challenge Idea</label>
           <div className="relative">
             <input
               data-testid="input-challenge-idea"
@@ -136,8 +137,8 @@ export default function CreateChallenge() {
         </div>
 
         <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Challenge Amount</label>
+          <div className="flex items-center justify-center mb-2 gap-3">
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Challenge Amount</label>
             <div className="flex items-center gap-1.5">
               <button
                 data-testid="button-mode-eth"
@@ -181,7 +182,7 @@ export default function CreateChallenge() {
           </div>
 
           <div className="text-center mt-1.5">
-            <span className={`text-xs font-mono ${stakeMode === 'USD' ? 'text-muted-foreground' : 'text-emerald-400'}`}>
+            <span className={`text-xs font-mono ${stakeMode === 'USD' ? 'text-muted-foreground' : 'text-emerald-400 font-medium'}`}>
               {stakeMode === 'USD'
                 ? `${stakeEthValue.toFixed(6)} ETH`
                 : `$${(stakeEthValue * ethUsd).toFixed(2)}`}
@@ -208,7 +209,7 @@ export default function CreateChallenge() {
 
         <div className="grid grid-cols-2 gap-3 mb-5">
           <div>
-            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1.5 block">Join Deadline</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block text-center">Join Deadline</label>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
               <input
@@ -231,7 +232,7 @@ export default function CreateChallenge() {
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1.5 block">Resolve Deadline</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block text-center">Resolve Deadline</label>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
               <input
@@ -257,10 +258,10 @@ export default function CreateChallenge() {
 
         <div className="rounded-md border border-border bg-muted/30 p-3 mb-5">
           <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-muted-foreground">Pot value</span><span className="font-mono">{potEth.toFixed(6)} ETH (${potUsd.toFixed(2)})</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Fee ({(feeBps/100).toFixed(1)}%)</span><span className="font-mono text-muted-foreground">-{feeEth.toFixed(6)} ETH</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Pot value</span><span className="font-mono">{potEth.toFixed(6)} ETH <span className="text-emerald-400">(${potUsd.toFixed(2)})</span></span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Fee ({(feeBps/100).toFixed(1)}%)</span><span className="font-mono text-muted-foreground">-{feeEth.toFixed(6)} ETH <span className="text-emerald-400/70">(${(feeEth * ethUsd).toFixed(2)})</span></span></div>
             <div className="h-px bg-border" />
-            <div className="flex justify-between"><span className="text-emerald-400 font-medium">Winner gets</span><span className="font-mono font-bold text-emerald-400">{winnerEth.toFixed(6)} ETH (${(winnerEth * ethUsd).toFixed(2)})</span></div>
+            <div className="flex justify-between"><span className="text-emerald-400 font-medium">Winner gets</span><span className="font-mono font-bold text-emerald-400">{winnerEth.toFixed(6)} ETH <span className="text-emerald-400">(${(winnerEth * ethUsd).toFixed(2)})</span></span></div>
           </div>
         </div>
 
