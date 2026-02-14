@@ -562,18 +562,31 @@ function ChallengeView({
       )}
 
       {challenge.state === 1 && joined && !resolveExpired && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground text-center">Vote on the outcome. Both players must agree for payout.</p>
+        <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">
+          <div className="text-center">
+            <p className="text-sm font-bold text-foreground">Who won?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Both players must agree for payout</p>
+          </div>
           <GasEstimate estimateFn={() => estimateGas('submitOutcomeVote', [BigInt(betId), true])} ethUsd={ethUsd} address={address} />
-          <div className="grid grid-cols-2 gap-2">
-            <Button data-testid="button-vote-won" onClick={() => handleVote(true)} disabled={!!actionLoading} variant="outline">
-              {actionLoading === 'Vote: I Won' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ThumbsUp className="w-4 h-4 mr-2" />}
-              I Won
-            </Button>
-            <Button data-testid="button-vote-lost" onClick={() => handleVote(false)} disabled={!!actionLoading} variant="outline">
-              {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ThumbsDown className="w-4 h-4 mr-2" />}
-              Opponent Won
-            </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              data-testid="button-vote-won"
+              onClick={() => handleVote(true)}
+              disabled={!!actionLoading}
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
+            >
+              {actionLoading === 'Vote: I Won' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-400" /> : <ThumbsUp className="w-6 h-6 text-emerald-400" />}
+              <span className="text-sm font-bold text-emerald-400">I Won</span>
+            </button>
+            <button
+              data-testid="button-vote-lost"
+              onClick={() => handleVote(false)}
+              disabled={!!actionLoading}
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
+            >
+              {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-6 h-6 animate-spin text-rose-400" /> : <ThumbsDown className="w-6 h-6 text-rose-400" />}
+              <span className="text-sm font-bold text-rose-400">Opponent Won</span>
+            </button>
           </div>
         </div>
       )}
@@ -818,18 +831,31 @@ function OfferView({
       )}
 
       {offer.state === 1 && hasTaker && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground text-center">Vote on the outcome (YES or NO won?).</p>
+        <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">
+          <div className="text-center">
+            <p className="text-sm font-bold text-foreground">What was the outcome?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Both players must agree for payout</p>
+          </div>
           <GasEstimate estimateFn={() => estimateGas('submitOfferVote', [BigInt(betId), true])} ethUsd={ethUsd} address={address} />
-          <div className="grid grid-cols-2 gap-2">
-            <Button data-testid="button-vote-yes" onClick={() => handleVote(true)} disabled={!!actionLoading} variant="outline">
-              {actionLoading === 'Vote: YES' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
-              YES Won
-            </Button>
-            <Button data-testid="button-vote-no" onClick={() => handleVote(false)} disabled={!!actionLoading} variant="outline">
-              {actionLoading === 'Vote: NO' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingDown className="w-4 h-4 mr-2" />}
-              NO Won
-            </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              data-testid="button-vote-yes"
+              onClick={() => handleVote(true)}
+              disabled={!!actionLoading}
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
+            >
+              {actionLoading === 'Vote: YES' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-400" /> : <TrendingUp className="w-6 h-6 text-emerald-400" />}
+              <span className="text-sm font-bold text-emerald-400">YES Won</span>
+            </button>
+            <button
+              data-testid="button-vote-no"
+              onClick={() => handleVote(false)}
+              disabled={!!actionLoading}
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
+            >
+              {actionLoading === 'Vote: NO' ? <Loader2 className="w-6 h-6 animate-spin text-rose-400" /> : <TrendingDown className="w-6 h-6 text-rose-400" />}
+              <span className="text-sm font-bold text-rose-400">NO Won</span>
+            </button>
           </div>
         </div>
       )}
