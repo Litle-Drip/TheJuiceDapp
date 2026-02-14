@@ -12,7 +12,7 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 ## Architecture
 - Frontend-only dApp (React + Vite) that interacts directly with smart contracts via ethers.js v6
 - No database needed - all state is on-chain
-- Dark crypto theme with teal/cyan primary (`hsl(185 85% 45%)`)
+- Claude-inspired warm dark theme with terracotta/orange primary (`hsl(24 70% 50%)`)
 - Sidebar navigation with wallet connection
 
 ## Key Files
