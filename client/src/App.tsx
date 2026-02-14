@@ -177,7 +177,7 @@ function LegalFooter() {
   return (
     <footer className="mt-12 mb-4 px-4" data-testid="legal-footer">
       <div className="max-w-2xl mx-auto rounded-lg border border-border/60 px-6 py-5">
-        <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+        <p className="text-[13px] text-muted-foreground leading-relaxed mb-4 text-center">
           &copy; 2026 Edison Labs LLC &middot; Experimental software. Use at your own risk.
         </p>
         <div className="flex items-center justify-between">
