@@ -115,7 +115,7 @@ export default function CreateChallenge() {
 
       <Card className="p-5">
         <div className="mb-5">
-          <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-2 block text-center">Challenge Idea</label>
+          <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-2 block text-center">Challenge Idea</label>
           <div className="relative">
             <input
               data-testid="input-challenge-idea"
@@ -137,7 +137,7 @@ export default function CreateChallenge() {
 
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Challenge Amount</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Challenge Amount</label>
             <div className="flex items-center gap-1.5">
               <button
                 data-testid="button-mode-eth"
