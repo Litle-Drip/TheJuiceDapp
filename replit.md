@@ -15,29 +15,45 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - Dark neutral grey theme with steel blue primary (`hsl(207 30% 62%)`) and cool grey backgrounds (`hsl(220 4% 13%)`)
 - Sidebar navigation with wallet connection
 - Legal footer with links to About, Terms, Privacy, Risk Disclosure, FAQ
+- Background notification polling every 30s for bet status changes
+- Gas estimation on create pages using `estimateGas()` + `getFeeData()`
 
 ## Key Files
 - `client/src/lib/contracts.ts` - Contract ABIs, network config, odds computation
 - `client/src/lib/wallet.tsx` - WalletProvider context with MetaMask/Coinbase support
-- `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2)
-- `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1)
-- `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID
+- `client/src/lib/notifications.tsx` - NotificationProvider with background event polling for bet updates
+- `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2) with gas estimation
+- `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1) with gas estimation
+- `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID, supports URL query params (?id=X)
+- `client/src/pages/my-bets.tsx` - My Bets dashboard: scans on-chain events for user's bets (created + joined)
+- `client/src/pages/trending.tsx` - Trending/Popular Markets: browse recent bets ranked by stake size
 - `client/src/pages/about.tsx` - About Edison Labs
 - `client/src/pages/terms.tsx` - Terms of Use
 - `client/src/pages/privacy.tsx` - Privacy Policy
 - `client/src/pages/risk.tsx` - Risk Disclosure
 - `client/src/pages/faq.tsx` - FAQ
-- `client/src/App.tsx` - Main app with sidebar navigation and legal footer
+- `client/src/App.tsx` - Main app with sidebar navigation, notification badge, verification badge, and legal footer
 
 ## Pages
 - `/` - Markets (create odds-based offers)
 - `/challenge` - Create Challenge (symmetric bets)
 - `/lookup` - Bet Lookup (unified join/vote/resolve/refund for both V1 and V2)
+- `/my-bets` - My Bets Dashboard (all user's bets from on-chain events)
+- `/trending` - Trending Markets (recent bets ranked by stake, filterable to open-only)
 - `/about` - About Edison Labs
 - `/terms` - Terms of Use
 - `/privacy` - Privacy Policy
 - `/risk` - Risk Disclosure
 - `/faq` - FAQ
+
+## Features
+- **My Bets Dashboard**: Scans blockchain events filtered by wallet address, shows all created/joined bets with status, stake, counterparty
+- **Transaction History**: Integrated into My Bets with chronological ordering and explorer links
+- **Trending Markets**: Scans recent OfferOpened/ChallengeOpened events, ranks by total pot size, shows open bets available to join
+- **Bet Notifications**: Background polling (30s interval) watches for OfferResolved, ChallengeResolved, and offer-taken events. Shows toast notifications and badge count on sidebar
+- **Gas Estimation**: Shows estimated gas cost in ETH and USD before confirming create transactions
+- **Contract Verification Badge**: Sidebar footer link to verified contract source on BaseScan
+- **URL Deep Links**: Bet lookup supports `?id=X` query params for linking from dashboard/trending
 
 ## Design
 - Primary color: Steel blue `hsl(207 30% 62%)`
@@ -54,3 +70,6 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - Protocol fee read from contract (`protocolFeeBps()`)
 - Wallet handles chain/account change events
 - ETH/USD price from CoinGecko API
+- Event scanning uses 10k-block chunks to stay within RPC limits, scans last 100k blocks
+- Notification polling stores last seen block number to only check new blocks
+- Gas estimation uses `contract.method.estimateGas()` + `provider.getFeeData()` for accurate cost

@@ -15,7 +15,7 @@ export default function RiskDisclosure() {
       </div>
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Risk Disclosure</h1>
-        <p className="text-xs text-muted-foreground mt-1">Last updated: 12/4/2025</p>
+        <p className="text-xs text-muted-foreground mt-1">Last updated: 2/14/2026</p>
       </div>
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4 p-3 rounded-md border border-amber-500/30 bg-amber-500/5" data-testid="risk-warning-banner">
@@ -34,19 +34,24 @@ export default function RiskDisclosure() {
             Smart contracts are experimental software. They may contain bugs, vulnerabilities, or behave in unexpected ways. Interacting with them can lead to permanent loss of funds.
           </Section>
 
-          <Section title="3. Irreversible Transactions">
+          <Section title="3. Asymmetric Stake and Payout Risk">
+            <p>Some features of The Juice allow participants to define implied probabilities and asymmetric stake amounts. This means one participant may risk more or less digital assets relative to the potential payout.</p>
+            <p className="mt-2">Displayed payout projections are estimates based on contract logic and user inputs. Final results depend entirely on on-chain execution. Misunderstanding implied probability, stake calculations, or resolution mechanics may result in unexpected financial loss.</p>
+          </Section>
+
+          <Section title="4. Irreversible Transactions">
             Blockchain transactions are generally irreversible. Once a transaction is broadcast and confirmed, it cannot be undone, reversed, or forcibly refunded.
           </Section>
 
-          <Section title="4. Network & Infrastructure Risk">
+          <Section title="5. Network & Infrastructure Risk">
             Congestion, forks, failed transactions, RPC outages, or chain-level issues can impact your experience and may lead to stuck, delayed, or more expensive transactions.
           </Section>
 
-          <Section title="5. Legal & Regulatory Risk">
-            Rules related to digital assets, contests, and wagering differ by jurisdiction and may change over time. You are solely responsible for understanding and complying with laws that apply to you.
+          <Section title="6. Legal & Regulatory Risk">
+            Rules related to digital assets, peer-to-peer agreements, prediction-style contracts, contests, and wagering differ by jurisdiction and may change over time. You are solely responsible for understanding and complying with laws that apply to you.
           </Section>
 
-          <Section title="6. No Guarantees or Insurance">
+          <Section title="7. No Guarantees or Insurance">
             There is no guarantee of uptime, availability, performance, or security. There is no insurance or guaranteed recovery if funds are lost.
           </Section>
 

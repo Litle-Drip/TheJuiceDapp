@@ -1,0 +1,118 @@
+You can paste these into Replit and update the existing pages.
+
+✅ 1️⃣ TERMS OF USE — Add Market Language
+🔹 Add This Definition Under Section 1 (Who We Are)
+
+Add a short paragraph at the end of Section 1:
+
+The Service may include peer-to-peer “Challenges” and “Market Offers.” Market Offers allow participants to create binary outcome agreements using user-defined implied probabilities and asymmetric stake amounts. These features are implemented through smart contracts deployed on public blockchain networks.
+
+🔹 Update Section 3 (No Financial, Legal, or Gambling Advice)
+
+Replace this paragraph:
+
+Edison Labs does not operate as a sportsbook, casino, or traditional betting operator. The Service provides experimental tools that allow users to interact with blockchain-based smart contracts they control at their own risk.
+
+With this:
+
+Edison Labs does not operate as a sportsbook, casino, betting operator, broker, exchange, or investment platform. Edison Labs does not set odds, take positions, determine outcomes, or participate as a counterparty in user agreements. The Service provides experimental, peer-to-peer software tools that allow users to create and interact with blockchain-based smart contracts at their own discretion and risk.
+
+🔹 Add New Section After “5. Blockchain Interactions”
+
+Create a new section:
+
+6. Market Offers and Outcome Mechanics
+
+Certain features of the Service allow users to create “Market Offers” based on binary outcomes (e.g., YES/NO). These offers may use user-defined implied probabilities and asymmetric stake amounts.
+
+By using these features, you acknowledge and agree that:
+
+Implied probabilities and payout projections are user-defined inputs and interface estimates only.
+
+The smart contract logic determines the final stake amounts, payouts, refunds, and fees.
+
+Payout previews displayed in the interface are estimates and may not account for network fees or other blockchain variables.
+
+A Market Offer may expire, remain unfilled, or become unresolvable depending on participant actions.
+
+Resolution may require matching votes from participants, or follow the logic encoded in the smart contract.
+
+You are solely responsible for understanding how the contract functions before interacting with it.
+
+Then renumber your existing Sections 6–13 accordingly.
+
+🔹 Minor Addition to Fees Section
+
+Modify this sentence:
+
+Any applicable fees will be displayed in the interface or encoded in the contract logic.
+
+Change to:
+
+Any applicable fees will be displayed in the interface and/or encoded in the contract logic. Fees may apply upon successful resolution and are determined solely by the deployed smart contract.
+
+✅ 2️⃣ RISK DISCLOSURE — Add Market Risk Section
+
+Add a new numbered section between #2 and #3:
+
+X. Asymmetric Stake and Payout Risk
+
+Some features of The Juice allow participants to define implied probabilities and asymmetric stake amounts. This means one participant may risk more or less digital assets relative to the potential payout.
+
+Displayed payout projections are estimates based on contract logic and user inputs. Final results depend entirely on on-chain execution. Misunderstanding implied probability, stake calculations, or resolution mechanics may result in unexpected financial loss.
+
+Also modify Legal & Regulatory Risk section slightly:
+
+Change:
+
+Rules related to digital assets, contests, and wagering differ by jurisdiction…
+
+To:
+
+Rules related to digital assets, peer-to-peer agreements, prediction-style contracts, contests, and wagering differ by jurisdiction…
+
+✅ 3️⃣ FAQ — Update for Markets
+
+Keep your tone. Add these new questions.
+
+What are Market Offers?
+
+Market Offers allow a participant to create a binary (YES/NO) outcome agreement using a user-defined implied probability. The creator selects a side and stake amount, and the opposing stake is calculated by the smart contract. Another participant may accept the offer by taking the opposite side.
+
+Does The Juice set odds or act as the counterparty?
+
+No. All implied probabilities and stake amounts are defined by users. Edison Labs does not set odds, take positions, or participate in outcome agreements.
+
+How do Market Offers resolve?
+
+Market Offers resolve according to the smart contract logic. In general:
+
+Participants submit outcome votes.
+
+If required voting conditions are met, the contract distributes funds automatically.
+
+If conditions are not met, refunds or other outcomes may follow the contract rules.
+
+Deadlines may apply.
+
+Always review the contract mechanics before interacting.
+
+Are payout projections guaranteed?
+
+No. The interface displays estimated payout amounts based on contract logic and your inputs. Final outcomes depend entirely on on-chain execution and smart contract rules.
+
+Can a Market Offer expire or remain unfilled?
+
+Yes. If no counterparty accepts the offer before the join deadline, it may expire according to contract logic.
+
+✅ 4️⃣ Small But Important Language Tightening
+
+In FAQ change:
+
+It is a peer-to-peer escrow and outcome-voting tool.
+
+To:
+
+It is a peer-to-peer smart contract coordination and outcome-voting tool.
+
+Removes “escrow” gambling optics while keeping meaning.

@@ -6,11 +6,31 @@ import { Button } from '@/components/ui/button';
 const faqs = [
   {
     q: "What is The Juice?",
-    a: "The Juice is an experimental, on-chain challenge / escrow tool built by Edison Labs LLC. It lets two participants lock funds into a smart contract and then submit outcomes to release or refund funds based on the result."
+    a: "The Juice is an experimental, on-chain challenge and market offer tool built by Edison Labs LLC. It lets two participants lock funds into a smart contract and then submit outcomes to release or refund funds based on the result."
   },
   {
     q: "Is this a sportsbook or casino?",
-    a: "No. The Juice does not set odds, take positions against users, or act as a traditional sportsbook or casino. It is a peer-to-peer escrow and outcome-voting tool. You are responsible for how and where you use it, and for complying with your local laws."
+    a: "No. The Juice does not set odds, take positions against users, or act as a traditional sportsbook or casino. It is a peer-to-peer smart contract coordination and outcome-voting tool. You are responsible for how and where you use it, and for complying with your local laws."
+  },
+  {
+    q: "What are Market Offers?",
+    a: "Market Offers allow a participant to create a binary (YES/NO) outcome agreement using a user-defined implied probability. The creator selects a side and stake amount, and the opposing stake is calculated by the smart contract. Another participant may accept the offer by taking the opposite side."
+  },
+  {
+    q: "Does The Juice set odds or act as the counterparty?",
+    a: "No. All implied probabilities and stake amounts are defined by users. Edison Labs does not set odds, take positions, or participate in outcome agreements."
+  },
+  {
+    q: "How do Market Offers resolve?",
+    a: "Market Offers resolve according to the smart contract logic. In general: participants submit outcome votes; if required voting conditions are met, the contract distributes funds automatically; if conditions are not met, refunds or other outcomes may follow the contract rules. Deadlines may apply. Always review the contract mechanics before interacting."
+  },
+  {
+    q: "Are payout projections guaranteed?",
+    a: "No. The interface displays estimated payout amounts based on contract logic and your inputs. Final outcomes depend entirely on on-chain execution and smart contract rules."
+  },
+  {
+    q: "Can a Market Offer expire or remain unfilled?",
+    a: "Yes. If no counterparty accepts the offer before the join deadline, it may expire according to contract logic."
   },
   {
     q: "What network does it run on?",

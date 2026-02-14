@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { RANDOM_IDEAS, ABI_V1, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink, Search } from 'lucide-react';
+import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function CreateChallenge() {
@@ -22,6 +22,8 @@ export default function CreateChallenge() {
   const [loading, setLoading] = useState(false);
   const [lastChallengeId, setLastChallengeId] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
+  const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
+  const [estimatingGas, setEstimatingGas] = useState(false);
 
   const stakeEthValue = useMemo(() => {
     if (stakeMode === 'USD') {
@@ -44,6 +46,37 @@ export default function CreateChallenge() {
       setStakeEthDirect(v.toFixed(6));
     }
   };
+
+  useEffect(() => {
+    if (!connected || !signer || stakeEthValue <= 0) { setGasEstimate(null); return; }
+    const net = NETWORKS[network];
+    if (!net.contract) { setGasEstimate(null); return; }
+    let cancelled = false;
+    setEstimatingGas(true);
+    (async () => {
+      try {
+        const c = new ethers.Contract(net.contract, ABI_V1, signer);
+        const stakeWei = ethers.parseEther(stakeEthValue.toFixed(18));
+        const jm = Math.max(5, Math.min(43200, joinMins));
+        const rm = Math.max(30, Math.min(43200, resolveMins));
+        const gas = await c.openChallenge.estimateGas(stakeWei, feeBps, BigInt(jm * 60), BigInt(rm * 60), { value: stakeWei });
+        const provider = signer.provider;
+        if (!provider) return;
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || 0n;
+        const costWei = gas * gasPrice;
+        const costEth = Number(ethers.formatEther(costWei));
+        if (!cancelled) {
+          setGasEstimate({ gasEth: costEth, gasUsd: costEth * ethUsd });
+        }
+      } catch {
+        if (!cancelled) setGasEstimate(null);
+      } finally {
+        if (!cancelled) setEstimatingGas(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [connected, signer, network, stakeEthValue, joinMins, resolveMins, feeBps, ethUsd]);
 
   const handleCreate = useCallback(async () => {
     let activeSigner = signer;
@@ -264,6 +297,20 @@ export default function CreateChallenge() {
             <div className="flex justify-between"><span className="text-emerald-400 font-medium">Winner gets</span><span className="font-mono font-bold text-emerald-400">{winnerEth.toFixed(6)} ETH <span className="text-emerald-400">(${(winnerEth * ethUsd).toFixed(2)})</span></span></div>
           </div>
         </div>
+
+        {connected && gasEstimate && (
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-challenge">
+            <Fuel className="w-3 h-3" />
+            <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
+            <span className="text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
+          </div>
+        )}
+        {connected && estimatingGas && !gasEstimate && (
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            <span>Estimating gas...</span>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Button
