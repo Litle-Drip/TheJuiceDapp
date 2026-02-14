@@ -95,7 +95,7 @@ function WalletButton() {
       >
         <Globe className="w-3.5 h-3.5" />
         <span>{net.chainName}</span>
-        <span className="ml-auto text-[10px] text-[hsl(var(--primary))]/60">Switch</span>
+        <span className="ml-auto text-[11px] text-white/80 font-medium">Switch</span>
       </Button>
     </div>
   );
