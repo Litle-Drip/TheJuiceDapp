@@ -175,18 +175,24 @@ function MainnetBanner() {
 
 function LegalFooter() {
   return (
-    <footer className="border-t border-border mt-8 py-6 px-4" data-testid="legal-footer">
-      <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-md border border-border p-4">
-        <p className="text-xs text-muted-foreground">
-          &copy; 2026 Edison Labs LLC &middot; Experimental software.<br />
-          Use at your own risk.
-        </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-2">
-          <Link href="/about" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-about">About</Link>
-          <Link href="/terms" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-terms">Terms of Use</Link>
-          <Link href="/privacy" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-privacy">Privacy Policy</Link>
-          <Link href="/risk" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-risk">Risk Disclosure</Link>
-          <Link href="/faq" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-faq">FAQ</Link>
+    <footer className="mt-12 mb-4 px-4" data-testid="legal-footer">
+      <div className="max-w-2xl mx-auto rounded-lg border border-border/60 px-6 py-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <p className="text-[13px] text-muted-foreground leading-relaxed">
+            &copy; 2026 Edison Labs LLC &middot; Experimental software.<br />
+            Use at your own risk.
+          </p>
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-5">
+              <Link href="/about" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-about">About</Link>
+              <Link href="/terms" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-terms">Terms of Use</Link>
+              <Link href="/privacy" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-privacy">Privacy Policy</Link>
+            </div>
+            <div className="flex items-center gap-5">
+              <Link href="/risk" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-risk">Risk Disclosure</Link>
+              <Link href="/faq" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-faq">FAQ</Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
