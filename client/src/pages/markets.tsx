@@ -334,20 +334,20 @@ export default function Markets() {
         {preview && (
           <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="market-preview">
             <div className="flex items-center gap-1.5 mb-3">
-              <Info className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Order Preview</span>
+              <Info className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+              <span className="text-sm font-semibold">Order Preview</span>
             </div>
 
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Your stake</span>
+                <span className="text-sm text-muted-foreground">Your stake</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
                   <span className="text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Opponent pays</span>
+                <span className="text-sm text-muted-foreground">Opponent pays</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
                   <span className="text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
@@ -357,23 +357,23 @@ export default function Markets() {
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Total pot</span>
+                <span className="text-sm text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
                   <span className="text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
+                <span className="text-sm text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
                 <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
-                  -{preview.fee.toFixed(6)} ETH
+                  -{preview.fee.toFixed(6)} ETH <span className="text-emerald-400/70">(${preview.feeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-emerald-400">If you win</span>
+                <span className="text-sm font-medium text-emerald-400">If you win</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
                     {preview.winnerPayout.toFixed(6)} ETH
@@ -382,7 +382,7 @@ export default function Markets() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Return</span>
+                <span className="text-sm text-muted-foreground">Return</span>
                 <span className="text-sm font-mono font-bold text-[hsl(var(--primary))]" data-testid="text-preview-multiplier">
                   {preview.multiplier.toFixed(2)}x
                 </span>
@@ -390,16 +390,16 @@ export default function Markets() {
             </div>
 
             <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+              <div className="flex items-center justify-between text-xs font-medium text-[hsl(var(--primary))]">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
                   <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
                   <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
                 </div>
-                <span>Network: {networkKey === 'mainnet' ? 'Base' : 'Sepolia'}</span>
+                <span className="font-semibold">Base</span>
               </div>
             </div>
           </div>

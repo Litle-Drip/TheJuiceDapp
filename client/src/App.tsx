@@ -173,7 +173,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WalletProvider>
-          <SidebarProvider style={style as React.CSSProperties}>
+          <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
             <div className="flex h-screen w-full">
               <AppSidebar />
               <div className="flex flex-col flex-1 min-w-0">

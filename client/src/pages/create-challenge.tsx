@@ -258,7 +258,7 @@ export default function CreateChallenge() {
         <div className="rounded-md border border-border bg-muted/30 p-3 mb-5">
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between"><span className="text-muted-foreground">Pot value</span><span className="font-mono">{potEth.toFixed(6)} ETH <span className="text-emerald-400">(${potUsd.toFixed(2)})</span></span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Fee ({(feeBps/100).toFixed(1)}%)</span><span className="font-mono text-muted-foreground">-{feeEth.toFixed(6)} ETH</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Fee ({(feeBps/100).toFixed(1)}%)</span><span className="font-mono text-muted-foreground">-{feeEth.toFixed(6)} ETH <span className="text-emerald-400/70">(${(feeEth * ethUsd).toFixed(2)})</span></span></div>
             <div className="h-px bg-border" />
             <div className="flex justify-between"><span className="text-emerald-400 font-medium">Winner gets</span><span className="font-mono font-bold text-emerald-400">{winnerEth.toFixed(6)} ETH <span className="text-emerald-400">(${(winnerEth * ethUsd).toFixed(2)})</span></span></div>
           </div>
