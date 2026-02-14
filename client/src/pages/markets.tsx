@@ -542,8 +542,9 @@ export default function Markets() {
                     variant="ghost"
                     data-testid="button-copy-offer-id"
                     onClick={() => {
-                      navigator.clipboard.writeText(lastOfferId);
-                      toast({ title: 'Copied', description: 'Offer ID copied to clipboard' });
+                      const shareUrl = `${window.location.origin}/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`;
+                      navigator.clipboard.writeText(shareUrl);
+                      toast({ title: 'Copied', description: 'Share link copied to clipboard' });
                     }}
                   >
                     <Copy className="w-3.5 h-3.5" />
@@ -574,7 +575,7 @@ export default function Markets() {
                 </a>
               </div>
             )}
-            <Link href="/lookup" data-testid="link-go-to-lookup">
+            <Link href={`/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`} data-testid="link-go-to-lookup">
               <Button variant="outline" size="sm" className="w-full">
                 <Search className="w-3.5 h-3.5 mr-1.5" />
                 Go to Bet Lookup

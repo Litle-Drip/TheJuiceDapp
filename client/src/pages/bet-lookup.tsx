@@ -96,6 +96,7 @@ export default function BetLookup() {
   const [payoutTxHash, setPayoutTxHash] = useState('');
   const [loadedBetId, setLoadedBetId] = useState('');
   const [autoLoaded, setAutoLoaded] = useState(false);
+  const [marketQuestion, setMarketQuestion] = useState('');
 
   const findResolveTx = useCallback(async (contract: ethers.Contract, eventName: string, id: bigint): Promise<string> => {
     try {
@@ -281,6 +282,8 @@ export default function BetLookup() {
     if (autoLoaded) return;
     const params = new URLSearchParams(window.location.search);
     const idParam = params.get('id');
+    const qParam = params.get('q');
+    if (qParam) setMarketQuestion(decodeURIComponent(qParam));
     if (idParam && /^\d+$/.test(idParam)) {
       setBetId(idParam);
       setAutoLoaded(true);
@@ -356,6 +359,7 @@ export default function BetLookup() {
             payoutTxHash={payoutTxHash}
             explorerUrl={explorerUrl}
             ethUsd={ethUsd}
+            marketQuestion={marketQuestion}
           />
         )}
 
@@ -371,6 +375,7 @@ export default function BetLookup() {
             payoutTxHash={payoutTxHash}
             explorerUrl={explorerUrl}
             ethUsd={ethUsd}
+            marketQuestion={marketQuestion}
           />
         )}
 
@@ -405,7 +410,7 @@ export default function BetLookup() {
 }
 
 function ChallengeView({
-  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd,
+  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd, marketQuestion,
 }: {
   challenge: ChallengeData;
   betId: string;
@@ -417,6 +422,7 @@ function ChallengeView({
   payoutTxHash: string;
   explorerUrl: string;
   ethUsd: number;
+  marketQuestion: string;
 }) {
   const joined = challenge.participant !== ethers.ZeroAddress;
   const joinExpired = challenge.joinDeadline > 0 && now > challenge.joinDeadline;
@@ -472,6 +478,13 @@ function ChallengeView({
             {CHALLENGE_STATES[challenge.state] || `State ${challenge.state}`}
           </Badge>
         </div>
+
+        {marketQuestion && (
+          <div className="mb-3 p-2.5 rounded-md bg-muted/40 border border-border/50" data-testid="text-bet-question">
+            <p className="text-xs text-muted-foreground mb-1">Market Question</p>
+            <p className="text-sm font-medium leading-snug">&ldquo;{marketQuestion}&rdquo;</p>
+          </div>
+        )}
 
         <div className="space-y-2 text-xs">
           <div className="flex justify-between">
@@ -621,7 +634,7 @@ function ChallengeView({
 }
 
 function OfferView({
-  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd,
+  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd, marketQuestion,
 }: {
   offer: OfferData;
   betId: string;
@@ -633,6 +646,7 @@ function OfferView({
   payoutTxHash: string;
   explorerUrl: string;
   ethUsd: number;
+  marketQuestion: string;
 }) {
   const hasTaker = offer.taker !== ethers.ZeroAddress;
   const joinExpired = offer.joinDeadline > 0 && now > offer.joinDeadline;
@@ -688,6 +702,13 @@ function OfferView({
             {offer.paid && <Badge variant="outline" className="text-emerald-400 border-emerald-400/30">Paid</Badge>}
           </div>
         </div>
+
+        {marketQuestion && (
+          <div className="mb-3 p-2.5 rounded-md bg-muted/40 border border-border/50" data-testid="text-bet-question">
+            <p className="text-xs text-muted-foreground mb-1">Market Question</p>
+            <p className="text-sm font-medium leading-snug">&ldquo;{marketQuestion}&rdquo;</p>
+          </div>
+        )}
 
         <div className="flex items-center justify-center gap-4 mb-3 py-2">
           <div className="text-center">
