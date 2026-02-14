@@ -38,6 +38,7 @@ export const ABI_V1 = [
   'function setPaused(bool paused_)',
   'function withdrawProtocolFees(address to)',
   'event ChallengeOpened(uint256 indexed challengeId, address indexed challenger, uint256 stakeWei, uint64 joinDeadline, uint64 resolveDeadline)',
+  'event ChallengeResolved(uint256 indexed challengeId, address indexed winner, uint256 payout)',
 ];
 
 export const ABI_V2 = [
@@ -50,6 +51,7 @@ export const ABI_V2 = [
   'function getOfferCore(uint256 offerId) view returns (address creator, address taker, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei)',
   'function getOfferStatus(uint256 offerId) view returns (uint64 joinDeadline, uint64 resolveDeadline, uint64 createdAt, uint8 state, int8 creatorVote, int8 takerVote, bool paid)',
   'event OfferOpened(uint256 indexed offerId, address indexed creator, bool creatorSideYes, uint16 pBps, uint256 creatorStakeWei, uint256 takerStakeWei, uint64 joinDeadline, uint64 resolveDeadline)',
+  'event OfferResolved(uint256 indexed offerId, address indexed winner, uint256 payout)',
 ];
 
 export function computeTakerStake(creatorWei: bigint, creatorSideYes: boolean, pBps: number): bigint {

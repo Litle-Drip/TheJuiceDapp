@@ -60,8 +60,33 @@ export default function BetLookup() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
+  const [payoutTxHash, setPayoutTxHash] = useState('');
+  const [loadedBetId, setLoadedBetId] = useState('');
 
-  const loadBet = useCallback(async () => {
+  const findResolveTx = useCallback(async (contract: ethers.Contract, eventName: string, id: bigint): Promise<string> => {
+    try {
+      const provider = contract.runner as ethers.Provider;
+      if (!provider || !('getBlockNumber' in provider)) return '';
+      const latest = await (provider as ethers.JsonRpcProvider).getBlockNumber();
+      const idTopic = ethers.zeroPadValue(ethers.toBeHex(id), 32);
+      const eventFrag = contract.interface.getEvent(eventName);
+      if (!eventFrag) return '';
+      const topic0 = eventFrag.topicHash;
+      for (let end = latest; end > Math.max(0, latest - 50000); end -= 9999) {
+        const start = Math.max(0, end - 9998);
+        const logs = await provider.getLogs({
+          address: await contract.getAddress(),
+          topics: [topic0, idTopic],
+          fromBlock: start,
+          toBlock: end,
+        });
+        if (logs.length > 0) return logs[logs.length - 1].transactionHash;
+      }
+    } catch {}
+    return '';
+  }, []);
+
+  const loadBet = useCallback(async (isRefresh?: boolean) => {
     const raw = betId.trim();
     if (!raw) return;
     if (raw.startsWith('0x') && raw.length > 10) {
@@ -70,6 +95,10 @@ export default function BetLookup() {
     }
     setLoading(true);
     setBet(null);
+    if (!isRefresh) {
+      setPayoutTxHash('');
+      setLoadedBetId(raw);
+    }
     try {
       const id = BigInt(raw);
       const c1 = getV1Contract(true);
@@ -77,6 +106,7 @@ export default function BetLookup() {
 
       let challengeResult: ChallengeData | null = null as ChallengeData | null;
       let offerResult: OfferData | null = null as OfferData | null;
+      let hadRpcError = false;
 
       const promises: Promise<void>[] = [];
 
@@ -97,7 +127,7 @@ export default function BetLookup() {
                   challengerVote: Number(status[2]), participantVote: Number(status[3]),
                 };
               }
-            } catch {}
+            } catch { hadRpcError = true; }
           })()
         );
       }
@@ -120,21 +150,89 @@ export default function BetLookup() {
                   creatorVote: Number(status[4]), takerVote: Number(status[5]), paid: status[6],
                 };
               }
-            } catch {}
+            } catch { hadRpcError = true; }
           })()
         );
       }
 
       await Promise.all(promises);
 
+      let finalBet: BetData | null = null;
       if (challengeResult && offerResult) {
-        const cTime = challengeResult.createdAt;
-        const oTime = offerResult.createdAt;
-        setBet(oTime >= cTime ? offerResult : challengeResult);
+        finalBet = offerResult.createdAt >= challengeResult.createdAt ? offerResult : challengeResult;
       } else if (challengeResult) {
-        setBet(challengeResult);
+        finalBet = challengeResult;
       } else if (offerResult) {
-        setBet(offerResult);
+        finalBet = offerResult;
+      }
+
+      if (finalBet) {
+        setBet(finalBet);
+        if (finalBet.state === 2 && !isRefresh) {
+          const contract = finalBet.type === 'offer' ? c2 : c1;
+          const eventName = finalBet.type === 'offer' ? 'OfferResolved' : 'ChallengeResolved';
+          if (contract) {
+            findResolveTx(contract, eventName, id).then(hash => {
+              if (hash) setPayoutTxHash(hash);
+            });
+          }
+        }
+      } else if (hadRpcError && !isRefresh) {
+        await new Promise(r => setTimeout(r, 1500));
+        const retryPromises: Promise<void>[] = [];
+        if (c1 && !challengeResult) {
+          retryPromises.push(
+            (async () => {
+              try {
+                const rc1 = getV1Contract(true);
+                if (!rc1) return;
+                const [core, status] = await Promise.all([rc1.getChallengeCore(id), rc1.getChallengeStatus(id)]);
+                if (core[0] !== ethers.ZeroAddress) {
+                  challengeResult = {
+                    type: 'challenge', challenger: core[0], participant: core[1], stakeWei: core[2], feeBps: Number(core[3]),
+                    joinDeadline: Number(core[4]), resolveDeadline: Number(core[5]),
+                    createdAt: Number(status[0]), state: Number(status[1]),
+                    challengerVote: Number(status[2]), participantVote: Number(status[3]),
+                  };
+                }
+              } catch {}
+            })()
+          );
+        }
+        if (c2 && !offerResult) {
+          retryPromises.push(
+            (async () => {
+              try {
+                const rc2 = getV2Contract(true);
+                if (!rc2) return;
+                const [core, status] = await Promise.all([rc2.getOfferCore(id), rc2.getOfferStatus(id)]);
+                if (core[0] !== ethers.ZeroAddress) {
+                  offerResult = {
+                    type: 'offer', creator: core[0], taker: core[1], creatorSideYes: core[2], pBps: Number(core[3]),
+                    creatorStake: core[4], takerStake: core[5],
+                    joinDeadline: Number(status[0]), resolveDeadline: Number(status[1]),
+                    createdAt: Number(status[2]), state: Number(status[3]),
+                    creatorVote: Number(status[4]), takerVote: Number(status[5]), paid: status[6],
+                  };
+                }
+              } catch {}
+            })()
+          );
+        }
+        await Promise.all(retryPromises);
+        finalBet = challengeResult && offerResult
+          ? (offerResult.createdAt >= challengeResult.createdAt ? offerResult : challengeResult)
+          : challengeResult || offerResult;
+        if (finalBet) {
+          setBet(finalBet);
+          if (finalBet.state === 2) {
+            const contract = finalBet.type === 'offer' ? c2 : c1;
+            const eventName = finalBet.type === 'offer' ? 'OfferResolved' : 'ChallengeResolved';
+            if (contract) findResolveTx(contract, eventName, id).then(hash => { if (hash) setPayoutTxHash(hash); });
+          }
+        } else {
+          toast({ title: 'Network error', description: 'Could not reach the blockchain. Please try again.', variant: 'destructive' });
+        }
       } else {
         toast({ title: 'Not found', description: `No bet found with ID #${raw}`, variant: 'destructive' });
       }
@@ -143,7 +241,7 @@ export default function BetLookup() {
     } finally {
       setLoading(false);
     }
-  }, [betId, getV1Contract, getV2Contract, toast]);
+  }, [betId, getV1Contract, getV2Contract, toast, findResolveTx]);
 
   const doAction = useCallback(async (action: string, fn: (activeSigner: ethers.Signer) => Promise<any>) => {
     let activeSigner = signer;
@@ -156,9 +254,12 @@ export default function BetLookup() {
       toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
       const receipt = await tx.wait();
       setLastTxHash(receipt.hash);
+      if (action === 'Payout' || action === 'Resolve') {
+        setPayoutTxHash(receipt.hash);
+      }
       toast({ title: 'Success', description: `${action} completed` });
       await new Promise(r => setTimeout(r, 1500));
-      await loadBet();
+      await loadBet(true);
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
     } finally {
@@ -172,7 +273,6 @@ export default function BetLookup() {
     <div className="space-y-4 max-w-xl mx-auto" data-testid="bet-lookup-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Bet Lookup</h1>
-        <p className="text-sm text-muted-foreground mt-1">Enter a Bet ID to join, vote, resolve, or refund.</p>
       </div>
 
       <Card className="p-5">
@@ -189,11 +289,10 @@ export default function BetLookup() {
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
           </div>
-          <Button data-testid="button-load-bet" onClick={loadBet} disabled={loading || !betId.trim()} variant="secondary">
+          <Button data-testid="button-load-bet" onClick={() => loadBet()} disabled={loading || !betId.trim()} variant="secondary">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           </Button>
         </div>
-        <p className="text-[10px] text-muted-foreground mb-4" data-testid="text-lookup-hint">Works for both V1 Challenges and V2 Market Offers. The bet type is detected automatically.</p>
 
         {bet?.type === 'challenge' && (
           <ChallengeView
@@ -204,6 +303,8 @@ export default function BetLookup() {
             actionLoading={actionLoading}
             doAction={doAction}
             networkKey={networkKey}
+            payoutTxHash={payoutTxHash}
+            explorerUrl={explorerUrl}
           />
         )}
 
@@ -216,6 +317,8 @@ export default function BetLookup() {
             actionLoading={actionLoading}
             doAction={doAction}
             networkKey={networkKey}
+            payoutTxHash={payoutTxHash}
+            explorerUrl={explorerUrl}
           />
         )}
 
@@ -250,7 +353,7 @@ export default function BetLookup() {
 }
 
 function ChallengeView({
-  challenge, betId, now, address, actionLoading, doAction, networkKey,
+  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl,
 }: {
   challenge: ChallengeData;
   betId: string;
@@ -259,6 +362,8 @@ function ChallengeView({
   actionLoading: string;
   doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
   networkKey: string;
+  payoutTxHash: string;
+  explorerUrl: string;
 }) {
   const joined = challenge.participant !== ethers.ZeroAddress;
   const joinExpired = challenge.joinDeadline > 0 && now > challenge.joinDeadline;
@@ -335,6 +440,34 @@ function ChallengeView({
               {challenge.participantVote === 0 ? 'Pending' : challenge.participantVote === 1 ? 'Creator won' : 'Opponent won'}
             </span>
           </div>
+
+          {challenge.state === 2 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote === challenge.participantVote && (
+            <>
+              <div className="h-px bg-border" />
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Winner</span>
+                <Badge variant="outline" className="text-emerald-400 border-emerald-400/30" data-testid="badge-winner">
+                  <Trophy className="w-3 h-3 mr-1" />
+                  {challenge.challengerVote === 1 ? 'Creator' : 'Opponent'}
+                </Badge>
+              </div>
+              {payoutTxHash && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Payout TX</span>
+                  <a
+                    href={`${explorerUrl}/tx/${payoutTxHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-[10px] text-[hsl(var(--primary))] flex items-center gap-1"
+                    data-testid="link-payout-tx"
+                  >
+                    {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -411,7 +544,7 @@ function ChallengeView({
 }
 
 function OfferView({
-  offer, betId, now, address, actionLoading, doAction, networkKey,
+  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl,
 }: {
   offer: OfferData;
   betId: string;
@@ -420,6 +553,8 @@ function OfferView({
   actionLoading: string;
   doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
   networkKey: string;
+  payoutTxHash: string;
+  explorerUrl: string;
 }) {
   const hasTaker = offer.taker !== ethers.ZeroAddress;
   const joinExpired = offer.joinDeadline > 0 && now > offer.joinDeadline;
@@ -524,6 +659,38 @@ function OfferView({
             <span className="text-muted-foreground">Taker vote</span>
             <span className="font-mono">{offer.takerVote === 0 ? 'Pending' : offer.takerVote === 1 ? 'YES' : 'NO'}</span>
           </div>
+
+          {offer.state === 2 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote === offer.takerVote && (
+            <>
+              <div className="h-px bg-border" />
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Winning position</span>
+                <Badge
+                  variant="outline"
+                  className={`${offer.creatorVote === 1 ? 'text-emerald-400 border-emerald-400/30' : 'text-rose-400 border-rose-400/30'}`}
+                  data-testid="badge-winner"
+                >
+                  <Trophy className="w-3 h-3 mr-1" />
+                  {offer.creatorVote === 1 ? 'YES' : 'NO'}
+                </Badge>
+              </div>
+              {offer.paid && payoutTxHash && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Payout TX</span>
+                  <a
+                    href={`${explorerUrl}/tx/${payoutTxHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-[10px] text-[hsl(var(--primary))] flex items-center gap-1"
+                    data-testid="link-payout-tx"
+                  >
+                    {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
