@@ -123,7 +123,7 @@ export default function Markets() {
       </div>
 
       <Card className="p-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center justify-center gap-2 mb-4">
           <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
           <span className="text-sm font-semibold">New Market Offer</span>
         </div>
@@ -187,10 +187,10 @@ export default function Markets() {
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Implied Probability</label>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="font-mono text-xs">
+              <Badge variant={sideYes ? "default" : "outline"} className={`font-mono text-xs ${sideYes ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'text-muted-foreground'}`}>
                 YES {yesPercent}%
               </Badge>
-              <Badge variant="secondary" className="font-mono text-xs">
+              <Badge variant={!sideYes ? "default" : "outline"} className={`font-mono text-xs ${!sideYes ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' : 'text-muted-foreground'}`}>
                 NO {noPercent}%
               </Badge>
             </div>
@@ -237,7 +237,7 @@ export default function Markets() {
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Your Stake</label>
-            <span className="text-xs text-emerald-400 font-mono" data-testid="text-stake-usd">
+            <span className="text-xs text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
@@ -279,13 +279,13 @@ export default function Markets() {
           className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3"
         >
           {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          <span>Deadlines</span>
+          <span className="font-semibold text-foreground">Deadlines</span>
         </button>
 
         {showAdvanced && (
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div>
-              <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1 block">Join Window</label>
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider mb-1 block">Join Window</label>
               <div className="flex items-center gap-1.5">
                 <input
                   data-testid="input-join-mins"
@@ -307,7 +307,7 @@ export default function Markets() {
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1 block">Resolve Window</label>
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider mb-1 block">Resolve Window</label>
               <div className="flex items-center gap-1.5">
                 <input
                   data-testid="input-resolve-mins"
@@ -343,14 +343,14 @@ export default function Markets() {
                 <span className="text-xs text-muted-foreground">Your stake</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-muted-foreground ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                  <span className="text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Opponent pays</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-muted-foreground ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                  <span className="text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
@@ -360,7 +360,7 @@ export default function Markets() {
                 <span className="text-xs text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-muted-foreground ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                  <span className="text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
