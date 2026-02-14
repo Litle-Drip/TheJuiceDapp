@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ethers } from 'ethers';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,41 @@ import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import {
   Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown,
-  Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle
+  Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, Fuel
 } from 'lucide-react';
+
+function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promise<{ gasEth: number; gasUsd: number } | null>; ethUsd: number; address?: string }) {
+  const [gas, setGas] = useState<{ gasEth: number; gasUsd: number } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const lastKey = useRef('');
+
+  useEffect(() => {
+    const key = `${address || ''}-${ethUsd}`;
+    if (key === lastKey.current) return;
+    lastKey.current = key;
+    if (!address) { setGas(null); return; }
+    setLoading(true);
+    estimateFn().then(r => { setGas(r); }).catch(() => { setGas(null); }).finally(() => setLoading(false));
+  }, [estimateFn, address, ethUsd]);
+
+  if (!address) return null;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground py-1">
+        <Fuel className="w-3 h-3" />
+        <span>Estimating gas...</span>
+      </div>
+    );
+  }
+  if (!gas) return null;
+  return (
+    <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground py-1" data-testid="gas-estimate">
+      <Fuel className="w-3 h-3" />
+      <span>Est. gas: {gas.gasEth.toFixed(8)} ETH</span>
+      <span className="text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
+    </div>
+  );
+}
 
 interface ChallengeData {
   type: 'challenge';
@@ -62,6 +95,7 @@ export default function BetLookup() {
   const [lastTxHash, setLastTxHash] = useState('');
   const [payoutTxHash, setPayoutTxHash] = useState('');
   const [loadedBetId, setLoadedBetId] = useState('');
+  const [autoLoaded, setAutoLoaded] = useState(false);
 
   const findResolveTx = useCallback(async (contract: ethers.Contract, eventName: string, id: bigint): Promise<string> => {
     try {
@@ -243,6 +277,22 @@ export default function BetLookup() {
     }
   }, [betId, getV1Contract, getV2Contract, toast, findResolveTx]);
 
+  useEffect(() => {
+    if (autoLoaded) return;
+    const params = new URLSearchParams(window.location.search);
+    const idParam = params.get('id');
+    if (idParam && /^\d+$/.test(idParam)) {
+      setBetId(idParam);
+      setAutoLoaded(true);
+    }
+  }, [autoLoaded]);
+
+  useEffect(() => {
+    if (autoLoaded && betId && !bet && !loading) {
+      loadBet();
+    }
+  }, [autoLoaded, betId, bet, loading, loadBet]);
+
   const doAction = useCallback(async (action: string, fn: (activeSigner: ethers.Signer) => Promise<any>) => {
     let activeSigner = signer;
     if (!connected || !activeSigner) {
@@ -305,6 +355,7 @@ export default function BetLookup() {
             networkKey={networkKey}
             payoutTxHash={payoutTxHash}
             explorerUrl={explorerUrl}
+            ethUsd={ethUsd}
           />
         )}
 
@@ -319,6 +370,7 @@ export default function BetLookup() {
             networkKey={networkKey}
             payoutTxHash={payoutTxHash}
             explorerUrl={explorerUrl}
+            ethUsd={ethUsd}
           />
         )}
 
@@ -353,7 +405,7 @@ export default function BetLookup() {
 }
 
 function ChallengeView({
-  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl,
+  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd,
 }: {
   challenge: ChallengeData;
   betId: string;
@@ -364,11 +416,26 @@ function ChallengeView({
   networkKey: string;
   payoutTxHash: string;
   explorerUrl: string;
+  ethUsd: number;
 }) {
   const joined = challenge.participant !== ethers.ZeroAddress;
   const joinExpired = challenge.joinDeadline > 0 && now > challenge.joinDeadline;
   const resolveExpired = challenge.resolveDeadline > 0 && now > challenge.resolveDeadline;
   const net = NETWORKS[networkKey as keyof typeof NETWORKS];
+
+  const estimateGas = useCallback(async (method: string, args: any[], value?: bigint) => {
+    try {
+      const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
+      const c = new ethers.Contract(net.contract, ABI_V1, rpcProvider);
+      const opts = value ? { from: address, value } : { from: address };
+      const gasLimit = await c[method].estimateGas(...args, opts);
+      const feeData = await rpcProvider.getFeeData();
+      const gasPrice = feeData.gasPrice || 0n;
+      const gasCostWei = gasLimit * gasPrice;
+      const gasEth = Number(ethers.formatEther(gasCostWei));
+      return { gasEth, gasUsd: gasEth * ethUsd };
+    } catch { return null; }
+  }, [net, address, ethUsd]);
 
   const handleJoin = () => doAction('Join', async (s) => {
     const c = new ethers.Contract(net.contract, ABI_V1, s);
@@ -472,15 +539,19 @@ function ChallengeView({
       </div>
 
       {challenge.state === 0 && !joined && !joinExpired && (
-        <Button data-testid="button-join" onClick={handleJoin} disabled={!!actionLoading} className="w-full" size="lg">
-          {actionLoading === 'Join' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
-          Join Challenge ({Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH)
-        </Button>
+        <div className="space-y-1">
+          <GasEstimate estimateFn={() => estimateGas('joinChallenge', [BigInt(betId)], challenge.stakeWei)} ethUsd={ethUsd} address={address} />
+          <Button data-testid="button-join" onClick={handleJoin} disabled={!!actionLoading} className="w-full" size="lg">
+            {actionLoading === 'Join' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+            Join Challenge ({Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH)
+          </Button>
+        </div>
       )}
 
       {challenge.state === 1 && joined && !resolveExpired && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground text-center">Vote on the outcome. Both players must agree for payout.</p>
+          <GasEstimate estimateFn={() => estimateGas('submitOutcomeVote', [BigInt(betId), true])} ethUsd={ethUsd} address={address} />
           <div className="grid grid-cols-2 gap-2">
             <Button data-testid="button-vote-won" onClick={() => handleVote(true)} disabled={!!actionLoading} variant="outline">
               {actionLoading === 'Vote: I Won' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ThumbsUp className="w-4 h-4 mr-2" />}
@@ -495,10 +566,13 @@ function ChallengeView({
       )}
 
       {challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote === challenge.participantVote && (
-        <Button data-testid="button-payout" onClick={handlePayout} disabled={!!actionLoading} className="w-full" size="lg">
-          {actionLoading === 'Payout' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
-          Finalize & Payout
-        </Button>
+        <div className="space-y-1">
+          <GasEstimate estimateFn={() => estimateGas('resolveChallenge', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
+          <Button data-testid="button-payout" onClick={handlePayout} disabled={!!actionLoading} className="w-full" size="lg">
+            {actionLoading === 'Payout' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
+            Finalize & Payout
+          </Button>
+        </div>
       )}
 
       {challenge.state === 0 && joinExpired && !joined && (
@@ -507,6 +581,7 @@ function ChallengeView({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs text-amber-400">Join deadline passed with no opponent. Creator can reclaim funds.</p>
           </div>
+          <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (No Opponent)
@@ -520,6 +595,7 @@ function ChallengeView({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs text-amber-400">Votes conflict - creator and opponent disagree on the outcome. Both parties can claim a refund.</p>
           </div>
+          <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Vote Conflict)
@@ -533,6 +609,7 @@ function ChallengeView({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
+          <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Deadline Expired)
@@ -544,7 +621,7 @@ function ChallengeView({
 }
 
 function OfferView({
-  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl,
+  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd,
 }: {
   offer: OfferData;
   betId: string;
@@ -555,11 +632,26 @@ function OfferView({
   networkKey: string;
   payoutTxHash: string;
   explorerUrl: string;
+  ethUsd: number;
 }) {
   const hasTaker = offer.taker !== ethers.ZeroAddress;
   const joinExpired = offer.joinDeadline > 0 && now > offer.joinDeadline;
   const resolveExpired = offer.resolveDeadline > 0 && now > offer.resolveDeadline;
   const net = NETWORKS[networkKey as keyof typeof NETWORKS];
+
+  const estimateGas = useCallback(async (method: string, args: any[], value?: bigint) => {
+    try {
+      const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
+      const c = new ethers.Contract(net.v2contract, ABI_V2, rpcProvider);
+      const opts = value ? { from: address, value } : { from: address };
+      const gasLimit = await c[method].estimateGas(...args, opts);
+      const feeData = await rpcProvider.getFeeData();
+      const gasPrice = feeData.gasPrice || 0n;
+      const gasCostWei = gasLimit * gasPrice;
+      const gasEth = Number(ethers.formatEther(gasCostWei));
+      return { gasEth, gasUsd: gasEth * ethUsd };
+    } catch { return null; }
+  }, [net, address, ethUsd]);
 
   const handleTake = () => doAction('Take Offer', async (s) => {
     const c = new ethers.Contract(net.v2contract, ABI_V2, s);
@@ -695,15 +787,19 @@ function OfferView({
       </div>
 
       {offer.state === 0 && !hasTaker && !joinExpired && (
-        <Button data-testid="button-take-offer" onClick={handleTake} disabled={!!actionLoading} className="w-full" size="lg">
-          {actionLoading === 'Take Offer' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowDownToLine className="w-4 h-4 mr-2" />}
-          Take Offer ({Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH)
-        </Button>
+        <div className="space-y-1">
+          <GasEstimate estimateFn={() => estimateGas('takeOffer', [BigInt(betId)], offer.takerStake)} ethUsd={ethUsd} address={address} />
+          <Button data-testid="button-take-offer" onClick={handleTake} disabled={!!actionLoading} className="w-full" size="lg">
+            {actionLoading === 'Take Offer' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowDownToLine className="w-4 h-4 mr-2" />}
+            Take Offer ({Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH)
+          </Button>
+        </div>
       )}
 
       {offer.state === 1 && hasTaker && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground text-center">Vote on the outcome (YES or NO won?).</p>
+          <GasEstimate estimateFn={() => estimateGas('submitOfferVote', [BigInt(betId), true])} ethUsd={ethUsd} address={address} />
           <div className="grid grid-cols-2 gap-2">
             <Button data-testid="button-vote-yes" onClick={() => handleVote(true)} disabled={!!actionLoading} variant="outline">
               {actionLoading === 'Vote: YES' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <TrendingUp className="w-4 h-4 mr-2" />}
@@ -718,10 +814,13 @@ function OfferView({
       )}
 
       {offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote === offer.takerVote && !offer.paid && (
-        <Button data-testid="button-resolve-offer" onClick={handleResolve} disabled={!!actionLoading} className="w-full" size="lg">
-          {actionLoading === 'Resolve' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
-          Resolve & Payout
-        </Button>
+        <div className="space-y-1">
+          <GasEstimate estimateFn={() => estimateGas('resolveOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
+          <Button data-testid="button-resolve-offer" onClick={handleResolve} disabled={!!actionLoading} className="w-full" size="lg">
+            {actionLoading === 'Resolve' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
+            Resolve & Payout
+          </Button>
+        </div>
       )}
 
       {offer.state === 0 && joinExpired && !hasTaker && !offer.paid && (
@@ -730,6 +829,7 @@ function OfferView({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs text-amber-400">Join deadline passed with no taker. Creator can reclaim funds.</p>
           </div>
+          <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (No Taker)
@@ -743,6 +843,7 @@ function OfferView({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs text-amber-400">Votes disagree - creator and taker voted differently. Both parties can claim a refund.</p>
           </div>
+          <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Vote Conflict)
@@ -756,6 +857,7 @@ function OfferView({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
+          <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Deadline Expired)

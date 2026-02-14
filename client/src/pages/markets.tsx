@@ -7,7 +7,7 @@ import { useWallet } from '@/lib/wallet';
 import { computeTakerStake, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { RANDOM_IDEAS } from '@/lib/contracts';
-import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function Markets() {
@@ -24,6 +24,8 @@ export default function Markets() {
   const [lastOfferId, setLastOfferId] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
+  const [estimatingGas, setEstimatingGas] = useState(false);
 
   const shuffleQuestion = () => {
     setQuestion(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
@@ -60,6 +62,39 @@ export default function Markets() {
       return null;
     }
   }, [stakeEth, sideYes, oddsBps, feeBps, ethUsd]);
+
+  useEffect(() => {
+    if (!preview || !connected || !signer) { setGasEstimate(null); return; }
+    const net = NETWORKS[networkKey];
+    if (!net.v2contract) { setGasEstimate(null); return; }
+    let cancelled = false;
+    setEstimatingGas(true);
+    (async () => {
+      try {
+        const c = new ethers.Contract(net.v2contract, ABI_V2, signer);
+        const ethVal = parseFloat(stakeEth);
+        if (!isFinite(ethVal) || ethVal <= 0) return;
+        const Awei = ethers.parseEther(ethVal.toFixed(18));
+        const joinSecs = joinMins * 60;
+        const resolveSecs = resolveMins * 60;
+        const gas = await c.openOffer.estimateGas(sideYes, oddsBps, joinSecs, resolveSecs, { value: Awei });
+        const provider = signer.provider;
+        if (!provider) return;
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || 0n;
+        const costWei = gas * gasPrice;
+        const costEth = Number(ethers.formatEther(costWei));
+        if (!cancelled) {
+          setGasEstimate({ gasEth: costEth, gasUsd: costEth * ethUsd });
+        }
+      } catch {
+        if (!cancelled) setGasEstimate(null);
+      } finally {
+        if (!cancelled) setEstimatingGas(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [preview, connected, signer, networkKey, stakeEth, sideYes, oddsBps, joinMins, resolveMins, ethUsd]);
 
   const handleCreateOffer = useCallback(async () => {
     let activeSigner = signer;
@@ -405,6 +440,20 @@ export default function Markets() {
                 <span className="font-semibold">Base</span>
               </div>
             </div>
+          </div>
+        )}
+
+        {connected && gasEstimate && (
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-offer">
+            <Fuel className="w-3 h-3" />
+            <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
+            <span className="text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
+          </div>
+        )}
+        {connected && estimatingGas && !gasEstimate && (
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            <span>Estimating gas...</span>
           </div>
         )}
 

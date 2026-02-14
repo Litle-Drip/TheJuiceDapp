@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletProvider, useWallet } from "@/lib/wallet";
+import { NotificationProvider, useNotifications } from "@/lib/notifications";
 import { NETWORKS } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,13 +40,21 @@ import {
   Globe,
   Loader2,
   AlertTriangle,
+  LayoutDashboard,
+  Flame,
+  ShieldCheck,
 } from "lucide-react";
 import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_1771015761494.png";
+
+import MyBets from "@/pages/my-bets";
+import Trending from "@/pages/trending";
 
 const navItems = [
   { title: "Markets", url: "/", icon: TrendingUp },
   { title: "Create Challenge", url: "/challenge", icon: Zap },
   { title: "Bet Lookup", url: "/lookup", icon: Search },
+  { title: "My Bets", url: "/my-bets", icon: LayoutDashboard },
+  { title: "Trending", url: "/trending", icon: Flame },
 ];
 
 function WalletButton() {
@@ -103,6 +112,7 @@ function WalletButton() {
 
 function AppSidebar() {
   const [location] = useLocation();
+  const { notificationCount, clearNotifications } = useNotifications();
 
   return (
     <Sidebar data-testid="app-sidebar">
@@ -126,9 +136,18 @@ function AppSidebar() {
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
-                    <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Link
+                      href={item.url}
+                      data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={() => { if (item.url === '/my-bets') clearNotifications(); }}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.title === 'My Bets' && notificationCount > 0 && (
+                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-emerald-500 text-white border-0" data-testid="badge-notification-count">
+                          {notificationCount}
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -140,8 +159,34 @@ function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border">
         <WalletButton />
+        <VerificationBadge />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function VerificationBadge() {
+  const { network } = useWallet();
+  const net = NETWORKS[network];
+  const contractAddr = net.contract || net.v2contract;
+  const explorerBase = net.explorer;
+
+  if (!contractAddr) return null;
+
+  return (
+    <div className="px-2 pb-2">
+      <a
+        href={`${explorerBase}/address/${contractAddr}#code`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 text-[10px] text-emerald-400/80 font-medium"
+        data-testid="link-verified-contract"
+      >
+        <ShieldCheck className="w-3.5 h-3.5" />
+        <span>Verified Contract</span>
+        <ExternalLink className="w-2.5 h-2.5 ml-auto" />
+      </a>
+    </div>
   );
 }
 
@@ -151,6 +196,8 @@ function Router() {
       <Route path="/" component={Markets} />
       <Route path="/challenge" component={CreateChallenge} />
       <Route path="/lookup" component={BetLookup} />
+      <Route path="/my-bets" component={MyBets} />
+      <Route path="/trending" component={Trending} />
       <Route path="/about" component={About} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
@@ -204,24 +251,26 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WalletProvider>
-          <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
-            <div className="flex h-screen w-full">
-              <AppSidebar />
-              <div className="flex flex-col flex-1 min-w-0">
-                <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
-                  <SidebarTrigger data-testid="button-sidebar-toggle" />
-                  <div className="flex-1" />
-                  <EthPrice />
-                </header>
-                <MainnetBanner />
-                <main className="flex-1 overflow-auto p-4">
-                  <Router />
-                  <LegalFooter />
-                </main>
+          <NotificationProvider>
+            <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
+              <div className="flex h-screen w-full">
+                <AppSidebar />
+                <div className="flex flex-col flex-1 min-w-0">
+                  <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
+                    <SidebarTrigger data-testid="button-sidebar-toggle" />
+                    <div className="flex-1" />
+                    <EthPrice />
+                  </header>
+                  <MainnetBanner />
+                  <main className="flex-1 overflow-auto p-4">
+                    <Router />
+                    <LegalFooter />
+                  </main>
+                </div>
               </div>
-            </div>
-          </SidebarProvider>
-          <Toaster />
+            </SidebarProvider>
+            <Toaster />
+          </NotificationProvider>
         </WalletProvider>
       </TooltipProvider>
     </QueryClientProvider>
