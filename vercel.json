@@ -1,8 +1,9 @@
 {
   "buildCommand": "npx vite build",
   "outputDirectory": "dist/public",
-  "installCommand": "npm install",
+  "installCommand": "npm install --include=dev",
   "framework": null,
+  "nodeVersion": "22.x",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
