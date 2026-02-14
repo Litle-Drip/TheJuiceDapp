@@ -133,6 +133,12 @@ export default function BetLookup() {
     if (!isRefresh) {
       setPayoutTxHash('');
       setLoadedBetId(raw);
+      if (!marketQuestion) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+          if (stored[raw]) setMarketQuestion(stored[raw]);
+        } catch {}
+      }
     }
     try {
       const id = BigInt(raw);
@@ -283,9 +289,25 @@ export default function BetLookup() {
     const params = new URLSearchParams(window.location.search);
     const idParam = params.get('id');
     const qParam = params.get('q');
-    if (qParam) setMarketQuestion(decodeURIComponent(qParam));
+    if (qParam) {
+      const decoded = decodeURIComponent(qParam);
+      setMarketQuestion(decoded);
+      if (idParam) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+          stored[idParam] = decoded;
+          localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
+        } catch {}
+      }
+    }
     if (idParam && /^\d+$/.test(idParam)) {
       setBetId(idParam);
+      if (!qParam) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+          if (stored[idParam]) setMarketQuestion(stored[idParam]);
+        } catch {}
+      }
       setAutoLoaded(true);
     }
   }, [autoLoaded]);

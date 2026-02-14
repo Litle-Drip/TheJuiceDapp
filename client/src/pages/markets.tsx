@@ -144,6 +144,13 @@ export default function Markets() {
       } catch {}
 
       setLastOfferId(offerId);
+      if (offerId && question.trim()) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+          stored[offerId] = question.trim();
+          localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
+        } catch {}
+      }
       toast({
         title: 'Offer Created',
         description: offerId ? `Offer #${offerId} is live` : 'Check transaction for details',
