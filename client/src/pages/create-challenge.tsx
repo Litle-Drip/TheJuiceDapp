@@ -136,7 +136,7 @@ export default function CreateChallenge() {
         </div>
 
         <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-center mb-2 gap-3">
             <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Challenge Amount</label>
             <div className="flex items-center gap-1.5">
               <button
@@ -208,7 +208,7 @@ export default function CreateChallenge() {
 
         <div className="grid grid-cols-2 gap-3 mb-5">
           <div>
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block">Join Deadline</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block text-center">Join Deadline</label>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
               <input
@@ -231,7 +231,7 @@ export default function CreateChallenge() {
             </div>
           </div>
           <div>
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block">Resolve Deadline</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block text-center">Resolve Deadline</label>
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
               <input
