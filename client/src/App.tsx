@@ -55,30 +55,20 @@ function WalletButton() {
   return (
     <div className="space-y-2 p-2">
       {connected ? (
-        <>
-          <div className="flex items-center justify-between gap-2">
-            <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
-              {shortAddress}
-            </Badge>
-            <a
-              href={`${explorerUrl}/address/${address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground"
-              data-testid="link-explorer"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-          <button
-            data-testid="button-switch-network"
-            onClick={switchNetwork}
-            className="flex items-center gap-1.5 w-full text-[10px] text-muted-foreground py-1 px-2 rounded-md border border-border"
+        <div className="flex items-center justify-between gap-2">
+          <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
+            {shortAddress}
+          </Badge>
+          <a
+            href={`${explorerUrl}/address/${address}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground"
+            data-testid="link-explorer"
           >
-            <Globe className="w-3 h-3" />
-            <span>{net.chainName}</span>
-          </button>
-        </>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
       ) : (
         <Button
           data-testid="button-connect-wallet"
@@ -95,6 +85,16 @@ function WalletButton() {
           {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
       )}
+      <button
+        data-testid="button-switch-network"
+        onClick={switchNetwork}
+        disabled={connecting}
+        className={`flex items-center gap-1.5 w-full text-[10px] text-muted-foreground py-1.5 px-2 rounded-md border border-border ${connecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        <Globe className="w-3 h-3" />
+        <span>{net.chainName}</span>
+        <span className="ml-auto text-[9px] text-muted-foreground/60">Switch</span>
+      </button>
     </div>
   );
 }
