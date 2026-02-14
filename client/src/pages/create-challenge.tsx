@@ -59,6 +59,7 @@ export default function CreateChallenge() {
         : getV1Contract(false);
       if (!c) throw new Error('Connect wallet first');
 
+      if (stakeEthValue <= 0) throw new Error('Enter a valid stake amount');
       const stakeWei = ethers.parseEther(stakeEthValue.toFixed(18));
       const jm = Math.max(5, Math.min(43200, joinMins));
       const rm = Math.max(30, Math.min(43200, resolveMins));

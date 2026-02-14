@@ -70,6 +70,9 @@ export default function Markets() {
     try {
       const ethVal = parseFloat(stakeEth);
       if (!isFinite(ethVal) || ethVal <= 0) throw new Error('Enter a valid stake amount');
+      if (oddsBps < 500 || oddsBps > 9500) throw new Error('Odds must be between 5% and 95%');
+      if (joinMins < 1) throw new Error('Join window must be at least 1 minute');
+      if (resolveMins < 1) throw new Error('Resolve window must be at least 1 minute');
       const net = NETWORKS[networkKey];
       if (!net.v2contract) throw new Error('Contract not deployed on this network');
       const c = activeSigner
