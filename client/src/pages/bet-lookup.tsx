@@ -157,6 +157,7 @@ export default function BetLookup() {
       const receipt = await tx.wait();
       setLastTxHash(receipt.hash);
       toast({ title: 'Success', description: `${action} completed` });
+      await new Promise(r => setTimeout(r, 1500));
       await loadBet();
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
@@ -271,7 +272,7 @@ function ChallengeView({
 
   const handleVote = (iWon: boolean) => doAction(iWon ? 'Vote: I Won' : 'Vote: Opponent Won', async (s) => {
     const c = new ethers.Contract(net.contract, ABI_V1, s);
-    const me = address.toLowerCase();
+    const me = (await s.getAddress()).toLowerCase();
     const isCreator = challenge.challenger.toLowerCase() === me;
     const challengerWon = isCreator ? iWon : !iWon;
     return c.submitOutcomeVote(BigInt(betId), challengerWon);
