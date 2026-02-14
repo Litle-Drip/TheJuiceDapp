@@ -413,6 +413,19 @@ export default function Markets() {
               <span className="text-sm font-semibold">Order Preview</span>
             </div>
 
+            {question.trim() && (
+              <div className="mb-3 p-2.5 rounded-md bg-muted/40 border border-border/50">
+                <p className="text-xs text-muted-foreground mb-1">Market Question</p>
+                <p className="text-sm font-medium leading-snug" data-testid="text-preview-question">&ldquo;{question.trim()}&rdquo;</p>
+                <p className="text-xs mt-1.5">
+                  <span className="text-muted-foreground">Your position: </span>
+                  <span className={`font-bold ${sideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {sideYes ? 'YES' : 'NO'} @ {(oddsBps / 100).toFixed(0)}%
+                  </span>
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Your stake</span>
