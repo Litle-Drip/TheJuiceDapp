@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
+import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import {
   Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown,
@@ -51,7 +52,7 @@ function shortAddr(a: string) {
 }
 
 export default function BetLookup() {
-  const { connected, connect, signer, address, ethUsd, feeBps, getV1Contract, getV2Contract, explorerUrl } = useWallet();
+  const { connected, connect, signer, address, ethUsd, feeBps, getV1Contract, getV2Contract, explorerUrl, network: networkKey } = useWallet();
   const { toast } = useToast();
 
   const [betId, setBetId] = useState('');
@@ -144,13 +145,14 @@ export default function BetLookup() {
     }
   }, [betId, getV1Contract, getV2Contract, toast]);
 
-  const doAction = useCallback(async (action: string, fn: () => Promise<any>) => {
-    if (!connected) {
-      try { await connect(); } catch { return; }
+  const doAction = useCallback(async (action: string, fn: (activeSigner: ethers.Signer) => Promise<any>) => {
+    let activeSigner = signer;
+    if (!connected || !activeSigner) {
+      try { activeSigner = await connect(); } catch { return; }
     }
     setActionLoading(action);
     try {
-      const tx = await fn();
+      const tx = await fn(activeSigner);
       toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
       const receipt = await tx.wait();
       setLastTxHash(receipt.hash);
@@ -161,7 +163,7 @@ export default function BetLookup() {
     } finally {
       setActionLoading('');
     }
-  }, [connected, connect, toast, loadBet]);
+  }, [connected, connect, signer, toast, loadBet]);
 
   const now = Math.floor(Date.now() / 1000);
 
@@ -200,7 +202,7 @@ export default function BetLookup() {
             address={address}
             actionLoading={actionLoading}
             doAction={doAction}
-            getV1Contract={getV1Contract}
+            networkKey={networkKey}
           />
         )}
 
@@ -212,7 +214,7 @@ export default function BetLookup() {
             address={address}
             actionLoading={actionLoading}
             doAction={doAction}
-            getV2Contract={getV2Contract}
+            networkKey={networkKey}
           />
         )}
 
@@ -247,44 +249,41 @@ export default function BetLookup() {
 }
 
 function ChallengeView({
-  challenge, betId, now, address, actionLoading, doAction, getV1Contract,
+  challenge, betId, now, address, actionLoading, doAction, networkKey,
 }: {
   challenge: ChallengeData;
   betId: string;
   now: number;
   address: string;
   actionLoading: string;
-  doAction: (action: string, fn: () => Promise<any>) => void;
-  getV1Contract: (readOnly?: boolean) => ethers.Contract | null;
+  doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
+  networkKey: string;
 }) {
   const joined = challenge.participant !== ethers.ZeroAddress;
   const joinExpired = challenge.joinDeadline > 0 && now > challenge.joinDeadline;
   const resolveExpired = challenge.resolveDeadline > 0 && now > challenge.resolveDeadline;
+  const net = NETWORKS[networkKey as keyof typeof NETWORKS];
 
-  const handleJoin = () => doAction('Join', async () => {
-    const c = getV1Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleJoin = () => doAction('Join', async (s) => {
+    const c = new ethers.Contract(net.contract, ABI_V1, s);
     return c.joinChallenge(BigInt(betId), { value: challenge.stakeWei });
   });
 
-  const handleVote = (iWon: boolean) => doAction(iWon ? 'Vote: I Won' : 'Vote: Opponent Won', async () => {
-    const c = getV1Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleVote = (iWon: boolean) => doAction(iWon ? 'Vote: I Won' : 'Vote: Opponent Won', async (s) => {
+    const c = new ethers.Contract(net.contract, ABI_V1, s);
     const me = address.toLowerCase();
     const isCreator = challenge.challenger.toLowerCase() === me;
     const challengerWon = isCreator ? iWon : !iWon;
     return c.submitOutcomeVote(BigInt(betId), challengerWon);
   });
 
-  const handlePayout = () => doAction('Payout', async () => {
-    const c = getV1Contract(false);
-    if (!c) throw new Error('Not available');
+  const handlePayout = () => doAction('Payout', async (s) => {
+    const c = new ethers.Contract(net.contract, ABI_V1, s);
     return c.resolveChallenge(BigInt(betId));
   });
 
-  const handleRefund = () => doAction('Refund', async () => {
-    const c = getV1Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleRefund = () => doAction('Refund', async (s) => {
+    const c = new ethers.Contract(net.contract, ABI_V1, s);
     return c.issueRefund(BigInt(betId));
   });
 
@@ -411,41 +410,38 @@ function ChallengeView({
 }
 
 function OfferView({
-  offer, betId, now, address, actionLoading, doAction, getV2Contract,
+  offer, betId, now, address, actionLoading, doAction, networkKey,
 }: {
   offer: OfferData;
   betId: string;
   now: number;
   address: string;
   actionLoading: string;
-  doAction: (action: string, fn: () => Promise<any>) => void;
-  getV2Contract: (readOnly?: boolean) => ethers.Contract | null;
+  doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
+  networkKey: string;
 }) {
   const hasTaker = offer.taker !== ethers.ZeroAddress;
   const joinExpired = offer.joinDeadline > 0 && now > offer.joinDeadline;
   const resolveExpired = offer.resolveDeadline > 0 && now > offer.resolveDeadline;
+  const net = NETWORKS[networkKey as keyof typeof NETWORKS];
 
-  const handleTake = () => doAction('Take Offer', async () => {
-    const c = getV2Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleTake = () => doAction('Take Offer', async (s) => {
+    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
     return c.takeOffer(BigInt(betId), { value: offer.takerStake });
   });
 
-  const handleVote = (outcomeYes: boolean) => doAction(`Vote: ${outcomeYes ? 'YES' : 'NO'}`, async () => {
-    const c = getV2Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleVote = (outcomeYes: boolean) => doAction(`Vote: ${outcomeYes ? 'YES' : 'NO'}`, async (s) => {
+    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
     return c.submitOfferVote(BigInt(betId), outcomeYes);
   });
 
-  const handleResolve = () => doAction('Resolve', async () => {
-    const c = getV2Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleResolve = () => doAction('Resolve', async (s) => {
+    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
     return c.resolveOffer(BigInt(betId));
   });
 
-  const handleRefund = () => doAction('Refund', async () => {
-    const c = getV2Contract(false);
-    if (!c) throw new Error('Not available');
+  const handleRefund = () => doAction('Refund', async (s) => {
+    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
     return c.refundOffer(BigInt(betId));
   });
 

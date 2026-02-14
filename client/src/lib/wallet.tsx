@@ -14,7 +14,7 @@ interface WalletState {
 }
 
 interface WalletContextType extends WalletState {
-  connect: () => Promise<void>;
+  connect: () => Promise<ethers.Signer>;
   switchNetwork: () => void;
   getV1Contract: (readOnly?: boolean) => ethers.Contract | null;
   getV2Contract: (readOnly?: boolean) => ethers.Contract | null;
@@ -152,6 +152,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         connecting: false,
         feeBps,
       }));
+      return signer;
     } catch (e) {
       setState(s => ({ ...s, connecting: false }));
       throw e;

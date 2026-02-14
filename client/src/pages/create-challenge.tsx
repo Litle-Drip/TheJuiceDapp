@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
-import { RANDOM_IDEAS, ABI_V1 } from '@/lib/contracts';
+import { RANDOM_IDEAS, ABI_V1, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink, Search } from 'lucide-react';
 import { Link } from 'wouter';
@@ -46,12 +46,17 @@ export default function CreateChallenge() {
   };
 
   const handleCreate = useCallback(async () => {
+    let activeSigner = signer;
     if (!connected) {
-      try { await connect(); } catch { return; }
+      try { activeSigner = await connect(); } catch { return; }
     }
     setLoading(true);
     try {
-      const c = getV1Contract(false);
+      const net = NETWORKS[network];
+      if (!net.contract) throw new Error('Contract not deployed on this network');
+      const c = activeSigner
+        ? new ethers.Contract(net.contract, ABI_V1, activeSigner)
+        : getV1Contract(false);
       if (!c) throw new Error('Connect wallet first');
 
       const stakeWei = ethers.parseEther(stakeEthValue.toFixed(18));
@@ -94,7 +99,7 @@ export default function CreateChallenge() {
     } finally {
       setLoading(false);
     }
-  }, [connected, connect, stakeEthValue, joinMins, resolveMins, feeBps, getV1Contract, toast]);
+  }, [connected, connect, signer, network, stakeEthValue, joinMins, resolveMins, feeBps, getV1Contract, toast]);
 
   const potEth = stakeEthValue * 2;
   const potUsd = potEth * ethUsd;

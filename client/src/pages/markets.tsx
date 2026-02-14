@@ -4,14 +4,14 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
-import { computeTakerStake, ABI_V2 } from '@/lib/contracts';
+import { computeTakerStake, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { RANDOM_IDEAS } from '@/lib/contracts';
 import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function Markets() {
-  const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network, explorerUrl, connecting } = useWallet();
+  const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network: networkKey, explorerUrl, connecting } = useWallet();
   const { toast } = useToast();
 
   const [question, setQuestion] = useState('');
@@ -62,14 +62,19 @@ export default function Markets() {
   }, [stakeEth, sideYes, oddsBps, feeBps, ethUsd]);
 
   const handleCreateOffer = useCallback(async () => {
+    let activeSigner = signer;
     if (!connected) {
-      try { await connect(); } catch { return; }
+      try { activeSigner = await connect(); } catch { return; }
     }
     setLoading(true);
     try {
       const ethVal = parseFloat(stakeEth);
       if (!isFinite(ethVal) || ethVal <= 0) throw new Error('Enter a valid stake amount');
-      const c = getV2Contract(false);
+      const net = NETWORKS[networkKey];
+      if (!net.v2contract) throw new Error('Contract not deployed on this network');
+      const c = activeSigner
+        ? new ethers.Contract(net.v2contract, ABI_V2, activeSigner)
+        : getV2Contract(false);
       if (!c) throw new Error('Contract not available');
       const Awei = ethers.parseEther(ethVal.toFixed(18));
       const joinSecs = joinMins * 60;
@@ -105,7 +110,7 @@ export default function Markets() {
     } finally {
       setLoading(false);
     }
-  }, [connected, connect, signer, stakeEth, sideYes, oddsBps, joinMins, resolveMins, getV2Contract, toast]);
+  }, [connected, connect, signer, networkKey, stakeEth, sideYes, oddsBps, joinMins, resolveMins, getV2Contract, toast]);
 
   const yesPriceDisplay = `${yesPercent}¢`;
   const noPriceDisplay = `${noPercent}¢`;
@@ -394,7 +399,7 @@ export default function Markets() {
                   <Shield className="w-3 h-3" />
                   <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
                 </div>
-                <span>Network: {network === 'mainnet' ? 'Base' : 'Sepolia'}</span>
+                <span>Network: {networkKey === 'mainnet' ? 'Base' : 'Sepolia'}</span>
               </div>
             </div>
           </div>
