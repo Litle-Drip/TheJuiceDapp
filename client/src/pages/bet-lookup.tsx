@@ -61,8 +61,32 @@ export default function BetLookup() {
   const [actionLoading, setActionLoading] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
   const [payoutTxHash, setPayoutTxHash] = useState('');
+  const [loadedBetId, setLoadedBetId] = useState('');
 
-  const loadBet = useCallback(async () => {
+  const findResolveTx = useCallback(async (contract: ethers.Contract, eventName: string, id: bigint): Promise<string> => {
+    try {
+      const provider = contract.runner as ethers.Provider;
+      if (!provider || !('getBlockNumber' in provider)) return '';
+      const latest = await (provider as ethers.JsonRpcProvider).getBlockNumber();
+      const idTopic = ethers.zeroPadValue(ethers.toBeHex(id), 32);
+      const eventFrag = contract.interface.getEvent(eventName);
+      if (!eventFrag) return '';
+      const topic0 = eventFrag.topicHash;
+      for (let end = latest; end > Math.max(0, latest - 50000); end -= 9999) {
+        const start = Math.max(0, end - 9998);
+        const logs = await provider.getLogs({
+          address: await contract.getAddress(),
+          topics: [topic0, idTopic],
+          fromBlock: start,
+          toBlock: end,
+        });
+        if (logs.length > 0) return logs[logs.length - 1].transactionHash;
+      }
+    } catch {}
+    return '';
+  }, []);
+
+  const loadBet = useCallback(async (isRefresh?: boolean) => {
     const raw = betId.trim();
     if (!raw) return;
     if (raw.startsWith('0x') && raw.length > 10) {
@@ -71,7 +95,10 @@ export default function BetLookup() {
     }
     setLoading(true);
     setBet(null);
-    setPayoutTxHash('');
+    if (!isRefresh) {
+      setPayoutTxHash('');
+      setLoadedBetId(raw);
+    }
     try {
       const id = BigInt(raw);
       const c1 = getV1Contract(true);
@@ -129,14 +156,26 @@ export default function BetLookup() {
 
       await Promise.all(promises);
 
+      let finalBet: BetData | null = null;
       if (challengeResult && offerResult) {
-        const cTime = challengeResult.createdAt;
-        const oTime = offerResult.createdAt;
-        setBet(oTime >= cTime ? offerResult : challengeResult);
+        finalBet = offerResult.createdAt >= challengeResult.createdAt ? offerResult : challengeResult;
       } else if (challengeResult) {
-        setBet(challengeResult);
+        finalBet = challengeResult;
       } else if (offerResult) {
-        setBet(offerResult);
+        finalBet = offerResult;
+      }
+
+      if (finalBet) {
+        setBet(finalBet);
+        if (finalBet.state === 2 && !isRefresh) {
+          const contract = finalBet.type === 'offer' ? c2 : c1;
+          const eventName = finalBet.type === 'offer' ? 'OfferResolved' : 'ChallengeResolved';
+          if (contract) {
+            findResolveTx(contract, eventName, id).then(hash => {
+              if (hash) setPayoutTxHash(hash);
+            });
+          }
+        }
       } else {
         toast({ title: 'Not found', description: `No bet found with ID #${raw}`, variant: 'destructive' });
       }
@@ -145,7 +184,7 @@ export default function BetLookup() {
     } finally {
       setLoading(false);
     }
-  }, [betId, getV1Contract, getV2Contract, toast]);
+  }, [betId, getV1Contract, getV2Contract, toast, findResolveTx]);
 
   const doAction = useCallback(async (action: string, fn: (activeSigner: ethers.Signer) => Promise<any>) => {
     let activeSigner = signer;
@@ -163,7 +202,7 @@ export default function BetLookup() {
       }
       toast({ title: 'Success', description: `${action} completed` });
       await new Promise(r => setTimeout(r, 1500));
-      await loadBet();
+      await loadBet(true);
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
     } finally {
@@ -193,7 +232,7 @@ export default function BetLookup() {
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
           </div>
-          <Button data-testid="button-load-bet" onClick={loadBet} disabled={loading || !betId.trim()} variant="secondary">
+          <Button data-testid="button-load-bet" onClick={() => loadBet()} disabled={loading || !betId.trim()} variant="secondary">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           </Button>
         </div>
