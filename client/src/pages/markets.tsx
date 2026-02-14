@@ -342,10 +342,10 @@ export default function Markets() {
         </button>
 
         {showAdvanced && (
-          <div className="grid grid-cols-2 gap-4 mb-5 px-12">
+          <div className="grid grid-cols-2 gap-4 mb-5 max-w-xs mx-auto">
             <div className="space-y-1.5">
               <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Join Window</label>
-              <div className="flex items-center gap-1.5">
+              <div className="relative">
                 <input
                   data-testid="input-join-mins"
                   type="number"
@@ -353,11 +353,11 @@ export default function Markets() {
                   max={43200}
                   value={joinMins}
                   onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 pr-10 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">min</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-1">
                 {[15, 60, 1440].map(m => (
                   <button
                     key={m}
@@ -375,7 +375,7 @@ export default function Markets() {
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Resolve Window</label>
-              <div className="flex items-center gap-1.5">
+              <div className="relative">
                 <input
                   data-testid="input-resolve-mins"
                   type="number"
@@ -383,11 +383,11 @@ export default function Markets() {
                   max={43200}
                   value={resolveMins}
                   onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 pr-10 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">min</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-1">
                 {[30, 120, 2880].map(m => (
                   <button
                     key={m}
