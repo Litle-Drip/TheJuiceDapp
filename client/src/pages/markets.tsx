@@ -342,7 +342,7 @@ export default function Markets() {
         </button>
 
         {showAdvanced && (
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-2 gap-4 mb-5 px-4">
             <div className="space-y-1.5">
               <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Join Window</label>
               <div className="flex items-center gap-1.5">
