@@ -85,16 +85,18 @@ function WalletButton() {
           {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
       )}
-      <button
+      <Button
         data-testid="button-switch-network"
         onClick={switchNetwork}
         disabled={connecting}
-        className={`flex items-center gap-1.5 w-full text-[10px] text-muted-foreground py-1.5 px-2 rounded-md border border-border ${connecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+        variant="outline"
+        size="sm"
+        className="w-full text-xs justify-start gap-1.5"
       >
-        <Globe className="w-3 h-3" />
+        <Globe className="w-3.5 h-3.5" />
         <span>{net.chainName}</span>
-        <span className="ml-auto text-[9px] text-muted-foreground/60">Switch</span>
-      </button>
+        <span className="ml-auto text-[10px] text-muted-foreground">Switch</span>
+      </Button>
     </div>
   );
 }
