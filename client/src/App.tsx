@@ -182,11 +182,11 @@ function LegalFooter() {
         <p className="text-sm text-muted-foreground leading-relaxed mb-4 text-center">
           &copy; 2026 Edison Labs LLC &middot; Experimental software. Use at your own risk.
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
           <Link href="/about" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-about">About</Link>
-          <Link href="/terms" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-terms">Terms of Use</Link>
-          <Link href="/privacy" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-privacy">Privacy Policy</Link>
-          <Link href="/risk" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-risk">Risk Disclosure</Link>
+          <Link href="/terms" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-terms">Terms</Link>
+          <Link href="/privacy" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-privacy">Privacy</Link>
+          <Link href="/risk" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-risk">Risk</Link>
           <Link href="/faq" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-faq">FAQ</Link>
         </div>
       </div>
