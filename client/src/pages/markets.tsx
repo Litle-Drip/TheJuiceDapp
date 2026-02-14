@@ -461,7 +461,7 @@ export default function Markets() {
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-400">You win (profit)</span>
+                <span className="text-sm font-medium text-emerald-400">You win</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
                     +{preview.yourProfit.toFixed(6)} ETH
@@ -471,7 +471,7 @@ export default function Markets() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-rose-400">Opponent wins (profit)</span>
+                <span className="text-sm font-medium text-rose-400">Opponent wins</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-rose-400" data-testid="text-preview-opponent-payout">
                     +{preview.opponentProfit.toFixed(6)} ETH
