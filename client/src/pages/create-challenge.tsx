@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { RANDOM_IDEAS, ABI_V1, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Plus, Minus, Clock, DollarSign, Zap, ExternalLink, Search, Fuel } from 'lucide-react';
+import { Loader2, Shuffle, Clock, Shield, Zap, ExternalLink, Search, Fuel, Info, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function CreateChallenge() {
@@ -14,9 +14,7 @@ export default function CreateChallenge() {
   const { toast } = useToast();
 
   const [idea, setIdea] = useState('');
-  const [stakeMode, setStakeMode] = useState<'USD' | 'ETH'>('USD');
-  const [stakeUsd, setStakeUsd] = useState(5);
-  const [stakeEthDirect, setStakeEthDirect] = useState('0.0014');
+  const [stakeEth, setStakeEth] = useState('0.01');
   const [joinMins, setJoinMins] = useState(15);
   const [resolveMins, setResolveMins] = useState(30);
   const [loading, setLoading] = useState(false);
@@ -24,27 +22,14 @@ export default function CreateChallenge() {
   const [lastTxHash, setLastTxHash] = useState('');
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const stakeEthValue = useMemo(() => {
-    if (stakeMode === 'USD') {
-      return ethUsd > 0 ? stakeUsd / ethUsd : 0;
-    }
-    return parseFloat(stakeEthDirect) || 0;
-  }, [stakeMode, stakeUsd, stakeEthDirect, ethUsd]);
-
-  const displayValue = stakeMode === 'USD' ? stakeUsd : stakeEthDirect;
+    return parseFloat(stakeEth) || 0;
+  }, [stakeEth]);
 
   const shuffleIdea = () => {
     setIdea(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
-  };
-
-  const adjustStake = (dir: number) => {
-    if (stakeMode === 'USD') {
-      setStakeUsd(Math.max(1, stakeUsd + dir));
-    } else {
-      const v = Math.max(0.0001, parseFloat(stakeEthDirect || '0') + dir * 0.001);
-      setStakeEthDirect(v.toFixed(6));
-    }
   };
 
   useEffect(() => {
@@ -127,176 +112,268 @@ export default function CreateChallenge() {
       }
 
       setLastChallengeId(challengeId);
+      if (challengeId && idea.trim()) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+          stored[`c${challengeId}`] = idea.trim();
+          localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
+        } catch {}
+      }
       toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Check transaction for details' });
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [connected, connect, signer, network, stakeEthValue, joinMins, resolveMins, feeBps, getV1Contract, toast]);
+  }, [connected, connect, signer, network, stakeEthValue, joinMins, resolveMins, feeBps, getV1Contract, toast, idea]);
 
-  const potEth = stakeEthValue * 2;
-  const potUsd = potEth * ethUsd;
-  const feeEth = (potEth * feeBps) / 10000;
-  const winnerEth = potEth - feeEth;
+  const preview = useMemo(() => {
+    const ethVal = stakeEthValue;
+    if (!isFinite(ethVal) || ethVal <= 0) return null;
+    const potEth = ethVal * 2;
+    const feeEth = (potEth * feeBps) / 10000;
+    const winnerEth = potEth - feeEth;
+    const profitEth = winnerEth - ethVal;
+    return {
+      yourStake: ethVal,
+      yourStakeUsd: ethVal * ethUsd,
+      opponentStake: ethVal,
+      opponentStakeUsd: ethVal * ethUsd,
+      totalPot: potEth,
+      totalPotUsd: potEth * ethUsd,
+      fee: feeEth,
+      feeUsd: feeEth * ethUsd,
+      winnerPayout: winnerEth,
+      winnerPayoutUsd: winnerEth * ethUsd,
+      profit: profitEth,
+      profitUsd: profitEth * ethUsd,
+      multiplier: ethVal > 0 ? profitEth / ethVal : 0,
+    };
+  }, [stakeEthValue, feeBps, ethUsd]);
 
   return (
     <div className="space-y-4 max-w-xl mx-auto" data-testid="create-challenge-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Create Challenge</h1>
-        <p className="text-sm text-muted-foreground mt-1">Set the challenge, deadlines, and fund the escrow in one step.</p>
+        <p className="text-sm text-muted-foreground mt-1">Equal stakes, head-to-head. Fund the escrow in one step.</p>
       </div>
 
       <Card className="p-5">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
+          <span className="text-sm font-semibold">New Challenge</span>
+        </div>
+
         <div className="mb-5">
-          <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-2 block text-center">Challenge Idea</label>
           <div className="relative">
+            <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               data-testid="input-challenge-idea"
               type="text"
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               placeholder="e.g. I can beat you at chess"
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-3 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
             <button
               data-testid="button-shuffle-idea"
               onClick={shuffleIdea}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-[hsl(var(--primary))]/40 text-[hsl(var(--primary))]"
             >
-              <Shuffle className="w-4 h-4" />
+              <Shuffle className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
+        <p className="text-[10px] text-muted-foreground text-center mb-5">Off-chain reference only. Both parties vote to resolve.</p>
 
         <div className="mb-5">
-          <div className="flex items-center justify-center mb-2 gap-3">
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Challenge Amount</label>
-            <div className="flex items-center gap-1.5">
-              <button
-                data-testid="button-mode-eth"
-                onClick={() => setStakeMode('ETH')}
-                className={`text-[10px] font-bold px-2.5 py-1 rounded-md border transition-all ${
-                  stakeMode === 'ETH' ? 'border-[hsl(var(--primary))]/60 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]' : 'border-border text-muted-foreground'
-                }`}
-              >ETH</button>
-              <button
-                data-testid="button-mode-usd"
-                onClick={() => setStakeMode('USD')}
-                className={`text-[10px] font-bold px-2.5 py-1 rounded-md border transition-all ${
-                  stakeMode === 'USD' ? 'border-[hsl(var(--primary))]/60 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]' : 'border-border text-muted-foreground'
-                }`}
-              >USD</button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button data-testid="button-stake-minus" onClick={() => adjustStake(-1)} className="p-2 rounded-md border border-border">
-              <Minus className="w-4 h-4" />
-            </button>
-            <div className="flex-1 relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-medium">
-                {stakeMode === 'USD' ? '$' : 'Ξ'}
-              </span>
-              <input
-                data-testid="input-stake-amount"
-                type="number"
-                value={displayValue}
-                onChange={(e) => {
-                  if (stakeMode === 'USD') setStakeUsd(Number(e.target.value) || 0);
-                  else setStakeEthDirect(e.target.value);
-                }}
-                className="w-full bg-muted/50 border border-border rounded-md py-4 pl-9 pr-3 text-2xl font-bold text-center font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
-              />
-            </div>
-            <button data-testid="button-stake-plus" onClick={() => adjustStake(1)} className="p-2 rounded-md border border-border">
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="text-center mt-1.5">
-            <span className={`text-xs font-mono ${stakeMode === 'USD' ? 'text-muted-foreground' : 'text-emerald-400 font-medium'}`}>
-              {stakeMode === 'USD'
-                ? `${stakeEthValue.toFixed(6)} ETH`
-                : `$${(stakeEthValue * ethUsd).toFixed(2)}`}
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Each Side Stakes</label>
+            <span className="text-xs text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
+              {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
-
-          {stakeMode === 'USD' && (
-            <div className="grid grid-cols-4 gap-2 mt-3">
-              {[1, 5, 10, 20].map((amt) => (
-                <button
-                  key={amt}
-                  data-testid={`button-quick-usd-${amt}`}
-                  onClick={() => setStakeUsd(amt)}
-                  className={`py-2 rounded-md text-sm font-medium border transition-all ${
-                    stakeUsd === amt
-                      ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                      : 'border-border bg-card text-muted-foreground'
-                  }`}
-                >${amt}</button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <div>
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block text-center">Join Deadline</label>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              <input
-                data-testid="input-join-deadline"
-                type="number"
-                min={1}
-                max={43200}
-                value={joinMins}
-                onChange={(e) => setJoinMins(Number(e.target.value))}
-                className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
-              />
-              <span className="text-[10px] text-muted-foreground">min</span>
-            </div>
-            <div className="flex gap-1 mt-1">
-              {[15, 60, 1440].map(m => (
-                <button key={m} onClick={() => setJoinMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
-                  {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
-                </button>
-              ))}
-            </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">&#926;</span>
+            <input
+              data-testid="input-stake-amount"
+              type="number"
+              step="0.001"
+              min="0"
+              value={stakeEth}
+              onChange={(e) => setStakeEth(e.target.value)}
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-8 pr-14 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              placeholder="0.01"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">ETH</span>
           </div>
-          <div>
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-1.5 block text-center">Resolve Deadline</label>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              <input
-                data-testid="input-resolve-deadline"
-                type="number"
-                min={1}
-                max={43200}
-                value={resolveMins}
-                onChange={(e) => setResolveMins(Number(e.target.value))}
-                className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
-              />
-              <span className="text-[10px] text-muted-foreground">min</span>
-            </div>
-            <div className="flex gap-1 mt-1">
-              {[30, 120, 2880].map(m => (
-                <button key={m} onClick={() => setResolveMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
-                  {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
-                </button>
-              ))}
-            </div>
+          <div className="grid grid-cols-4 gap-1.5 mt-2">
+            {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+              <button
+                key={amt}
+                data-testid={`button-stake-${amt}`}
+                onClick={() => setStakeEth(amt)}
+                className={`py-1.5 rounded-md text-xs font-mono border transition-all ${
+                  stakeEth === amt
+                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    : 'border-border bg-card text-muted-foreground'
+                }`}
+              >
+                {amt}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="rounded-md border border-border bg-muted/30 p-3 mb-5">
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-muted-foreground">Pot value</span><span className="font-mono">{potEth.toFixed(6)} ETH <span className="text-emerald-400">(${potUsd.toFixed(2)})</span></span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Fee ({(feeBps/100).toFixed(1)}%)</span><span className="font-mono text-muted-foreground">-{feeEth.toFixed(6)} ETH <span className="text-emerald-400/70">(${(feeEth * ethUsd).toFixed(2)})</span></span></div>
-            <div className="h-px bg-border" />
-            <div className="flex justify-between"><span className="text-emerald-400 font-medium">Winner gets</span><span className="font-mono font-bold text-emerald-400">{winnerEth.toFixed(6)} ETH <span className="text-emerald-400">(${(winnerEth * ethUsd).toFixed(2)})</span></span></div>
+        <button
+          data-testid="button-toggle-advanced"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3"
+        >
+          {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          <span className="font-semibold text-foreground">Deadlines</span>
+        </button>
+
+        {showAdvanced && (
+          <div className="grid grid-cols-2 gap-4 mb-5 max-w-xs mx-auto">
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Join Window</label>
+              <div className="relative">
+                <input
+                  data-testid="input-join-deadline"
+                  type="number"
+                  min={1}
+                  max={43200}
+                  value={joinMins}
+                  onChange={(e) => setJoinMins(Number(e.target.value))}
+                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 pr-10 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">min</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {[15, 60, 1440].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setJoinMins(m)}
+                    className={`text-[10px] font-medium border rounded-md py-1 text-center transition-all ${
+                      joinMins === m
+                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        : 'border-border text-muted-foreground'
+                    }`}
+                  >
+                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Resolve Window</label>
+              <div className="relative">
+                <input
+                  data-testid="input-resolve-deadline"
+                  type="number"
+                  min={1}
+                  max={43200}
+                  value={resolveMins}
+                  onChange={(e) => setResolveMins(Number(e.target.value))}
+                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 pr-10 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">min</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {[30, 120, 2880].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setResolveMins(m)}
+                    className={`text-[10px] font-medium border rounded-md py-1 text-center transition-all ${
+                      resolveMins === m
+                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        : 'border-border text-muted-foreground'
+                    }`}
+                  >
+                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {preview && (
+          <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="challenge-preview">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Info className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+              <span className="text-sm font-semibold">Order Preview</span>
+            </div>
+
+            {idea.trim() && (
+              <div className="mb-3 p-2.5 rounded-md bg-muted/40 border border-border/50">
+                <p className="text-xs text-muted-foreground mb-1">Challenge</p>
+                <p className="text-sm font-medium leading-snug" data-testid="text-preview-idea">&ldquo;{idea.trim()}&rdquo;</p>
+              </div>
+            )}
+
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Your stake</span>
+                <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
+                  {preview.yourStake.toFixed(6)} ETH
+                  <span className="text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Opponent stakes</span>
+                <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
+                  {preview.opponentStake.toFixed(6)} ETH
+                  <span className="text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                </span>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total pot</span>
+                <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
+                  {preview.totalPot.toFixed(6)} ETH
+                  <span className="text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
+                <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
+                  -{preview.fee.toFixed(6)} ETH <span className="text-emerald-400/70">(${preview.feeUsd.toFixed(2)})</span>
+                </span>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-emerald-400">Winner takes</span>
+                <div className="text-right">
+                  <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
+                    +{preview.profit.toFixed(6)} ETH
+                  </span>
+                  <span className="text-xs text-emerald-400/70 ml-1">(${preview.profitUsd.toFixed(2)})</span>
+                  <span className="text-xs text-muted-foreground ml-1">{preview.multiplier.toFixed(2)}x</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="flex items-center justify-between text-xs font-medium text-[hsl(var(--primary))]">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
+                </div>
+                <span className="font-semibold">Base</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {connected && gasEstimate && (
           <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-challenge">
@@ -312,41 +389,46 @@ export default function CreateChallenge() {
           </div>
         )}
 
-        <div className="flex gap-3">
-          <Button
-            data-testid="button-create-challenge"
-            onClick={handleCreate}
-            disabled={loading || stakeEthValue <= 0}
-            className="flex-1"
-            size="lg"
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Confirming...</>
-            ) : (
-              <><Zap className="w-4 h-4 mr-2" /> Create & Fund</>
-            )}
-          </Button>
-          <Button
-            data-testid="button-reset"
-            variant="outline"
-            onClick={() => {
-              setStakeUsd(5);
-              setStakeEthDirect('0.0014');
-              setJoinMins(15);
-              setResolveMins(30);
-              setIdea('');
-            }}
-          >
-            Reset
-          </Button>
-        </div>
+        <Button
+          data-testid="button-create-challenge"
+          onClick={handleCreate}
+          disabled={loading || stakeEthValue <= 0}
+          className="w-full"
+          size="lg"
+        >
+          {loading ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Confirming...</>
+          ) : connected ? (
+            <><Zap className="w-4 h-4 mr-2" /> Create & Fund</>
+          ) : (
+            <>Connect Wallet & Create</>
+          )}
+        </Button>
 
         {(lastChallengeId || lastTxHash) && (
           <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="challenge-created-success">
             {lastChallengeId && (
-              <div>
-                <p className="text-xs text-emerald-400 font-medium">Challenge #{lastChallengeId} Created</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Share this ID with your opponent. They can join on the Bet Lookup page.</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <p className="text-xs text-emerald-400 font-medium">Challenge Created</p>
+                    <p className="text-sm font-mono mt-0.5">ID: {lastChallengeId}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  data-testid="button-copy-share-link"
+                  onClick={() => {
+                    const shareUrl = `${window.location.origin}/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    toast({ title: 'Copied', description: 'Share link copied — send it to your opponent' });
+                  }}
+                >
+                  <Copy className="w-3.5 h-3.5 mr-1.5" />
+                  Copy Share Link
+                </Button>
               </div>
             )}
             {lastTxHash && (
@@ -372,7 +454,7 @@ export default function CreateChallenge() {
                 </a>
               </div>
             )}
-            <Link href="/lookup" data-testid="link-go-to-lookup">
+            <Link href={`/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`} data-testid="link-go-to-lookup">
               <Button variant="outline" size="sm" className="w-full">
                 <Search className="w-3.5 h-3.5 mr-1.5" />
                 Go to Bet Lookup
