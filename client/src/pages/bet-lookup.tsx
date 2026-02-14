@@ -60,6 +60,7 @@ export default function BetLookup() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
+  const [payoutTxHash, setPayoutTxHash] = useState('');
 
   const loadBet = useCallback(async () => {
     const raw = betId.trim();
@@ -70,6 +71,7 @@ export default function BetLookup() {
     }
     setLoading(true);
     setBet(null);
+    setPayoutTxHash('');
     try {
       const id = BigInt(raw);
       const c1 = getV1Contract(true);
@@ -156,6 +158,9 @@ export default function BetLookup() {
       toast({ title: 'Transaction submitted', description: 'Waiting for confirmation...' });
       const receipt = await tx.wait();
       setLastTxHash(receipt.hash);
+      if (action === 'Payout' || action === 'Resolve') {
+        setPayoutTxHash(receipt.hash);
+      }
       toast({ title: 'Success', description: `${action} completed` });
       await new Promise(r => setTimeout(r, 1500));
       await loadBet();
@@ -172,7 +177,6 @@ export default function BetLookup() {
     <div className="space-y-4 max-w-xl mx-auto" data-testid="bet-lookup-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Bet Lookup</h1>
-        <p className="text-sm text-muted-foreground mt-1">Enter a Bet ID to join, vote, resolve, or refund.</p>
       </div>
 
       <Card className="p-5">
@@ -193,7 +197,6 @@ export default function BetLookup() {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           </Button>
         </div>
-        <p className="text-[10px] text-muted-foreground mb-4" data-testid="text-lookup-hint">Works for both V1 Challenges and V2 Market Offers. The bet type is detected automatically.</p>
 
         {bet?.type === 'challenge' && (
           <ChallengeView
@@ -204,6 +207,8 @@ export default function BetLookup() {
             actionLoading={actionLoading}
             doAction={doAction}
             networkKey={networkKey}
+            payoutTxHash={payoutTxHash}
+            explorerUrl={explorerUrl}
           />
         )}
 
@@ -216,6 +221,8 @@ export default function BetLookup() {
             actionLoading={actionLoading}
             doAction={doAction}
             networkKey={networkKey}
+            payoutTxHash={payoutTxHash}
+            explorerUrl={explorerUrl}
           />
         )}
 
@@ -250,7 +257,7 @@ export default function BetLookup() {
 }
 
 function ChallengeView({
-  challenge, betId, now, address, actionLoading, doAction, networkKey,
+  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl,
 }: {
   challenge: ChallengeData;
   betId: string;
@@ -259,6 +266,8 @@ function ChallengeView({
   actionLoading: string;
   doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
   networkKey: string;
+  payoutTxHash: string;
+  explorerUrl: string;
 }) {
   const joined = challenge.participant !== ethers.ZeroAddress;
   const joinExpired = challenge.joinDeadline > 0 && now > challenge.joinDeadline;
@@ -335,6 +344,34 @@ function ChallengeView({
               {challenge.participantVote === 0 ? 'Pending' : challenge.participantVote === 1 ? 'Creator won' : 'Opponent won'}
             </span>
           </div>
+
+          {challenge.state === 2 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote === challenge.participantVote && (
+            <>
+              <div className="h-px bg-border" />
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Winner</span>
+                <Badge variant="outline" className="text-emerald-400 border-emerald-400/30" data-testid="badge-winner">
+                  <Trophy className="w-3 h-3 mr-1" />
+                  {challenge.challengerVote === 1 ? 'Creator' : 'Opponent'}
+                </Badge>
+              </div>
+              {payoutTxHash && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Payout TX</span>
+                  <a
+                    href={`${explorerUrl}/tx/${payoutTxHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-[10px] text-[hsl(var(--primary))] flex items-center gap-1"
+                    data-testid="link-payout-tx"
+                  >
+                    {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -411,7 +448,7 @@ function ChallengeView({
 }
 
 function OfferView({
-  offer, betId, now, address, actionLoading, doAction, networkKey,
+  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl,
 }: {
   offer: OfferData;
   betId: string;
@@ -420,6 +457,8 @@ function OfferView({
   actionLoading: string;
   doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
   networkKey: string;
+  payoutTxHash: string;
+  explorerUrl: string;
 }) {
   const hasTaker = offer.taker !== ethers.ZeroAddress;
   const joinExpired = offer.joinDeadline > 0 && now > offer.joinDeadline;
@@ -524,6 +563,38 @@ function OfferView({
             <span className="text-muted-foreground">Taker vote</span>
             <span className="font-mono">{offer.takerVote === 0 ? 'Pending' : offer.takerVote === 1 ? 'YES' : 'NO'}</span>
           </div>
+
+          {offer.state === 2 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote === offer.takerVote && (
+            <>
+              <div className="h-px bg-border" />
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Winning position</span>
+                <Badge
+                  variant="outline"
+                  className={`${offer.creatorVote === 1 ? 'text-emerald-400 border-emerald-400/30' : 'text-rose-400 border-rose-400/30'}`}
+                  data-testid="badge-winner"
+                >
+                  <Trophy className="w-3 h-3 mr-1" />
+                  {offer.creatorVote === 1 ? 'YES' : 'NO'}
+                </Badge>
+              </div>
+              {offer.paid && payoutTxHash && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Payout TX</span>
+                  <a
+                    href={`${explorerUrl}/tx/${payoutTxHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-[10px] text-[hsl(var(--primary))] flex items-center gap-1"
+                    data-testid="link-payout-tx"
+                  >
+                    {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
