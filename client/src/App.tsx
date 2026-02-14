@@ -10,6 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import Markets from "@/pages/markets";
 import CreateChallenge from "@/pages/create-challenge";
 import BetLookup from "@/pages/bet-lookup";
+import About from "@/pages/about";
+import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
+import RiskDisclosure from "@/pages/risk";
+import FAQ from "@/pages/faq";
 import NotFound from "@/pages/not-found";
 import {
   Sidebar,
@@ -144,6 +149,11 @@ function Router() {
       <Route path="/" component={Markets} />
       <Route path="/challenge" component={CreateChallenge} />
       <Route path="/lookup" component={BetLookup} />
+      <Route path="/about" component={About} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/risk" component={RiskDisclosure} />
+      <Route path="/faq" component={FAQ} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -160,6 +170,26 @@ function MainnetBanner() {
         {net.chainName} contracts are not yet deployed. Switch to Base Sepolia to use the app.
       </p>
     </div>
+  );
+}
+
+function LegalFooter() {
+  return (
+    <footer className="border-t border-border mt-8 py-6 px-4" data-testid="legal-footer">
+      <div className="max-w-xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-md border border-border p-4">
+        <p className="text-xs text-muted-foreground">
+          &copy; 2026 Edison Labs LLC &middot; Experimental software.<br />
+          Use at your own risk.
+        </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <Link href="/about" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-about">About</Link>
+          <Link href="/terms" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-terms">Terms of Use</Link>
+          <Link href="/privacy" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-privacy">Privacy Policy</Link>
+          <Link href="/risk" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-risk">Risk Disclosure</Link>
+          <Link href="/faq" className="text-xs text-[hsl(var(--primary))] font-medium" data-testid="link-faq">FAQ</Link>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -185,6 +215,7 @@ function App() {
                 <MainnetBanner />
                 <main className="flex-1 overflow-auto p-4">
                   <Router />
+                  <LegalFooter />
                 </main>
               </div>
             </div>
