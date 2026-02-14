@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx vite build",
+  "buildCommand": "npx vite build --config vite.config.vercel.ts",
   "outputDirectory": "dist/public",
   "installCommand": "npm install --include=dev",
   "framework": null,
