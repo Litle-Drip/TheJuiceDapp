@@ -91,11 +91,11 @@ function WalletButton() {
         disabled={connecting}
         variant="outline"
         size="sm"
-        className="w-full text-xs justify-start gap-1.5"
+        className="w-full text-xs justify-start gap-1.5 border-[hsl(var(--primary))]/30 text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5"
       >
         <Globe className="w-3.5 h-3.5" />
         <span>{net.chainName}</span>
-        <span className="ml-auto text-[10px] text-muted-foreground">Switch</span>
+        <span className="ml-auto text-[10px] text-[hsl(var(--primary))]/60">Switch</span>
       </Button>
     </div>
   );
