@@ -57,7 +57,11 @@ export default function Markets() {
         winnerPayout: Number(ethers.formatEther(winnerPayout)),
         winnerPayoutUsd: Number(ethers.formatEther(winnerPayout)) * ethUsd,
         multiplier: Number(ethers.formatEther(winnerPayout)) / ethVal,
+        opponentProfit: Number(ethers.formatEther(winnerPayout)) - Number(ethers.formatEther(takerWei)),
+        opponentProfitUsd: (Number(ethers.formatEther(winnerPayout)) - Number(ethers.formatEther(takerWei))) * ethUsd,
         opponentMultiplier: Number(ethers.formatEther(winnerPayout)) / Number(ethers.formatEther(takerWei)),
+        yourProfit: Number(ethers.formatEther(winnerPayout)) - ethVal,
+        yourProfitUsd: (Number(ethers.formatEther(winnerPayout)) - ethVal) * ethUsd,
         takerWei,
       };
     } catch {
@@ -338,10 +342,10 @@ export default function Markets() {
         </button>
 
         {showAdvanced && (
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <div>
-              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider mb-1 block">Join Window</label>
-              <div className="flex items-center gap-1.5">
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="space-y-2">
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block">Join Window</label>
+              <div className="flex items-center gap-2">
                 <input
                   data-testid="input-join-mins"
                   type="number"
@@ -349,16 +353,16 @@ export default function Markets() {
                   max={43200}
                   value={joinMins}
                   onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5 mt-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {[15, 60, 1440].map(m => (
                   <button
                     key={m}
                     onClick={() => setJoinMins(m)}
-                    className={`text-[10px] font-medium border rounded-md py-1 transition-all ${
+                    className={`text-[11px] font-medium border rounded-md py-1.5 text-center transition-all ${
                       joinMins === m
                         ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
                         : 'border-border text-muted-foreground'
@@ -369,9 +373,9 @@ export default function Markets() {
                 ))}
               </div>
             </div>
-            <div>
-              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider mb-1 block">Resolve Window</label>
-              <div className="flex items-center gap-1.5">
+            <div className="space-y-2">
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block">Resolve Window</label>
+              <div className="flex items-center gap-2">
                 <input
                   data-testid="input-resolve-mins"
                   type="number"
@@ -379,16 +383,16 @@ export default function Markets() {
                   max={43200}
                   value={resolveMins}
                   onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
               </div>
-              <div className="grid grid-cols-3 gap-1.5 mt-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {[30, 120, 2880].map(m => (
                   <button
                     key={m}
                     onClick={() => setResolveMins(m)}
-                    className={`text-[10px] font-medium border rounded-md py-1 transition-all ${
+                    className={`text-[11px] font-medium border rounded-md py-1.5 text-center transition-all ${
                       resolveMins === m
                         ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
                         : 'border-border text-muted-foreground'
@@ -444,28 +448,24 @@ export default function Markets() {
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-400">If you win</span>
+                <span className="text-sm font-medium text-emerald-400">You win (profit)</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
-                    {preview.winnerPayout.toFixed(6)} ETH
+                    +{preview.yourProfit.toFixed(6)} ETH
                   </span>
-                  <span className="text-xs text-emerald-400/70 ml-1">(${preview.winnerPayoutUsd.toFixed(2)})</span>
+                  <span className="text-xs text-emerald-400/70 ml-1">(${preview.yourProfitUsd.toFixed(2)})</span>
+                  <span className="text-xs text-muted-foreground ml-1">{preview.multiplier.toFixed(2)}x</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-rose-400">If opponent wins</span>
+                <span className="text-sm font-medium text-rose-400">Opponent wins (profit)</span>
                 <div className="text-right">
                   <span className="text-sm font-mono font-bold text-rose-400" data-testid="text-preview-opponent-payout">
-                    {preview.winnerPayout.toFixed(6)} ETH
+                    +{preview.opponentProfit.toFixed(6)} ETH
                   </span>
-                  <span className="text-xs text-rose-400/70 ml-1">({preview.opponentMultiplier.toFixed(2)}x on {preview.opponentStake.toFixed(6)})</span>
+                  <span className="text-xs text-rose-400/70 ml-1">(${preview.opponentProfitUsd.toFixed(2)})</span>
+                  <span className="text-xs text-muted-foreground ml-1">{preview.opponentMultiplier.toFixed(2)}x</span>
                 </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Your return</span>
-                <span className="text-sm font-mono font-bold text-[hsl(var(--primary))]" data-testid="text-preview-multiplier">
-                  {preview.multiplier.toFixed(2)}x
-                </span>
               </div>
             </div>
 
