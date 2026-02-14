@@ -7,7 +7,7 @@ import { useWallet } from '@/lib/wallet';
 import { computeTakerStake, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { RANDOM_IDEAS } from '@/lib/contracts';
-import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, DollarSign, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function Markets() {
@@ -26,6 +26,7 @@ export default function Markets() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
+  const [showSliderTooltip, setShowSliderTooltip] = useState(false);
 
   const shuffleQuestion = () => {
     setQuestion(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
@@ -56,6 +57,7 @@ export default function Markets() {
         winnerPayout: Number(ethers.formatEther(winnerPayout)),
         winnerPayoutUsd: Number(ethers.formatEther(winnerPayout)) * ethUsd,
         multiplier: Number(ethers.formatEther(winnerPayout)) / ethVal,
+        opponentMultiplier: Number(ethers.formatEther(winnerPayout)) / Number(ethers.formatEther(takerWei)),
         takerWei,
       };
     } catch {
@@ -167,7 +169,6 @@ export default function Markets() {
         </div>
 
         <div className="mb-5">
-          <label className="text-xs text-foreground font-semibold uppercase tracking-wider mb-2 block">Market Question</label>
           <div className="relative">
             <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -186,11 +187,11 @@ export default function Markets() {
               <Shuffle className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Off-chain reference only. Both parties vote to resolve.</p>
         </div>
+        <p className="text-[10px] text-muted-foreground text-center mb-5">Off-chain reference only. Both parties vote to resolve.</p>
 
         <div className="mb-5">
-          <label className="text-xs text-foreground mb-2 block font-semibold uppercase tracking-wider">Pick Your Side</label>
+          <label className="text-xs text-foreground mb-2 block font-semibold uppercase tracking-wider text-center">Pick Your Side</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               data-testid="button-side-yes"
@@ -234,19 +235,35 @@ export default function Markets() {
             </div>
           </div>
           <div className="relative">
-            <input
-              data-testid="input-odds"
-              type="range"
-              min={500}
-              max={9500}
-              step={50}
-              value={oddsBps}
-              onChange={(e) => setOddsBps(Number(e.target.value))}
-              className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-              style={{
-                background: `linear-gradient(to right, rgb(16,185,129) ${yesPercent}%, rgb(244,63,94) ${yesPercent}%)`,
-              }}
-            />
+            <div className="relative">
+              {showSliderTooltip && (
+                <div
+                  className="absolute -top-8 transform -translate-x-1/2 pointer-events-none z-10"
+                  style={{ left: `${((oddsBps - 500) / 9000) * 100}%` }}
+                >
+                  <div className="bg-foreground text-background text-[10px] font-mono font-bold px-2 py-1 rounded-md whitespace-nowrap">
+                    {yesPercent}%
+                  </div>
+                </div>
+              )}
+              <input
+                data-testid="input-odds"
+                type="range"
+                min={500}
+                max={9500}
+                step={50}
+                value={oddsBps}
+                onChange={(e) => setOddsBps(Number(e.target.value))}
+                onMouseDown={() => setShowSliderTooltip(true)}
+                onMouseUp={() => setShowSliderTooltip(false)}
+                onTouchStart={() => setShowSliderTooltip(true)}
+                onTouchEnd={() => setShowSliderTooltip(false)}
+                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, rgb(16,185,129) ${yesPercent}%, rgb(244,63,94) ${yesPercent}%)`,
+                }}
+              />
+            </div>
             <div className="flex justify-between mt-1.5">
               <span className="text-[10px] text-muted-foreground">5%</span>
               <span className="text-[10px] text-muted-foreground">50%</span>
@@ -280,7 +297,7 @@ export default function Markets() {
             </span>
           </div>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">&#926;</span>
             <input
               data-testid="input-stake"
               type="number"
@@ -336,9 +353,17 @@ export default function Markets() {
                 />
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
               </div>
-              <div className="flex gap-1 mt-1">
+              <div className="grid grid-cols-3 gap-1.5 mt-1.5">
                 {[15, 60, 1440].map(m => (
-                  <button key={m} onClick={() => setJoinMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                  <button
+                    key={m}
+                    onClick={() => setJoinMins(m)}
+                    className={`text-[10px] font-medium border rounded-md py-1 transition-all ${
+                      joinMins === m
+                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        : 'border-border text-muted-foreground'
+                    }`}
+                  >
                     {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
                   </button>
                 ))}
@@ -358,9 +383,17 @@ export default function Markets() {
                 />
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">min</span>
               </div>
-              <div className="flex gap-1 mt-1">
+              <div className="grid grid-cols-3 gap-1.5 mt-1.5">
                 {[30, 120, 2880].map(m => (
-                  <button key={m} onClick={() => setResolveMins(m)} className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                  <button
+                    key={m}
+                    onClick={() => setResolveMins(m)}
+                    className={`text-[10px] font-medium border rounded-md py-1 transition-all ${
+                      resolveMins === m
+                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        : 'border-border text-muted-foreground'
+                    }`}
+                  >
                     {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
                   </button>
                 ))}
@@ -420,7 +453,16 @@ export default function Markets() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Return</span>
+                <span className="text-sm font-medium text-rose-400">If opponent wins</span>
+                <div className="text-right">
+                  <span className="text-sm font-mono font-bold text-rose-400" data-testid="text-preview-opponent-payout">
+                    {preview.winnerPayout.toFixed(6)} ETH
+                  </span>
+                  <span className="text-xs text-rose-400/70 ml-1">({preview.opponentMultiplier.toFixed(2)}x on {preview.opponentStake.toFixed(6)})</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Your return</span>
                 <span className="text-sm font-mono font-bold text-[hsl(var(--primary))]" data-testid="text-preview-multiplier">
                   {preview.multiplier.toFixed(2)}x
                 </span>
