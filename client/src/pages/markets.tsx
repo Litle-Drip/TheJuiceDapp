@@ -237,7 +237,7 @@ export default function Markets() {
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Your Stake</label>
-            <span className="text-xs text-muted-foreground font-mono" data-testid="text-stake-usd">
+            <span className="text-xs text-emerald-400 font-mono" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>

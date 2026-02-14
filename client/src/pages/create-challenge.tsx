@@ -181,7 +181,7 @@ export default function CreateChallenge() {
           </div>
 
           <div className="text-center mt-1.5">
-            <span className="text-xs text-muted-foreground font-mono">
+            <span className={`text-xs font-mono ${stakeMode === 'USD' ? 'text-muted-foreground' : 'text-emerald-400'}`}>
               {stakeMode === 'USD'
                 ? `${stakeEthValue.toFixed(6)} ETH`
                 : `$${(stakeEthValue * ethUsd).toFixed(2)}`}
