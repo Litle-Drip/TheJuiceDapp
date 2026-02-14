@@ -538,25 +538,27 @@ export default function Markets() {
         {(lastOfferId || lastTxHash) && (
           <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="offer-created-success">
             {lastOfferId && (
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <p className="text-xs text-emerald-400 font-medium">Offer Created</p>
-                  <p className="text-sm font-mono mt-0.5">ID: {lastOfferId}</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <p className="text-xs text-emerald-400 font-medium">Offer Created</p>
+                    <p className="text-sm font-mono mt-0.5">ID: {lastOfferId}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    data-testid="button-copy-offer-id"
-                    onClick={() => {
-                      const shareUrl = `${window.location.origin}/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`;
-                      navigator.clipboard.writeText(shareUrl);
-                      toast({ title: 'Copied', description: 'Share link copied to clipboard' });
-                    }}
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  data-testid="button-copy-share-link"
+                  onClick={() => {
+                    const shareUrl = `${window.location.origin}/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    toast({ title: 'Copied', description: 'Share link copied — send it to your opponent' });
+                  }}
+                >
+                  <Copy className="w-3.5 h-3.5 mr-1.5" />
+                  Copy Share Link
+                </Button>
               </div>
             )}
             {lastTxHash && (
