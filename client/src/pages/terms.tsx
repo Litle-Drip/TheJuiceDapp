@@ -15,7 +15,7 @@ export default function Terms() {
       </div>
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Terms of Use</h1>
-        <p className="text-xs text-muted-foreground mt-1">Last updated: 12/4/2025</p>
+        <p className="text-xs text-muted-foreground mt-1">Last updated: 2/14/2026</p>
       </div>
       <Card className="p-6">
         <div className="space-y-5 text-sm leading-relaxed text-muted-foreground">
@@ -23,7 +23,8 @@ export default function Terms() {
           <p>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.</p>
 
           <Section title="1. Who We Are">
-            The Service is operated by Edison Labs LLC ("Edison Labs", "we", "us", or "our"), a software development and innovation studio that develops software and digital tools, including blockchain-based applications, digital asset operations, and experimental technology projects.
+            <p>The Service is operated by Edison Labs LLC ("Edison Labs", "we", "us", or "our"), a software development and innovation studio that develops software and digital tools, including blockchain-based applications, digital asset operations, and experimental technology projects.</p>
+            <p className="mt-2">The Service may include peer-to-peer "Challenges" and "Market Offers." Market Offers allow participants to create binary outcome agreements using user-defined implied probabilities and asymmetric stake amounts. These features are implemented through smart contracts deployed on public blockchain networks.</p>
           </Section>
 
           <Section title="2. Eligibility">
@@ -42,7 +43,7 @@ export default function Terms() {
               <li>legal or tax advice, or</li>
               <li>a recommendation to engage in any transaction.</li>
             </ul>
-            <p className="mt-2">Edison Labs does not operate as a sportsbook, casino, or traditional betting operator. The Service provides experimental tools that allow users to interact with blockchain-based smart contracts they control at their own risk.</p>
+            <p className="mt-2">Edison Labs does not operate as a sportsbook, casino, betting operator, broker, exchange, or investment platform. Edison Labs does not set odds, take positions, determine outcomes, or participate as a counterparty in user agreements. The Service provides experimental, peer-to-peer software tools that allow users to create and interact with blockchain-based smart contracts at their own discretion and risk.</p>
           </Section>
 
           <Section title="4. User Responsibilities">
@@ -65,11 +66,24 @@ export default function Terms() {
             <p className="mt-2">Edison Labs does not custody your assets and does not control the underlying blockchain networks.</p>
           </Section>
 
-          <Section title="6. Fees">
-            Certain smart contracts may charge protocol fees that are transferred to a designated treasury address. Any applicable fees will be displayed in the interface or encoded in the contract logic. By interacting with these smart contracts, you consent to the deduction and transfer of such fees.
+          <Section title="6. Market Offers and Outcome Mechanics">
+            <p>Certain features of the Service allow users to create "Market Offers" based on binary outcomes (e.g., YES/NO). These offers may use user-defined implied probabilities and asymmetric stake amounts.</p>
+            <p className="mt-2">By using these features, you acknowledge and agree that:</p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+              <li>Implied probabilities and payout projections are user-defined inputs and interface estimates only.</li>
+              <li>The smart contract logic determines the final stake amounts, payouts, refunds, and fees.</li>
+              <li>Payout previews displayed in the interface are estimates and may not account for network fees or other blockchain variables.</li>
+              <li>A Market Offer may expire, remain unfilled, or become unresolvable depending on participant actions.</li>
+              <li>Resolution may require matching votes from participants, or follow the logic encoded in the smart contract.</li>
+              <li>You are solely responsible for understanding how the contract functions before interacting with it.</li>
+            </ul>
           </Section>
 
-          <Section title="7. Experimental Nature; No Guarantees">
+          <Section title="7. Fees">
+            Certain smart contracts may charge protocol fees that are transferred to a designated treasury address. Any applicable fees will be displayed in the interface and/or encoded in the contract logic. Fees may apply upon successful resolution and are determined solely by the deployed smart contract. By interacting with these smart contracts, you consent to the deduction and transfer of such fees.
+          </Section>
+
+          <Section title="8. Experimental Nature; No Guarantees">
             <p>The Service and its smart contracts are experimental and provided "AS IS" and "AS AVAILABLE" without warranties of any kind, whether express or implied. We do not guarantee:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>error-free operation,</li>
@@ -79,12 +93,12 @@ export default function Terms() {
             </ul>
           </Section>
 
-          <Section title="8. Limitation of Liability">
+          <Section title="9. Limitation of Liability">
             <p>To the fullest extent permitted by law, Edison Labs and its members, officers, employees, and contractors shall not be liable for any indirect, incidental, consequential, special, or punitive damages, or any loss of profits, digital assets, data, or goodwill arising out of or related to your use of the Service.</p>
             <p className="mt-2">Where liability cannot be excluded, it is limited to the amount you have directly paid to Edison Labs (if any) in connection with your use of the Service in the twelve (12) months preceding the event giving rise to the claim.</p>
           </Section>
 
-          <Section title="9. Indemnification">
+          <Section title="10. Indemnification">
             <p>You agree to indemnify, defend, and hold harmless Edison Labs from and against any claims, liabilities, damages, losses, and expenses, including reasonable attorneys' fees, arising out of or related to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>your use of the Service,</li>
@@ -93,19 +107,19 @@ export default function Terms() {
             </ul>
           </Section>
 
-          <Section title="10. Changes to the Service and Terms">
+          <Section title="11. Changes to the Service and Terms">
             We may update the Service or these Terms from time to time. If we make material changes, we will update the "Last updated" date above and may provide additional notice. Your continued use of the Service after any changes become effective constitutes your acceptance of the updated Terms.
           </Section>
 
-          <Section title="11. Third-Party Services">
+          <Section title="12. Third-Party Services">
             The Service may integrate or rely on third-party services (e.g., wallets, RPC providers, oracles, analytics). We do not control and are not responsible for those services. Your use of them is governed by their own terms and policies.
           </Section>
 
-          <Section title="12. Governing Law">
+          <Section title="13. Governing Law">
             These Terms are governed by the laws of the State of Illinois, without regard to conflict of law principles. Any dispute arising out of or relating to these Terms or the Service shall be subject to the exclusive jurisdiction of the state or federal courts located in Illinois.
           </Section>
 
-          <Section title="13. Contact">
+          <Section title="14. Contact">
             If you have questions about these Terms, you may contact us at: <a href="mailto:arrakeensubstack@gmail.com" className="text-[hsl(var(--primary))] underline">arrakeensubstack@gmail.com</a>
           </Section>
         </div>
