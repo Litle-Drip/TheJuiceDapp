@@ -106,6 +106,7 @@ export default function BetLookup() {
 
       let challengeResult: ChallengeData | null = null as ChallengeData | null;
       let offerResult: OfferData | null = null as OfferData | null;
+      let hadRpcError = false;
 
       const promises: Promise<void>[] = [];
 
@@ -126,7 +127,7 @@ export default function BetLookup() {
                   challengerVote: Number(status[2]), participantVote: Number(status[3]),
                 };
               }
-            } catch {}
+            } catch { hadRpcError = true; }
           })()
         );
       }
@@ -149,7 +150,7 @@ export default function BetLookup() {
                   creatorVote: Number(status[4]), takerVote: Number(status[5]), paid: status[6],
                 };
               }
-            } catch {}
+            } catch { hadRpcError = true; }
           })()
         );
       }
@@ -175,6 +176,62 @@ export default function BetLookup() {
               if (hash) setPayoutTxHash(hash);
             });
           }
+        }
+      } else if (hadRpcError && !isRefresh) {
+        await new Promise(r => setTimeout(r, 1500));
+        const retryPromises: Promise<void>[] = [];
+        if (c1 && !challengeResult) {
+          retryPromises.push(
+            (async () => {
+              try {
+                const rc1 = getV1Contract(true);
+                if (!rc1) return;
+                const [core, status] = await Promise.all([rc1.getChallengeCore(id), rc1.getChallengeStatus(id)]);
+                if (core[0] !== ethers.ZeroAddress) {
+                  challengeResult = {
+                    type: 'challenge', challenger: core[0], participant: core[1], stakeWei: core[2], feeBps: Number(core[3]),
+                    joinDeadline: Number(core[4]), resolveDeadline: Number(core[5]),
+                    createdAt: Number(status[0]), state: Number(status[1]),
+                    challengerVote: Number(status[2]), participantVote: Number(status[3]),
+                  };
+                }
+              } catch {}
+            })()
+          );
+        }
+        if (c2 && !offerResult) {
+          retryPromises.push(
+            (async () => {
+              try {
+                const rc2 = getV2Contract(true);
+                if (!rc2) return;
+                const [core, status] = await Promise.all([rc2.getOfferCore(id), rc2.getOfferStatus(id)]);
+                if (core[0] !== ethers.ZeroAddress) {
+                  offerResult = {
+                    type: 'offer', creator: core[0], taker: core[1], creatorSideYes: core[2], pBps: Number(core[3]),
+                    creatorStake: core[4], takerStake: core[5],
+                    joinDeadline: Number(status[0]), resolveDeadline: Number(status[1]),
+                    createdAt: Number(status[2]), state: Number(status[3]),
+                    creatorVote: Number(status[4]), takerVote: Number(status[5]), paid: status[6],
+                  };
+                }
+              } catch {}
+            })()
+          );
+        }
+        await Promise.all(retryPromises);
+        finalBet = challengeResult && offerResult
+          ? (offerResult.createdAt >= challengeResult.createdAt ? offerResult : challengeResult)
+          : challengeResult || offerResult;
+        if (finalBet) {
+          setBet(finalBet);
+          if (finalBet.state === 2) {
+            const contract = finalBet.type === 'offer' ? c2 : c1;
+            const eventName = finalBet.type === 'offer' ? 'OfferResolved' : 'ChallengeResolved';
+            if (contract) findResolveTx(contract, eventName, id).then(hash => { if (hash) setPayoutTxHash(hash); });
+          }
+        } else {
+          toast({ title: 'Network error', description: 'Could not reach the blockchain. Please try again.', variant: 'destructive' });
         }
       } else {
         toast({ title: 'Not found', description: `No bet found with ID #${raw}`, variant: 'destructive' });
