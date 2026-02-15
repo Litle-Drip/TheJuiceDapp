@@ -31,6 +31,18 @@ export default function Markets() {
   const [showSliderTooltip, setShowSliderTooltip] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stakeParam = params.get('stake');
+    const oddsParam = params.get('odds');
+    const sideParam = params.get('side');
+    const qParam = params.get('q');
+    if (stakeParam) setStakeEth(stakeParam);
+    if (oddsParam) { const v = Number(oddsParam); if (v >= 500 && v <= 9500) setOddsBps(v); }
+    if (sideParam) setSideYes(sideParam === 'yes');
+    if (qParam) setQuestion(decodeURIComponent(qParam));
+  }, []);
+
   const shuffleQuestion = () => {
     setQuestion(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
   };

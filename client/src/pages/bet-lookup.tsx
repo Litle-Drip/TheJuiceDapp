@@ -8,8 +8,9 @@ import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import {
   Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown,
-  Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, Fuel
+  Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, Fuel, Copy
 } from 'lucide-react';
+import { Countdown } from '@/components/countdown';
 import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
 import { onTransactionSuccess } from '@/lib/feedback';
 
@@ -550,6 +551,13 @@ function ChallengeView({
     });
   };
 
+  const createSimilarHref = (() => {
+    const params = new URLSearchParams();
+    params.set('stake', stakeEth.toString());
+    if (marketQuestion) params.set('q', marketQuestion);
+    return `/challenge?${params.toString()}`;
+  })();
+
   return (
     <div className="space-y-4" data-testid="challenge-details">
       <div className="rounded-md border border-border bg-muted/30 p-4">
@@ -558,9 +566,20 @@ function ChallengeView({
             <span className="text-sm font-bold">#{betId}</span>
             <Badge variant="secondary" className="text-[10px]">Challenge</Badge>
           </div>
-          <Badge variant={challenge.state === 0 ? 'default' : challenge.state === 1 ? 'secondary' : 'outline'}>
-            {CHALLENGE_STATES[challenge.state] || `State ${challenge.state}`}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="button-create-similar"
+              onClick={() => { window.location.href = createSimilarHref; }}
+            >
+              <Copy className="w-3.5 h-3.5 mr-1.5" />
+              Create Similar
+            </Button>
+            <Badge variant={challenge.state === 0 ? 'default' : challenge.state === 1 ? 'secondary' : 'outline'}>
+              {CHALLENGE_STATES[challenge.state] || `State ${challenge.state}`}
+            </Badge>
+          </div>
         </div>
 
         {marketQuestion && (
@@ -587,10 +606,20 @@ function ChallengeView({
             <span className="text-muted-foreground">Join by</span>
             <span className="font-mono text-[10px]">{new Date(challenge.joinDeadline * 1000).toLocaleString()}</span>
           </div>
+          {challenge.state === 0 && !joinExpired && (
+            <div className="flex justify-end text-[10px]">
+              <Countdown deadline={challenge.joinDeadline} />
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Resolve by</span>
             <span className="font-mono text-[10px]">{new Date(challenge.resolveDeadline * 1000).toLocaleString()}</span>
           </div>
+          {challenge.state === 1 && !resolveExpired && (
+            <div className="flex justify-end text-[10px]">
+              <Countdown deadline={challenge.resolveDeadline} label="Vote closes in" />
+            </div>
+          )}
           <div className="h-px bg-border my-2" />
           <div className="flex justify-between">
             <span className="text-muted-foreground">Creator vote</span>
@@ -644,6 +673,30 @@ function ChallengeView({
           </Button>
         </div>
       )}
+
+      {challenge.state === 1 && joined && address && (() => {
+        const me = address.toLowerCase();
+        const isChallenger = challenge.challenger.toLowerCase() === me;
+        const isParticipant = challenge.participant.toLowerCase() === me;
+        const myVote = isChallenger ? challenge.challengerVote : isParticipant ? challenge.participantVote : -1;
+        const theirVote = isChallenger ? challenge.participantVote : challenge.challengerVote;
+        if ((isChallenger || isParticipant) && myVote === 0) {
+          return (
+            <div className="flex items-center gap-2.5 p-3 rounded-md border border-amber-500/30 bg-amber-500/5" data-testid="vote-nudge-banner">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-amber-400">Your vote is needed</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {theirVote !== 0
+                    ? 'Your opponent has already voted. Submit your vote to proceed with resolution.'
+                    : 'This bet is waiting for both players to vote on the outcome.'}
+                </p>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {challenge.state === 1 && joined && !resolveExpired && (
         <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">
@@ -849,6 +902,15 @@ function OfferView({
     });
   };
 
+  const createSimilarHref = (() => {
+    const params = new URLSearchParams();
+    params.set('stake', creatorStakeEth.toString());
+    params.set('odds', String(offer.pBps));
+    params.set('side', offer.creatorSideYes ? 'yes' : 'no');
+    if (marketQuestion) params.set('q', marketQuestion);
+    return `/?${params.toString()}`;
+  })();
+
   return (
     <div className="space-y-4" data-testid="offer-details">
       <div className="rounded-md border border-border bg-muted/30 p-4">
@@ -858,6 +920,15 @@ function OfferView({
             <Badge variant="secondary" className="text-[10px]">Market Offer</Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="button-create-similar"
+              onClick={() => { window.location.href = createSimilarHref; }}
+            >
+              <Copy className="w-3.5 h-3.5 mr-1.5" />
+              Create Similar
+            </Button>
             <Badge variant={offer.state === 0 ? 'default' : offer.state === 1 ? 'secondary' : 'outline'}>
               {OFFER_STATES[offer.state] || `State ${offer.state}`}
             </Badge>
@@ -921,10 +992,20 @@ function OfferView({
             <span className="text-muted-foreground">Join by</span>
             <span className="font-mono text-[10px]">{new Date(offer.joinDeadline * 1000).toLocaleString()}</span>
           </div>
+          {offer.state === 0 && !joinExpired && (
+            <div className="flex justify-end text-[10px]">
+              <Countdown deadline={offer.joinDeadline} />
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Resolve by</span>
             <span className="font-mono text-[10px]">{new Date(offer.resolveDeadline * 1000).toLocaleString()}</span>
           </div>
+          {offer.state === 1 && !resolveExpired && (
+            <div className="flex justify-end text-[10px]">
+              <Countdown deadline={offer.resolveDeadline} label="Vote closes in" />
+            </div>
+          )}
           <div className="h-px bg-border" />
           <div className="flex justify-between">
             <span className="text-muted-foreground">Creator vote</span>
@@ -978,6 +1059,30 @@ function OfferView({
           </Button>
         </div>
       )}
+
+      {offer.state === 1 && hasTaker && address && (() => {
+        const me = address.toLowerCase();
+        const isCreator = offer.creator.toLowerCase() === me;
+        const isTaker = offer.taker.toLowerCase() === me;
+        const myVote = isCreator ? offer.creatorVote : isTaker ? offer.takerVote : -1;
+        const theirVote = isCreator ? offer.takerVote : offer.creatorVote;
+        if ((isCreator || isTaker) && myVote === 0) {
+          return (
+            <div className="flex items-center gap-2.5 p-3 rounded-md border border-amber-500/30 bg-amber-500/5" data-testid="vote-nudge-banner">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-amber-400">Your vote is needed</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {theirVote !== 0
+                    ? 'Your opponent has already voted. Submit your vote to proceed with resolution.'
+                    : 'This bet is waiting for both players to vote on the outcome.'}
+                </p>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {offer.state === 1 && hasTaker && (
         <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">

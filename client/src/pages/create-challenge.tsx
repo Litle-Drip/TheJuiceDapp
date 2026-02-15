@@ -27,6 +27,14 @@ export default function CreateChallenge() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stakeParam = params.get('stake');
+    const qParam = params.get('q');
+    if (stakeParam) setStakeEth(stakeParam);
+    if (qParam) setIdea(decodeURIComponent(qParam));
+  }, []);
+
   const stakeEthValue = useMemo(() => {
     return parseFloat(stakeEth) || 0;
   }, [stakeEth]);

@@ -7,9 +7,10 @@ import { useWallet } from '@/lib/wallet';
 import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { Link } from 'wouter';
 import {
-  Loader2, Flame, TrendingUp, TrendingDown, Clock,
-  Search, RefreshCw, Zap
+  Loader2, Flame, TrendingUp, TrendingDown,
+  Search, RefreshCw, Zap, Copy
 } from 'lucide-react';
+import { Countdown } from '@/components/countdown';
 
 interface TrendingBet {
   id: string;
@@ -19,6 +20,7 @@ interface TrendingBet {
   state: number;
   createdAt: number;
   joinDeadline: number;
+  resolveDeadline: number;
   creator: string;
   sideYes?: boolean;
   oddsBps?: number;
@@ -83,6 +85,7 @@ export default function Trending() {
                     state: Number(status[1]),
                     createdAt: Number(status[0]),
                     joinDeadline: Number(core[4]),
+                    resolveDeadline: Number(core[5]),
                     creator: core[0],
                     hasOpponent: core[1] !== ethers.ZeroAddress,
                   });
@@ -126,6 +129,7 @@ export default function Trending() {
                     state: Number(status[3]),
                     createdAt: Number(status[2]),
                     joinDeadline: Number(status[0]),
+                    resolveDeadline: Number(status[1]),
                     creator: core[0],
                     hasOpponent: core[1] !== ethers.ZeroAddress,
                     sideYes: core[2],
@@ -269,16 +273,43 @@ export default function Trending() {
 
                   <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground">
                     <span>by {shortAddr(bet.creator)}</span>
-                    {isJoinable && timeLeft > 0 && (
-                      <span className="flex items-center gap-0.5">
-                        <Clock className="w-2.5 h-2.5" />
-                        {timeLeft < 3600
-                          ? `${Math.floor(timeLeft / 60)}m left`
-                          : timeLeft < 86400
-                          ? `${Math.floor(timeLeft / 3600)}h left`
-                          : `${Math.floor(timeLeft / 86400)}d left`}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isJoinable && timeLeft > 0 && (
+                        <Countdown deadline={bet.joinDeadline} />
+                      )}
+                      {bet.state === 1 && bet.hasOpponent && (
+                        <Countdown deadline={bet.resolveDeadline} label="Vote closes in" />
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid="button-create-similar"
+                        className="h-6 px-2 text-[10px]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          let question = '';
+                          try {
+                            const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+                            const key = bet.type === 'challenge' ? `c${bet.id}` : bet.id;
+                            question = stored[key] || '';
+                          } catch {}
+                          const params = new URLSearchParams();
+                          params.set('stake', bet.stakeEth.toString());
+                          if (question) params.set('q', question);
+                          if (bet.type === 'offer') {
+                            if (bet.oddsBps) params.set('odds', String(bet.oddsBps));
+                            params.set('side', bet.sideYes ? 'yes' : 'no');
+                            window.location.href = `/?${params.toString()}`;
+                          } else {
+                            window.location.href = `/challenge?${params.toString()}`;
+                          }
+                        }}
+                      >
+                        <Copy className="w-3 h-3 mr-1" />
+                        Create Similar
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               </Link>

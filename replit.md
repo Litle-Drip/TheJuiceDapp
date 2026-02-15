@@ -32,7 +32,9 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - `client/src/pages/privacy.tsx` - Privacy Policy
 - `client/src/pages/risk.tsx` - Risk Disclosure
 - `client/src/pages/faq.tsx` - FAQ
+- `client/src/components/countdown.tsx` - Reusable live countdown timer component with color-coded urgency
 - `client/src/App.tsx` - Main app with sidebar navigation, notification badge, verification badge, and legal footer
+- `server/routes.ts` - API routes + OG preview middleware for social crawlers
 
 ## Pages
 - `/` - Markets (create odds-based offers)
@@ -50,10 +52,14 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **My Bets Dashboard**: Scans blockchain events filtered by wallet address, shows all created/joined bets with status, stake, counterparty
 - **Transaction History**: Integrated into My Bets with chronological ordering and explorer links
 - **Trending Markets**: Scans recent OfferOpened/ChallengeOpened events, ranks by total pot size, shows open bets available to join
-- **Bet Notifications**: Background polling (30s interval) watches for OfferResolved, ChallengeResolved, and offer-taken events. Shows toast notifications and badge count on sidebar
+- **Bet Notifications**: Background polling (30s interval) watches for OfferResolved, ChallengeResolved, offer-taken, and pending-vote events. Shows toast notifications and badge count on sidebar
 - **Gas Estimation**: Shows estimated gas cost in ETH and USD before confirming create transactions
 - **Contract Verification Badge**: Sidebar footer link to verified contract source on BaseScan
-- **URL Deep Links**: Bet lookup supports `?id=X` query params for linking from dashboard/trending
+- **URL Deep Links**: Bet lookup supports `?id=X&q=Q` query params for linking from dashboard/trending
+- **OG Share Previews**: Server-side middleware serves dynamic Open Graph meta tags for social crawlers (Twitter, Discord, iMessage) on `/lookup` URLs
+- **Live Countdown Timers**: Real-time ticking countdowns for join and vote deadlines on Trending cards and Bet Lookup, color-coded urgency (amber < 5min, rose when expired)
+- **Create Similar / Duplicate**: Clone existing bets with pre-filled parameters via URL params, available on Trending cards and Bet Lookup pages
+- **Vote Nudge Banners**: Amber warning banners in Bet Lookup when user's vote is pending, with contextual messaging about opponent's vote status
 
 ## Design
 - Primary color: Steel blue `hsl(207 30% 62%)`
