@@ -7,6 +7,26 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
+function unlockAudio() {
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') {
+    ctx.resume();
+  }
+  const silent = ctx.createBufferSource();
+  silent.buffer = ctx.createBuffer(1, 1, 22050);
+  silent.connect(ctx.destination);
+  silent.start(0);
+}
+
+if (typeof window !== 'undefined') {
+  const events = ['touchstart', 'touchend', 'click'];
+  const handler = () => {
+    unlockAudio();
+    events.forEach(e => document.removeEventListener(e, handler, true));
+  };
+  events.forEach(e => document.addEventListener(e, handler, true));
+}
+
 export async function playSuccessSound() {
   try {
     const ctx = getAudioContext();
@@ -14,32 +34,24 @@ export async function playSuccessSound() {
       await ctx.resume();
     }
 
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
+    const t = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-    osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
-    osc1.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1760, t);
 
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(523.25 * 2, ctx.currentTime);
-    osc2.frequency.setValueAtTime(659.25 * 2, ctx.currentTime + 0.1);
-    osc2.frequency.setValueAtTime(783.99 * 2, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.4, t + 0.005);
+    gain.gain.setValueAtTime(0.4, t + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
 
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.15);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-
-    osc1.connect(gain);
-    osc2.connect(gain);
+    osc.connect(gain);
     gain.connect(ctx.destination);
 
-    osc1.start(ctx.currentTime);
-    osc2.start(ctx.currentTime);
-    osc1.stop(ctx.currentTime + 0.4);
-    osc2.stop(ctx.currentTime + 0.4);
+    osc.start(t);
+    osc.stop(t + 1.2);
   } catch {}
 }
 
