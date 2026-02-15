@@ -33,8 +33,8 @@ interface TrendingBet {
   hasOpponent: boolean;
 }
 
-const CHALLENGE_STATES = ['Open', 'Active', 'Resolved', 'Refunded'];
-const OFFER_STATES = ['Open', 'Filled', 'Resolved', 'Refunded'];
+const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
+const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'];
 
 export default function Trending() {
   const { ethUsd, network: networkKey } = useWallet();
@@ -168,7 +168,7 @@ export default function Trending() {
     <div className="space-y-4 max-w-xl mx-auto" data-testid="trending-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Trending</h1>
-        <p className="text-sm text-muted-foreground mt-1">Browse recent bets ranked by stake size.</p>
+        <p className="text-sm text-muted-foreground mt-1">See what others are betting on. Jump in and take the other side.</p>
       </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -208,16 +208,25 @@ export default function Trending() {
       ) : loaded && filteredBets.length === 0 ? (
         <Card className="p-8 text-center">
           <Flame className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground mb-1">
-            {filter === 'open' ? 'No open bets available to join.' : 'No bets found on this network.'}
+          <p className="text-sm font-medium mb-1">
+            {filter === 'open' ? 'No open bets right now' : 'No bets found on this network'}
           </p>
-          <p className="text-xs text-muted-foreground mb-4">Be the first to create one.</p>
-          <Link href="/">
-            <Button variant="outline" size="sm" data-testid="button-create-first">
-              <Zap className="w-3.5 h-3.5 mr-1.5" />
-              Create a Market Offer
-            </Button>
-          </Link>
+          <p className="text-xs text-muted-foreground mb-4">
+            {filter === 'open' ? 'All current bets have been taken. Create a new one or switch to "All Bets" to browse.' : 'Be the first to create one and set the market.'}
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <Link href="/">
+              <Button variant="default" size="sm" data-testid="button-create-first">
+                <Zap className="w-3.5 h-3.5 mr-1.5" />
+                Create a Bet
+              </Button>
+            </Link>
+            {filter === 'open' && (
+              <Button variant="outline" size="sm" onClick={() => setFilter('all')} data-testid="button-show-all-empty">
+                Show All Bets
+              </Button>
+            )}
+          </div>
         </Card>
       ) : (
         <div className="space-y-2">

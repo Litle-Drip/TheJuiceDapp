@@ -8,7 +8,7 @@ import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import {
   Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown,
-  Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, Fuel, Copy
+  Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, Fuel, Copy, Share2
 } from 'lucide-react';
 import { Countdown } from '@/components/countdown';
 import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
@@ -81,8 +81,8 @@ interface OfferData {
 
 type BetData = ChallengeData | OfferData;
 
-const CHALLENGE_STATES = ['Open', 'Active', 'Resolved', 'Refunded'];
-const OFFER_STATES = ['Open', 'Filled', 'Resolved', 'Refunded'];
+const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
+const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'];
 
 export default function BetLookup() {
   const { connected, connect, signer, address, ethUsd, feeBps, getV1Contract, getV2Contract, explorerUrl, network: networkKey } = useWallet();
@@ -275,10 +275,10 @@ export default function BetLookup() {
           toast({ title: 'Network error', description: 'Could not reach the blockchain. Please try again.', variant: 'destructive' });
         }
       } else {
-        toast({ title: 'Not found', description: `No bet found with ID #${raw}`, variant: 'destructive' });
+        toast({ title: 'Bet not found', description: `No bet exists with ID #${raw}. Double-check the number and make sure you're on the right network.`, variant: 'destructive' });
       }
     } catch (e: any) {
-      toast({ title: 'Error', description: e?.message || 'Lookup failed', variant: 'destructive' });
+      toast({ title: 'Something went wrong', description: e?.message || 'Could not load this bet. Check the ID and try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -337,7 +337,7 @@ export default function BetLookup() {
       await new Promise(r => setTimeout(r, 1500));
       await loadBet(true);
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+      toast({ title: 'Transaction failed', description: e?.shortMessage || e?.message || 'Something went wrong. Check your wallet and try again.', variant: 'destructive' });
       throw e;
     } finally {
       setActionLoading('');
@@ -350,6 +350,7 @@ export default function BetLookup() {
     <div className="space-y-4 max-w-xl mx-auto" data-testid="bet-lookup-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Bet Lookup</h1>
+        <p className="text-sm text-muted-foreground mt-1">Enter a bet ID to join, vote on the outcome, or check its status.</p>
       </div>
 
       <Card className="p-5">
@@ -457,6 +458,7 @@ function ChallengeView({
   const net = NETWORKS[networkKey as keyof typeof NETWORKS];
 
   const { name: challengerEns, loading: challengerLoading } = useEnsName(challenge.challenger);
+  const { toast } = useToast();
   const { name: participantEns, loading: participantLoading } = useEnsName(joined ? challenge.participant : undefined);
 
   const estimateGas = useCallback(async (method: string, args: any[], value?: bigint) => {
@@ -568,6 +570,18 @@ function ChallengeView({
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant="ghost"
+              size="icon"
+              data-testid="button-share-bet"
+              onClick={() => {
+                const url = `${window.location.origin}/lookup?id=${betId}`;
+                navigator.clipboard.writeText(url);
+                toast({ title: 'Link copied', description: 'Share this link so someone can join your bet.' });
+              }}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               data-testid="button-create-similar"
@@ -599,11 +613,11 @@ function ChallengeView({
             <span className={`font-mono${participantLoading ? ' opacity-50' : ''}`}>{joined ? shortAddr(challenge.participant, participantEns) : 'Waiting...'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Each stake</span>
+            <span className="text-muted-foreground">Bet amount (each)</span>
             <span className="font-mono">{Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Join by</span>
+            <span className="text-muted-foreground">Accept by</span>
             <span className="font-mono text-[10px]">{new Date(challenge.joinDeadline * 1000).toLocaleString()}</span>
           </div>
           {challenge.state === 0 && !joinExpired && (
@@ -612,7 +626,7 @@ function ChallengeView({
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Resolve by</span>
+            <span className="text-muted-foreground">Vote by</span>
             <span className="font-mono text-[10px]">{new Date(challenge.resolveDeadline * 1000).toLocaleString()}</span>
           </div>
           {challenge.state === 1 && !resolveExpired && (
@@ -701,8 +715,8 @@ function ChallengeView({
       {challenge.state === 1 && joined && !resolveExpired && (
         <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">
           <div className="text-center">
-            <p className="text-sm font-bold text-foreground">Who won?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Both players must agree for payout</p>
+            <p className="text-sm font-bold text-foreground">Who won this bet?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Both players must agree on the outcome. If you disagree, both get refunded.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('submitOutcomeVote', [BigInt(betId), true])} ethUsd={ethUsd} address={address} />
           <div className="grid grid-cols-2 gap-3">
@@ -815,6 +829,7 @@ function OfferView({
   const resolveExpired = offer.resolveDeadline > 0 && now > offer.resolveDeadline;
   const net = NETWORKS[networkKey as keyof typeof NETWORKS];
 
+  const { toast } = useToast();
   const { name: creatorEns, loading: creatorLoading } = useEnsName(offer.creator);
   const { name: takerEns, loading: takerLoading } = useEnsName(hasTaker ? offer.taker : undefined);
 
@@ -924,6 +939,18 @@ function OfferView({
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant="ghost"
+              size="icon"
+              data-testid="button-share-offer"
+              onClick={() => {
+                const url = `${window.location.origin}/lookup?id=${betId}`;
+                navigator.clipboard.writeText(url);
+                toast({ title: 'Link copied', description: 'Share this link so someone can take the other side.' });
+              }}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               data-testid="button-create-similar"
@@ -977,11 +1004,11 @@ function OfferView({
             <span className={`font-mono${takerLoading ? ' opacity-50' : ''}`}>{hasTaker ? shortAddr(offer.taker, takerEns) : 'Waiting...'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Creator stake</span>
+            <span className="text-muted-foreground">Creator puts in</span>
             <span className="font-mono">{Number(ethers.formatEther(offer.creatorStake)).toFixed(6)} ETH</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Taker stake</span>
+            <span className="text-muted-foreground">Taker puts in</span>
             <span className="font-mono">{Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH</span>
           </div>
           <div className="flex justify-between">
@@ -992,7 +1019,7 @@ function OfferView({
           </div>
           <div className="h-px bg-border" />
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Join by</span>
+            <span className="text-muted-foreground">Accept by</span>
             <span className="font-mono text-[10px]">{new Date(offer.joinDeadline * 1000).toLocaleString()}</span>
           </div>
           {offer.state === 0 && !joinExpired && (
@@ -1001,7 +1028,7 @@ function OfferView({
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Resolve by</span>
+            <span className="text-muted-foreground">Vote by</span>
             <span className="font-mono text-[10px]">{new Date(offer.resolveDeadline * 1000).toLocaleString()}</span>
           </div>
           {offer.state === 1 && !resolveExpired && (

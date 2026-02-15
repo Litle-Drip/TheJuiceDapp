@@ -43,8 +43,8 @@ interface TxEntry {
   timestamp?: number;
 }
 
-const CHALLENGE_STATES = ['Open', 'Active', 'Resolved', 'Refunded'];
-const OFFER_STATES = ['Open', 'Filled', 'Resolved', 'Refunded'];
+const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
+const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'];
 
 function stateColor(state: number): string {
   switch (state) {
@@ -364,13 +364,14 @@ export default function MyBets() {
     <div className="space-y-4 max-w-xl mx-auto" data-testid="my-bets-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">My Bets</h1>
-        <p className="text-sm text-muted-foreground mt-1">All bets you've created or joined on-chain.</p>
+        <p className="text-sm text-muted-foreground mt-1">Track all your bets, see your stats, and check transaction history.</p>
       </div>
 
       {!connected ? (
         <Card className="p-8 text-center">
           <Wallet className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground mb-4">Connect your wallet to see your bets.</p>
+          <p className="text-sm font-medium mb-1">Connect your wallet to get started</p>
+          <p className="text-xs text-muted-foreground mb-4">We'll scan the blockchain for any bets linked to your wallet address.</p>
           <Button data-testid="button-connect-my-bets" onClick={() => connect()} disabled={connecting}>
             {connecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wallet className="w-4 h-4 mr-2" />}
             Connect Wallet
@@ -456,10 +457,30 @@ export default function MyBets() {
               ) : loaded && filteredBets.length === 0 ? (
                 <Card className="p-8 text-center">
                   <LayoutDashboard className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {filterTab === 'all' ? 'No bets found for this wallet.' : `No ${filterTab} bets found.`}
+                  <p className="text-sm font-medium mb-1">
+                    {filterTab === 'all' ? 'No bets found yet' : `No ${filterTab} bets`}
                   </p>
-                  <p className="text-xs text-muted-foreground">Create a challenge or market offer to get started.</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    {filterTab === 'all'
+                      ? 'Create your first bet or join one from Trending to get started.'
+                      : `Try switching to "All" to see all your bets.`}
+                  </p>
+                  {filterTab === 'all' && (
+                    <div className="flex items-center justify-center gap-2">
+                      <Link href="/">
+                        <Button variant="default" size="sm" data-testid="button-create-from-empty">
+                          <Zap className="w-3.5 h-3.5 mr-1.5" />
+                          Create a Bet
+                        </Button>
+                      </Link>
+                      <Link href="/trending">
+                        <Button variant="outline" size="sm" data-testid="button-trending-from-empty">
+                          <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
+                          Browse Trending
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </Card>
               ) : (
                 <div className="space-y-2">

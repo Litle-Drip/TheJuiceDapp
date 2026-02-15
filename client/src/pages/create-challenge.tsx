@@ -131,9 +131,9 @@ export default function CreateChallenge() {
         } catch {}
       }
       onTransactionSuccess();
-      toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Check transaction for details' });
+      toast({ title: 'Challenge created!', description: challengeId ? `Challenge #${challengeId} is live. Share it with a friend to get them to accept.` : 'Your challenge is live on the blockchain.' });
     } catch (e: any) {
-      toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+      toast({ title: 'Transaction failed', description: e?.shortMessage || e?.message || 'Something went wrong. Check your wallet and try again.', variant: 'destructive' });
       throw e;
     } finally {
       setLoading(false);
@@ -168,7 +168,7 @@ export default function CreateChallenge() {
     <div className="space-y-4 max-w-xl mx-auto" data-testid="create-challenge-page">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Create Challenge</h1>
-        <p className="text-sm text-muted-foreground mt-1">Equal stakes, head-to-head. Fund the escrow in one step.</p>
+        <p className="text-sm text-muted-foreground mt-1">Both players bet the same amount. Winner takes all (minus a small fee).</p>
       </div>
 
       <Card className="p-5">
@@ -197,11 +197,11 @@ export default function CreateChallenge() {
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground text-center mb-5">Off-chain reference only. Both parties vote to resolve.</p>
+        <p className="text-[10px] text-muted-foreground text-center mb-5">This is just a label for your bet. The outcome is decided when both players vote.</p>
 
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Each Side Stakes</label>
+            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Bet Amount (Each Player)</label>
             <span className="text-xs text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
@@ -244,13 +244,13 @@ export default function CreateChallenge() {
           className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3"
         >
           {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          <span className="font-semibold text-foreground">Deadlines</span>
+          <span className="font-semibold text-foreground">Time Limits</span>
         </button>
 
         {showAdvanced && (
           <div className="grid grid-cols-2 gap-4 mb-5 max-w-xs mx-auto">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Join Window</label>
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Time to Accept</label>
               <div className="relative">
                 <input
                   data-testid="input-join-deadline"
@@ -280,7 +280,7 @@ export default function CreateChallenge() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Resolve Window</label>
+              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Time to Vote</label>
               <div className="relative">
                 <input
                   data-testid="input-resolve-deadline"
@@ -328,14 +328,14 @@ export default function CreateChallenge() {
 
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Your stake</span>
+                <span className="text-sm text-muted-foreground">You put in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
                   <span className="text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Opponent stakes</span>
+                <span className="text-sm text-muted-foreground">Opponent puts in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
                   <span className="text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
@@ -444,8 +444,8 @@ export default function CreateChallenge() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-xs text-emerald-400 font-medium">Challenge Created</p>
-                    <p className="text-sm font-mono mt-0.5">ID: {lastChallengeId}</p>
+                    <p className="text-xs text-emerald-400 font-medium">Your challenge is live!</p>
+                    <p className="text-sm font-mono mt-0.5">Challenge #{lastChallengeId}</p>
                   </div>
                 </div>
                 <Button
@@ -456,7 +456,7 @@ export default function CreateChallenge() {
                   onClick={() => {
                     const shareUrl = `${window.location.origin}/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`;
                     navigator.clipboard.writeText(shareUrl);
-                    toast({ title: 'Copied', description: 'Share link copied — send it to your opponent' });
+                    toast({ title: 'Link copied!', description: 'Send this to a friend so they can accept the challenge.' });
                   }}
                 >
                   <Copy className="w-3.5 h-3.5 mr-1.5" />
@@ -490,7 +490,7 @@ export default function CreateChallenge() {
             <Link href={`/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`} data-testid="link-go-to-lookup">
               <Button variant="outline" size="sm" className="w-full">
                 <Search className="w-3.5 h-3.5 mr-1.5" />
-                Go to Bet Lookup
+                View Your Challenge
               </Button>
             </Link>
           </div>

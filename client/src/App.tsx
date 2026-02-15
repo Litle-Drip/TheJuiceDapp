@@ -50,11 +50,11 @@ import MyBets from "@/pages/my-bets";
 import Trending from "@/pages/trending";
 
 const navItems = [
-  { title: "Markets", url: "/", icon: TrendingUp },
-  { title: "Create Challenge", url: "/challenge", icon: Zap },
-  { title: "Bet Lookup", url: "/lookup", icon: Search },
-  { title: "My Bets", url: "/my-bets", icon: LayoutDashboard },
-  { title: "Trending", url: "/trending", icon: Flame },
+  { title: "Markets", url: "/", icon: TrendingUp, desc: "Create odds-based bets" },
+  { title: "Create Challenge", url: "/challenge", icon: Zap, desc: "Equal-stakes head-to-head" },
+  { title: "Bet Lookup", url: "/lookup", icon: Search, desc: "Join, vote, or check status" },
+  { title: "My Bets", url: "/my-bets", icon: LayoutDashboard, desc: "Your betting history" },
+  { title: "Trending", url: "/trending", icon: Flame, desc: "Browse open bets" },
 ];
 
 function WalletButton() {
@@ -135,14 +135,17 @@ function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url}>
+                  <SidebarMenuButton asChild isActive={location === item.url} className="h-auto py-2">
                     <Link
                       href={item.url}
                       data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
                       onClick={() => { if (item.url === '/my-bets') clearNotifications(); }}
                     >
                       <item.icon />
-                      <span>{item.title}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm leading-tight">{item.title}</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight">{item.desc}</span>
+                      </div>
                       {item.title === 'My Bets' && notificationCount > 0 && (
                         <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-emerald-500 text-white border-0" data-testid="badge-notification-count">
                           {notificationCount}

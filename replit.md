@@ -64,6 +64,16 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **Win/Loss Stats**: Stats tab on My Bets page showing win rate, record (W-L-D), total wagered, total won, net P/L, biggest win, and current streak
 - **ENS Resolution**: Resolves Ethereum addresses to ENS names (including .base.eth Basenames) with caching, displayed throughout bet lookup, trending, and my bets pages
 
+## UX Conventions
+- Use plain language for non-crypto users: "bet amount" not "stake", "time limits" not "deadlines", "accept" not "join", "vote" not "resolve"
+- Status labels: "Waiting for opponent", "Voting in progress", "Settled", "Refunded"
+- All pages have descriptive subtitles explaining what users can do there
+- Empty states include actionable CTAs (Create a Bet, Browse Trending)
+- Post-creation success shows "Your bet is live!" with Copy Share Link and View Your Bet buttons
+- Share buttons on Bet Lookup for both Challenge and Offer views
+- Error toasts use "Transaction failed" with actionable guidance
+- Sidebar nav items include small description text under each title
+
 ## Design
 - Primary color: Steel blue `hsl(207 30% 62%)`
 - Background: Cool neutral grey `hsl(220 4% 13%)`
