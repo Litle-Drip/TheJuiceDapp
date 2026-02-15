@@ -12,7 +12,7 @@ export interface TxConfirmLine {
 interface ConfirmTxDialogProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => void | Promise<void>;
   title: string;
   lines: TxConfirmLine[];
   confirmLabel?: string;
@@ -28,9 +28,10 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
     setConfirming(true);
     try {
       await onConfirm();
-    } finally {
       setConfirming(false);
       onClose();
+    } catch {
+      setConfirming(false);
     }
   };
 

@@ -162,6 +162,7 @@ export default function Markets() {
     } catch (e: any) {
       const msg = e?.shortMessage || e?.message || String(e);
       toast({ title: 'Failed', description: msg, variant: 'destructive' });
+      throw e;
     } finally {
       setLoading(false);
     }

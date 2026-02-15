@@ -340,6 +340,7 @@ export default function BetLookup() {
       await loadBet(true);
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+      throw e;
     } finally {
       setActionLoading('');
     }

@@ -126,6 +126,7 @@ export default function CreateChallenge() {
       toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Check transaction for details' });
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
+      throw e;
     } finally {
       setLoading(false);
     }
