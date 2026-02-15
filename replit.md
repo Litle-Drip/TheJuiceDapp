@@ -22,10 +22,11 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - `client/src/lib/contracts.ts` - Contract ABIs, network config, odds computation
 - `client/src/lib/wallet.tsx` - WalletProvider context with MetaMask/Coinbase support
 - `client/src/lib/notifications.tsx` - NotificationProvider with background event polling for bet updates
+- `client/src/lib/ens.ts` - ENS/Basename resolution utility with caching and useEnsName hook
 - `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2) with gas estimation
 - `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1) with gas estimation
 - `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID, supports URL query params (?id=X)
-- `client/src/pages/my-bets.tsx` - My Bets dashboard: scans on-chain events for user's bets (created + joined)
+- `client/src/pages/my-bets.tsx` - My Bets dashboard: scans on-chain events for user's bets, win/loss stats, transaction history
 - `client/src/pages/trending.tsx` - Trending/Popular Markets: browse recent bets ranked by stake size
 - `client/src/pages/about.tsx` - About Edison Labs
 - `client/src/pages/terms.tsx` - Terms of Use
@@ -60,6 +61,8 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **Live Countdown Timers**: Real-time ticking countdowns for join and vote deadlines on Trending cards and Bet Lookup, color-coded urgency (amber < 5min, rose when expired)
 - **Create Similar / Duplicate**: Clone existing bets with pre-filled parameters via URL params, available on Trending cards and Bet Lookup pages
 - **Vote Nudge Banners**: Amber warning banners in Bet Lookup when user's vote is pending, with contextual messaging about opponent's vote status
+- **Win/Loss Stats**: Stats tab on My Bets page showing win rate, record (W-L-D), total wagered, total won, net P/L, biggest win, and current streak
+- **ENS Resolution**: Resolves Ethereum addresses to ENS names (including .base.eth Basenames) with caching, displayed throughout bet lookup, trending, and my bets pages
 
 ## Design
 - Primary color: Steel blue `hsl(207 30% 62%)`

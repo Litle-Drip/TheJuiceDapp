@@ -11,6 +11,12 @@ import {
   Search, RefreshCw, Zap, Copy
 } from 'lucide-react';
 import { Countdown } from '@/components/countdown';
+import { useEnsName, shortAddr } from '@/lib/ens';
+
+function CreatorName({ address }: { address: string }) {
+  const { name, loading } = useEnsName(address);
+  return <span className={loading ? 'opacity-50' : ''}>{shortAddr(address, name)}</span>;
+}
 
 interface TrendingBet {
   id: string;
@@ -29,10 +35,6 @@ interface TrendingBet {
 
 const CHALLENGE_STATES = ['Open', 'Active', 'Resolved', 'Refunded'];
 const OFFER_STATES = ['Open', 'Filled', 'Resolved', 'Refunded'];
-
-function shortAddr(a: string) {
-  return a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '';
-}
 
 export default function Trending() {
   const { ethUsd, network: networkKey } = useWallet();
@@ -272,7 +274,7 @@ export default function Trending() {
                   </div>
 
                   <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground">
-                    <span>by {shortAddr(bet.creator)}</span>
+                    <span>by <CreatorName address={bet.creator} /></span>
                     <div className="flex items-center gap-2">
                       {isJoinable && timeLeft > 0 && (
                         <Countdown deadline={bet.joinDeadline} />

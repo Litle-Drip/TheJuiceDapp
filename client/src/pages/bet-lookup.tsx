@@ -13,6 +13,7 @@ import {
 import { Countdown } from '@/components/countdown';
 import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
 import { onTransactionSuccess } from '@/lib/feedback';
+import { useEnsName, shortAddr } from '@/lib/ens';
 
 function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promise<{ gasEth: number; gasUsd: number } | null>; ethUsd: number; address?: string }) {
   const [gas, setGas] = useState<{ gasEth: number; gasUsd: number } | null>(null);
@@ -82,10 +83,6 @@ type BetData = ChallengeData | OfferData;
 
 const CHALLENGE_STATES = ['Open', 'Active', 'Resolved', 'Refunded'];
 const OFFER_STATES = ['Open', 'Filled', 'Resolved', 'Refunded'];
-
-function shortAddr(a: string) {
-  return a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '';
-}
 
 export default function BetLookup() {
   const { connected, connect, signer, address, ethUsd, feeBps, getV1Contract, getV2Contract, explorerUrl, network: networkKey } = useWallet();
@@ -459,6 +456,9 @@ function ChallengeView({
   const resolveExpired = challenge.resolveDeadline > 0 && now > challenge.resolveDeadline;
   const net = NETWORKS[networkKey as keyof typeof NETWORKS];
 
+  const { name: challengerEns, loading: challengerLoading } = useEnsName(challenge.challenger);
+  const { name: participantEns, loading: participantLoading } = useEnsName(joined ? challenge.participant : undefined);
+
   const estimateGas = useCallback(async (method: string, args: any[], value?: bigint) => {
     try {
       const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
@@ -592,11 +592,11 @@ function ChallengeView({
         <div className="space-y-2 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Creator</span>
-            <span className="font-mono">{shortAddr(challenge.challenger)}</span>
+            <span className={`font-mono${challengerLoading ? ' opacity-50' : ''}`}>{shortAddr(challenge.challenger, challengerEns)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Opponent</span>
-            <span className="font-mono">{joined ? shortAddr(challenge.participant) : 'Waiting...'}</span>
+            <span className={`font-mono${participantLoading ? ' opacity-50' : ''}`}>{joined ? shortAddr(challenge.participant, participantEns) : 'Waiting...'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Each stake</span>
@@ -815,6 +815,9 @@ function OfferView({
   const resolveExpired = offer.resolveDeadline > 0 && now > offer.resolveDeadline;
   const net = NETWORKS[networkKey as keyof typeof NETWORKS];
 
+  const { name: creatorEns, loading: creatorLoading } = useEnsName(offer.creator);
+  const { name: takerEns, loading: takerLoading } = useEnsName(hasTaker ? offer.taker : undefined);
+
   const estimateGas = useCallback(async (method: string, args: any[], value?: bigint) => {
     try {
       const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
@@ -967,11 +970,11 @@ function OfferView({
         <div className="space-y-2 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Creator</span>
-            <span className="font-mono">{shortAddr(offer.creator)}</span>
+            <span className={`font-mono${creatorLoading ? ' opacity-50' : ''}`}>{shortAddr(offer.creator, creatorEns)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Taker</span>
-            <span className="font-mono">{hasTaker ? shortAddr(offer.taker) : 'Waiting...'}</span>
+            <span className={`font-mono${takerLoading ? ' opacity-50' : ''}`}>{hasTaker ? shortAddr(offer.taker, takerEns) : 'Waiting...'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Creator stake</span>

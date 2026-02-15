@@ -9,8 +9,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import {
   Loader2, LayoutDashboard, Wallet, ExternalLink, Search,
-  TrendingUp, TrendingDown, Zap, Clock, Trophy, RefreshCw, History
+  TrendingUp, TrendingDown, Zap, Clock, Trophy, RefreshCw, History, BarChart3
 } from 'lucide-react';
+import { useEnsName, shortAddr } from '@/lib/ens';
+
+function AddressName({ address }: { address: string }) {
+  const { name, loading } = useEnsName(address);
+  return <span className={loading ? 'opacity-50' : ''}>{shortAddr(address, name)}</span>;
+}
 
 interface BetEntry {
   id: string;
@@ -24,6 +30,8 @@ interface BetEntry {
   counterparty: string;
   sideYes?: boolean;
   oddsBps?: number;
+  winner?: string;
+  payoutEth?: number;
 }
 
 interface TxEntry {
@@ -37,10 +45,6 @@ interface TxEntry {
 
 const CHALLENGE_STATES = ['Open', 'Active', 'Resolved', 'Refunded'];
 const OFFER_STATES = ['Open', 'Filled', 'Resolved', 'Refunded'];
-
-function shortAddr(a: string) {
-  return a ? `${a.slice(0, 6)}...${a.slice(-4)}` : '';
-}
 
 function stateColor(state: number): string {
   switch (state) {
@@ -59,7 +63,7 @@ export default function MyBets() {
   const [txHistory, setTxHistory] = useState<TxEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [tab, setTab] = useState<'bets' | 'history'>('bets');
+  const [tab, setTab] = useState<'bets' | 'history' | 'stats'>('bets');
   const [filterTab, setFilterTab] = useState<'all' | 'active' | 'resolved'>('all');
   const prevAddrRef = useRef('');
 
@@ -183,7 +187,10 @@ export default function MyBets() {
                   const cid = String(parsed.args[0]);
                   const winner = String(parsed.args[1]).toLowerCase();
                   const me = address.toLowerCase();
-                  if (results.find(b => b.id === cid && b.type === 'challenge')) {
+                  const matchedChallenge = results.find(b => b.id === cid && b.type === 'challenge');
+                  if (matchedChallenge) {
+                    matchedChallenge.winner = winner;
+                    matchedChallenge.payoutEth = Number(ethers.formatEther(parsed.args[2]));
                     txResults.push({
                       txHash: log.transactionHash,
                       action: winner === me ? 'Won Challenge' : 'Challenge Resolved',
@@ -307,7 +314,10 @@ export default function MyBets() {
                   const oid = String(parsed.args[0]);
                   const winner = String(parsed.args[1]).toLowerCase();
                   const me = address.toLowerCase();
-                  if (results.find(b => b.id === oid && b.type === 'offer')) {
+                  const matchedOffer = results.find(b => b.id === oid && b.type === 'offer');
+                  if (matchedOffer) {
+                    matchedOffer.winner = winner;
+                    matchedOffer.payoutEth = Number(ethers.formatEther(parsed.args[2]));
                     txResults.push({
                       txHash: log.transactionHash,
                       action: winner === me ? 'Won Offer' : 'Offer Resolved',
@@ -393,6 +403,18 @@ export default function MyBets() {
               >
                 <History className="w-3 h-3 inline mr-1" />
                 History ({txHistory.length})
+              </button>
+              <button
+                data-testid="button-tab-stats"
+                onClick={() => setTab('stats')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
+                  tab === 'stats'
+                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    : 'border-border bg-card text-muted-foreground'
+                }`}
+              >
+                <BarChart3 className="w-3 h-3 inline mr-1" />
+                Stats
               </button>
             </div>
             <Button
@@ -496,7 +518,7 @@ export default function MyBets() {
                           <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground">
                             <span>{new Date(bet.createdAt * 1000).toLocaleDateString()}</span>
                             {bet.counterparty && (
-                              <span>vs {shortAddr(bet.counterparty)}</span>
+                              <span>vs <AddressName address={bet.counterparty} /></span>
                             )}
                           </div>
                         </Card>
@@ -552,7 +574,138 @@ export default function MyBets() {
             </>
           )}
 
-          {loaded && bets.length > 0 && (
+          {tab === 'stats' && (
+            (() => {
+              const me = address?.toLowerCase() || '';
+              const resolvedBets = bets.filter(b => b.state === 2);
+              const refundedBets = bets.filter(b => b.state === 3);
+              const wins = resolvedBets.filter(b => b.winner && b.winner === me);
+              const losses = resolvedBets.filter(b => b.winner && b.winner !== ethers.ZeroAddress.toLowerCase() && b.winner !== me);
+              const draws = refundedBets.length;
+              const winCount = wins.length;
+              const lossCount = losses.length;
+              const winRate = (winCount + lossCount) > 0 ? (winCount / (winCount + lossCount)) * 100 : 0;
+              const totalWagered = resolvedBets.reduce((sum, b) => sum + b.stakeEth, 0);
+              const totalWon = wins.reduce((sum, b) => sum + (b.payoutEth || 0), 0);
+              const netPL = totalWon - totalWagered;
+              const biggestWin = wins.length > 0 ? Math.max(...wins.map(b => b.payoutEth || 0)) : 0;
+
+              let currentStreak = 0;
+              let streakType: 'W' | 'L' | '' = '';
+              const sortedResolved = [...resolvedBets].sort((a, b) => b.createdAt - a.createdAt);
+              for (const b of sortedResolved) {
+                if (!b.winner || b.winner === ethers.ZeroAddress.toLowerCase()) continue;
+                const isWin = b.winner === me;
+                const type = isWin ? 'W' : 'L';
+                if (streakType === '') {
+                  streakType = type;
+                  currentStreak = 1;
+                } else if (type === streakType) {
+                  currentStreak++;
+                } else {
+                  break;
+                }
+              }
+
+              return (
+                <div data-testid="stats-panel" className="space-y-3">
+                  {loading && bets.length === 0 ? (
+                    <Card className="p-8 text-center">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[hsl(var(--primary))]" />
+                      <p className="text-sm text-muted-foreground">Scanning blockchain for stats...</p>
+                    </Card>
+                  ) : loaded && bets.length === 0 ? (
+                    <Card className="p-8 text-center">
+                      <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground">No bets found to compute stats.</p>
+                    </Card>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Card className="p-4 text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Win Rate</p>
+                          <p className="text-3xl font-bold text-[hsl(var(--primary))]" data-testid="text-win-rate">
+                            {winRate.toFixed(0)}%
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {resolvedBets.length} resolved bet{resolvedBets.length !== 1 ? 's' : ''}
+                          </p>
+                        </Card>
+                        <Card className="p-4 text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Record</p>
+                          <p className="text-2xl font-bold">
+                            <span className="text-emerald-400">{winCount}</span>
+                            <span className="text-muted-foreground mx-1">-</span>
+                            <span className="text-rose-400">{lossCount}</span>
+                            <span className="text-muted-foreground mx-1">-</span>
+                            <span className="text-muted-foreground">{draws}</span>
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-1">W - L - D</p>
+                        </Card>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <Card className="p-3 text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Wagered</p>
+                          <p className="text-sm font-bold font-mono">{totalWagered.toFixed(4)}</p>
+                          <p className="text-[10px] text-muted-foreground">ETH</p>
+                          <p className="text-[10px] text-emerald-400">${(totalWagered * ethUsd).toFixed(2)}</p>
+                        </Card>
+                        <Card className="p-3 text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Won</p>
+                          <p className="text-sm font-bold font-mono text-emerald-400">{totalWon.toFixed(4)}</p>
+                          <p className="text-[10px] text-muted-foreground">ETH</p>
+                          <p className="text-[10px] text-emerald-400">${(totalWon * ethUsd).toFixed(2)}</p>
+                        </Card>
+                        <Card className="p-3 text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Net P/L</p>
+                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} data-testid="text-net-pl">
+                            {netPL >= 0 ? '+' : ''}{netPL.toFixed(4)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">ETH</p>
+                          <p className={`text-[10px] ${netPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {netPL >= 0 ? '+' : ''}${(netPL * ethUsd).toFixed(2)}
+                          </p>
+                        </Card>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Card className="p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Biggest Win</p>
+                          </div>
+                          <p className="text-sm font-bold font-mono text-emerald-400">
+                            {biggestWin > 0 ? `${biggestWin.toFixed(4)} ETH` : '—'}
+                          </p>
+                          {biggestWin > 0 && (
+                            <p className="text-[10px] text-emerald-400">${(biggestWin * ethUsd).toFixed(2)}</p>
+                          )}
+                        </Card>
+                        <Card className="p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Zap className="w-3.5 h-3.5 text-amber-400" />
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Streak</p>
+                          </div>
+                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-emerald-400' : streakType === 'L' ? 'text-rose-400' : 'text-muted-foreground'}`}>
+                            {currentStreak > 0 ? `${currentStreak}${streakType}` : '—'}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {streakType === 'W' ? 'Winning' : streakType === 'L' ? 'Losing' : 'No streak'}
+                          </p>
+                        </Card>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground text-center mt-2">
+                        Based on bets found in the last ~100k blocks on {NETWORKS[networkKey].chainName}.
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })()
+          )}
+
+          {loaded && bets.length > 0 && tab !== 'stats' && (
             <div className="text-center">
               <p className="text-[10px] text-muted-foreground">
                 Found {bets.length} bet{bets.length !== 1 ? 's' : ''} on {NETWORKS[networkKey].chainName}
