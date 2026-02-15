@@ -1,6 +1,19 @@
-export function playSuccessSound() {
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioCtx) {
+    audioCtx = new AudioContext();
+  }
+  return audioCtx;
+}
+
+export async function playSuccessSound() {
   try {
-    const ctx = new AudioContext();
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -15,8 +28,8 @@ export function playSuccessSound() {
     osc2.frequency.setValueAtTime(659.25 * 2, ctx.currentTime + 0.1);
     osc2.frequency.setValueAtTime(783.99 * 2, ctx.currentTime + 0.2);
 
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.15);
     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
 
     osc1.connect(gain);
@@ -27,8 +40,6 @@ export function playSuccessSound() {
     osc2.start(ctx.currentTime);
     osc1.stop(ctx.currentTime + 0.4);
     osc2.stop(ctx.currentTime + 0.4);
-
-    setTimeout(() => ctx.close(), 500);
   } catch {}
 }
 
@@ -40,7 +51,7 @@ export function triggerHaptic() {
   } catch {}
 }
 
-export function onTransactionSuccess() {
-  playSuccessSound();
+export async function onTransactionSuccess() {
+  await playSuccessSound();
   triggerHaptic();
 }
