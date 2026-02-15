@@ -8,6 +8,8 @@ import { RANDOM_IDEAS, ABI_V1, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shuffle, Clock, Shield, Zap, ExternalLink, Search, Fuel, Info, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
 import { Link } from 'wouter';
+import { ConfirmTxDialog } from '@/components/confirm-tx-dialog';
+import { onTransactionSuccess } from '@/lib/feedback';
 
 export default function CreateChallenge() {
   const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
@@ -23,6 +25,7 @@ export default function CreateChallenge() {
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const stakeEthValue = useMemo(() => {
     return parseFloat(stakeEth) || 0;
@@ -119,6 +122,7 @@ export default function CreateChallenge() {
           localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
         } catch {}
       }
+      onTransactionSuccess();
       toast({ title: 'Challenge Created', description: challengeId ? `Challenge #${challengeId}` : 'Check transaction for details' });
     } catch (e: any) {
       toast({ title: 'Failed', description: e?.shortMessage || e?.message || String(e), variant: 'destructive' });
@@ -391,7 +395,10 @@ export default function CreateChallenge() {
 
         <Button
           data-testid="button-create-challenge"
-          onClick={handleCreate}
+          onClick={() => {
+            if (!connected) { handleCreate(); return; }
+            setShowConfirm(true);
+          }}
           disabled={loading || stakeEthValue <= 0}
           className="w-full"
           size="lg"
@@ -404,6 +411,23 @@ export default function CreateChallenge() {
             <>Connect Wallet & Create</>
           )}
         </Button>
+
+        <ConfirmTxDialog
+          open={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={handleCreate}
+          title="Confirm Challenge"
+          confirmLabel="Create & Fund"
+          gas={gasEstimate}
+          lines={preview ? [
+            ...(idea.trim() ? [{ label: 'Challenge', value: `"${idea.trim().slice(0, 40)}${idea.trim().length > 40 ? '...' : ''}"` }] : []),
+            { label: 'Your stake', value: `${preview.yourStake.toFixed(6)} ETH` },
+            { label: 'Opponent stakes', value: `${preview.opponentStake.toFixed(6)} ETH` },
+            { label: 'Total pot', value: `${preview.totalPot.toFixed(6)} ETH` },
+            { label: `Fee (${(feeBps / 100).toFixed(1)}%)`, value: `-${preview.fee.toFixed(6)} ETH`, muted: true },
+            { label: 'Winner takes', value: `+${preview.profit.toFixed(6)} ETH`, highlight: true },
+          ] : []}
+        />
 
         {(lastChallengeId || lastTxHash) && (
           <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="challenge-created-success">

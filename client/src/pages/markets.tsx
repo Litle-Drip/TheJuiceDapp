@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { RANDOM_IDEAS } from '@/lib/contracts';
 import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
+import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
+import { onTransactionSuccess } from '@/lib/feedback';
 
 export default function Markets() {
   const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network: networkKey, explorerUrl, connecting } = useWallet();
@@ -27,6 +29,7 @@ export default function Markets() {
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
   const [showSliderTooltip, setShowSliderTooltip] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const shuffleQuestion = () => {
     setQuestion(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
@@ -151,6 +154,7 @@ export default function Markets() {
           localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
         } catch {}
       }
+      onTransactionSuccess();
       toast({
         title: 'Offer Created',
         description: offerId ? `Offer #${offerId} is live` : 'Check transaction for details',
@@ -521,7 +525,10 @@ export default function Markets() {
 
         <Button
           data-testid="button-create-offer"
-          onClick={handleCreateOffer}
+          onClick={() => {
+            if (!connected) { handleCreateOffer(); return; }
+            setShowConfirm(true);
+          }}
           disabled={loading || !preview}
           className="w-full"
           size="lg"
@@ -534,6 +541,24 @@ export default function Markets() {
             <>Connect Wallet & Create</>
           )}
         </Button>
+
+        <ConfirmTxDialog
+          open={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={handleCreateOffer}
+          title="Confirm Market Offer"
+          confirmLabel="Create Offer"
+          gas={gasEstimate}
+          lines={preview ? [
+            ...(question.trim() ? [{ label: 'Question', value: `"${question.trim().slice(0, 40)}${question.trim().length > 40 ? '...' : ''}"`, muted: false }] : []),
+            { label: 'Your side', value: `${sideYes ? 'YES' : 'NO'} @ ${yesPercent}%` },
+            { label: 'Your stake', value: `${preview.yourStake.toFixed(6)} ETH`, highlight: false },
+            { label: 'Opponent pays', value: `${preview.opponentStake.toFixed(6)} ETH` },
+            { label: 'Total pot', value: `${preview.totalPot.toFixed(6)} ETH` },
+            { label: `Fee (${(feeBps / 100).toFixed(1)}%)`, value: `-${preview.fee.toFixed(6)} ETH`, muted: true },
+            { label: 'If you win', value: `+${preview.yourProfit.toFixed(6)} ETH`, highlight: true },
+          ] : []}
+        />
 
         {(lastOfferId || lastTxHash) && (
           <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="offer-created-success">

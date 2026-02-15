@@ -10,6 +10,8 @@ import {
   Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown,
   Trophy, RefreshCw, ExternalLink, TrendingUp, TrendingDown, AlertTriangle, Fuel
 } from 'lucide-react';
+import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
+import { onTransactionSuccess } from '@/lib/feedback';
 
 function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promise<{ gasEth: number; gasUsd: number } | null>; ethUsd: number; address?: string }) {
   const [gas, setGas] = useState<{ gasEth: number; gasUsd: number } | null>(null);
@@ -332,6 +334,7 @@ export default function BetLookup() {
       if (action === 'Payout' || action === 'Resolve') {
         setPayoutTxHash(receipt.hash);
       }
+      onTransactionSuccess();
       toast({ title: 'Success', description: `${action} completed` });
       await new Promise(r => setTimeout(r, 1500));
       await loadBet(true);
@@ -375,6 +378,7 @@ export default function BetLookup() {
             betId={betId}
             now={now}
             address={address}
+            connected={connected}
             actionLoading={actionLoading}
             doAction={doAction}
             networkKey={networkKey}
@@ -391,6 +395,7 @@ export default function BetLookup() {
             betId={betId}
             now={now}
             address={address}
+            connected={connected}
             actionLoading={actionLoading}
             doAction={doAction}
             networkKey={networkKey}
@@ -432,12 +437,13 @@ export default function BetLookup() {
 }
 
 function ChallengeView({
-  challenge, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd, marketQuestion,
+  challenge, betId, now, address, connected, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd, marketQuestion,
 }: {
   challenge: ChallengeData;
   betId: string;
   now: number;
   address: string;
+  connected: boolean;
   actionLoading: string;
   doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
   networkKey: string;
@@ -465,28 +471,83 @@ function ChallengeView({
     } catch { return null; }
   }, [net, address, ethUsd]);
 
-  const handleJoin = () => doAction('Join', async (s) => {
+  const [pendingConfirm, setPendingConfirm] = useState<{ title: string; label: string; lines: TxConfirmLine[]; action: () => void } | null>(null);
+
+  const stakeEth = Number(ethers.formatEther(challenge.stakeWei));
+  const potEth = stakeEth * 2;
+  const feeEth = (potEth * challenge.feeBps) / 10000;
+  const winnerEth = potEth - feeEth;
+
+  const directJoin = () => doAction('Join', async (s) => {
     const c = new ethers.Contract(net.contract, ABI_V1, s);
     return c.joinChallenge(BigInt(betId), { value: challenge.stakeWei });
   });
+  const confirmJoin = () => {
+    if (!connected) { directJoin(); return; }
+    setPendingConfirm({
+      title: 'Confirm Join Challenge', label: 'Join & Fund',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Your stake', value: `${stakeEth.toFixed(6)} ETH` },
+        { label: 'Total pot', value: `${potEth.toFixed(6)} ETH` },
+        { label: 'Winner takes', value: `${winnerEth.toFixed(6)} ETH`, highlight: true },
+      ],
+      action: directJoin,
+    });
+  };
 
-  const handleVote = (iWon: boolean) => doAction(iWon ? 'Vote: I Won' : 'Vote: Opponent Won', async (s) => {
-    const c = new ethers.Contract(net.contract, ABI_V1, s);
-    const me = (await s.getAddress()).toLowerCase();
-    const isCreator = challenge.challenger.toLowerCase() === me;
-    const challengerWon = isCreator ? iWon : !iWon;
-    return c.submitOutcomeVote(BigInt(betId), challengerWon);
-  });
+  const confirmVote = (iWon: boolean) => {
+    const action = () => doAction(iWon ? 'Vote: I Won' : 'Vote: Opponent Won', async (s) => {
+      const c = new ethers.Contract(net.contract, ABI_V1, s);
+      const me = (await s.getAddress()).toLowerCase();
+      const isCreator = challenge.challenger.toLowerCase() === me;
+      const challengerWon = isCreator ? iWon : !iWon;
+      return c.submitOutcomeVote(BigInt(betId), challengerWon);
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Vote', label: iWon ? 'Vote: I Won' : 'Vote: Opponent Won',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Your vote', value: iWon ? 'I Won' : 'Opponent Won', highlight: iWon },
+      ],
+      action,
+    });
+  };
 
-  const handlePayout = () => doAction('Payout', async (s) => {
-    const c = new ethers.Contract(net.contract, ABI_V1, s);
-    return c.resolveChallenge(BigInt(betId));
-  });
+  const confirmPayout = () => {
+    const action = () => doAction('Payout', async (s) => {
+      const c = new ethers.Contract(net.contract, ABI_V1, s);
+      return c.resolveChallenge(BigInt(betId));
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Payout', label: 'Finalize & Payout',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Action', value: 'Resolve & pay winner' },
+        { label: 'Winner receives', value: `${winnerEth.toFixed(6)} ETH`, highlight: true },
+      ],
+      action,
+    });
+  };
 
-  const handleRefund = () => doAction('Refund', async (s) => {
-    const c = new ethers.Contract(net.contract, ABI_V1, s);
-    return c.issueRefund(BigInt(betId));
-  });
+  const confirmRefund = (reason: string) => {
+    const action = () => doAction('Refund', async (s) => {
+      const c = new ethers.Contract(net.contract, ABI_V1, s);
+      return c.issueRefund(BigInt(betId));
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Refund', label: 'Claim Refund',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Reason', value: reason },
+        { label: 'Refund amount', value: `${stakeEth.toFixed(6)} ETH`, highlight: true },
+      ],
+      action,
+    });
+  };
 
   return (
     <div className="space-y-4" data-testid="challenge-details">
@@ -576,9 +637,9 @@ function ChallengeView({
       {challenge.state === 0 && !joined && !joinExpired && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('joinChallenge', [BigInt(betId)], challenge.stakeWei)} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-join" onClick={handleJoin} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-join" onClick={confirmJoin} disabled={!!actionLoading} className="w-full" size="lg">
             {actionLoading === 'Join' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
-            Join Challenge ({Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH)
+            Join Challenge ({stakeEth.toFixed(6)} ETH)
           </Button>
         </div>
       )}
@@ -593,7 +654,7 @@ function ChallengeView({
           <div className="grid grid-cols-2 gap-3">
             <button
               data-testid="button-vote-won"
-              onClick={() => handleVote(true)}
+              onClick={() => confirmVote(true)}
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
             >
@@ -602,7 +663,7 @@ function ChallengeView({
             </button>
             <button
               data-testid="button-vote-lost"
-              onClick={() => handleVote(false)}
+              onClick={() => confirmVote(false)}
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
             >
@@ -616,7 +677,7 @@ function ChallengeView({
       {challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote === challenge.participantVote && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('resolveChallenge', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-payout" onClick={handlePayout} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-payout" onClick={confirmPayout} disabled={!!actionLoading} className="w-full" size="lg">
             {actionLoading === 'Payout' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
             Finalize & Payout
           </Button>
@@ -630,7 +691,7 @@ function ChallengeView({
             <p className="text-xs text-amber-400">Join deadline passed with no opponent. Creator can reclaim funds.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('No opponent')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (No Opponent)
           </Button>
@@ -644,7 +705,7 @@ function ChallengeView({
             <p className="text-xs text-amber-400">Votes conflict - creator and opponent disagree on the outcome. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Vote Conflict)
           </Button>
@@ -658,23 +719,35 @@ function ChallengeView({
             <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Deadline Expired)
           </Button>
         </div>
+      )}
+
+      {pendingConfirm && (
+        <ConfirmTxDialog
+          open={true}
+          onClose={() => setPendingConfirm(null)}
+          onConfirm={async () => { pendingConfirm.action(); }}
+          title={pendingConfirm.title}
+          confirmLabel={pendingConfirm.label}
+          lines={pendingConfirm.lines}
+        />
       )}
     </div>
   );
 }
 
 function OfferView({
-  offer, betId, now, address, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd, marketQuestion,
+  offer, betId, now, address, connected, actionLoading, doAction, networkKey, payoutTxHash, explorerUrl, ethUsd, marketQuestion,
 }: {
   offer: OfferData;
   betId: string;
   now: number;
   address: string;
+  connected: boolean;
   actionLoading: string;
   doAction: (action: string, fn: (s: ethers.Signer) => Promise<any>) => void;
   networkKey: string;
@@ -702,25 +775,78 @@ function OfferView({
     } catch { return null; }
   }, [net, address, ethUsd]);
 
-  const handleTake = () => doAction('Take Offer', async (s) => {
-    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
-    return c.takeOffer(BigInt(betId), { value: offer.takerStake });
-  });
+  const [pendingConfirm, setPendingConfirm] = useState<{ title: string; label: string; lines: TxConfirmLine[]; action: () => void } | null>(null);
 
-  const handleVote = (outcomeYes: boolean) => doAction(`Vote: ${outcomeYes ? 'YES' : 'NO'}`, async (s) => {
-    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
-    return c.submitOfferVote(BigInt(betId), outcomeYes);
-  });
+  const creatorStakeEth = Number(ethers.formatEther(offer.creatorStake));
+  const takerStakeEth = Number(ethers.formatEther(offer.takerStake));
+  const totalPotEth = creatorStakeEth + takerStakeEth;
 
-  const handleResolve = () => doAction('Resolve', async (s) => {
-    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
-    return c.resolveOffer(BigInt(betId));
-  });
+  const confirmTake = () => {
+    const action = () => doAction('Take Offer', async (s) => {
+      const c = new ethers.Contract(net.v2contract, ABI_V2, s);
+      return c.takeOffer(BigInt(betId), { value: offer.takerStake });
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Take Offer', label: 'Take Offer',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Your side', value: offer.creatorSideYes ? 'NO' : 'YES' },
+        { label: 'Your stake', value: `${takerStakeEth.toFixed(6)} ETH` },
+        { label: 'Total pot', value: `${totalPotEth.toFixed(6)} ETH` },
+      ],
+      action,
+    });
+  };
 
-  const handleRefund = () => doAction('Refund', async (s) => {
-    const c = new ethers.Contract(net.v2contract, ABI_V2, s);
-    return c.refundOffer(BigInt(betId));
-  });
+  const confirmVote = (outcomeYes: boolean) => {
+    const action = () => doAction(`Vote: ${outcomeYes ? 'YES' : 'NO'}`, async (s) => {
+      const c = new ethers.Contract(net.v2contract, ABI_V2, s);
+      return c.submitOfferVote(BigInt(betId), outcomeYes);
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Vote', label: `Vote: ${outcomeYes ? 'YES' : 'NO'}`,
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Outcome', value: outcomeYes ? 'YES Won' : 'NO Won', highlight: outcomeYes },
+      ],
+      action,
+    });
+  };
+
+  const confirmResolve = () => {
+    const action = () => doAction('Resolve', async (s) => {
+      const c = new ethers.Contract(net.v2contract, ABI_V2, s);
+      return c.resolveOffer(BigInt(betId));
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Resolve', label: 'Resolve & Payout',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Action', value: 'Resolve & pay winner' },
+        { label: 'Total pot', value: `${totalPotEth.toFixed(6)} ETH`, highlight: true },
+      ],
+      action,
+    });
+  };
+
+  const confirmRefund = (reason: string) => {
+    const action = () => doAction('Refund', async (s) => {
+      const c = new ethers.Contract(net.v2contract, ABI_V2, s);
+      return c.refundOffer(BigInt(betId));
+    });
+    if (!connected) { action(); return; }
+    setPendingConfirm({
+      title: 'Confirm Refund', label: 'Claim Refund',
+      lines: [
+        { label: 'Bet ID', value: `#${betId}` },
+        { label: 'Reason', value: reason },
+      ],
+      action,
+    });
+  };
 
   return (
     <div className="space-y-4" data-testid="offer-details">
@@ -845,9 +971,9 @@ function OfferView({
       {offer.state === 0 && !hasTaker && !joinExpired && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('takeOffer', [BigInt(betId)], offer.takerStake)} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-take-offer" onClick={handleTake} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-take-offer" onClick={confirmTake} disabled={!!actionLoading} className="w-full" size="lg">
             {actionLoading === 'Take Offer' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowDownToLine className="w-4 h-4 mr-2" />}
-            Take Offer ({Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH)
+            Take Offer ({takerStakeEth.toFixed(6)} ETH)
           </Button>
         </div>
       )}
@@ -862,7 +988,7 @@ function OfferView({
           <div className="grid grid-cols-2 gap-3">
             <button
               data-testid="button-vote-yes"
-              onClick={() => handleVote(true)}
+              onClick={() => confirmVote(true)}
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
             >
@@ -871,7 +997,7 @@ function OfferView({
             </button>
             <button
               data-testid="button-vote-no"
-              onClick={() => handleVote(false)}
+              onClick={() => confirmVote(false)}
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
             >
@@ -885,7 +1011,7 @@ function OfferView({
       {offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote === offer.takerVote && !offer.paid && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('resolveOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-resolve-offer" onClick={handleResolve} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-resolve-offer" onClick={confirmResolve} disabled={!!actionLoading} className="w-full" size="lg">
             {actionLoading === 'Resolve' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
             Resolve & Payout
           </Button>
@@ -899,7 +1025,7 @@ function OfferView({
             <p className="text-xs text-amber-400">Join deadline passed with no taker. Creator can reclaim funds.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('No taker')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (No Taker)
           </Button>
@@ -913,7 +1039,7 @@ function OfferView({
             <p className="text-xs text-amber-400">Votes disagree - creator and taker voted differently. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Vote Conflict)
           </Button>
@@ -927,11 +1053,22 @@ function OfferView({
             <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={handleRefund} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Deadline Expired)
           </Button>
         </div>
+      )}
+
+      {pendingConfirm && (
+        <ConfirmTxDialog
+          open={true}
+          onClose={() => setPendingConfirm(null)}
+          onConfirm={async () => { pendingConfirm.action(); }}
+          title={pendingConfirm.title}
+          confirmLabel={pendingConfirm.label}
+          lines={pendingConfirm.lines}
+        />
       )}
     </div>
   );
