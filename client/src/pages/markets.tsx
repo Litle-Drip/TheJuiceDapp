@@ -227,26 +227,26 @@ export default function Markets() {
               onClick={() => setSideYes(true)}
               className={`relative flex flex-col items-center justify-center py-4 rounded-md border transition-all ${
                 sideYes
-                  ? 'border-emerald-500/60 bg-emerald-500/10'
+                  ? 'border-[#6b8f71]/60 bg-[#6b8f71]/10'
                   : 'border-border bg-card'
               }`}
             >
-              <TrendingUp className={`w-5 h-5 mb-1 ${sideYes ? 'text-emerald-400' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold ${sideYes ? 'text-emerald-400' : 'text-foreground'}`}>YES</span>
-              <span className={`text-xs mt-0.5 font-mono ${sideYes ? 'text-emerald-400/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
+              <TrendingUp className={`w-5 h-5 mb-1 ${sideYes ? 'text-[#6b8f71]' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold ${sideYes ? 'text-[#6b8f71]' : 'text-foreground'}`}>YES</span>
+              <span className={`text-xs mt-0.5 font-mono ${sideYes ? 'text-[#6b8f71]/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
             </button>
             <button
               data-testid="button-side-no"
               onClick={() => setSideYes(false)}
               className={`relative flex flex-col items-center justify-center py-4 rounded-md border transition-all ${
                 !sideYes
-                  ? 'border-rose-500/60 bg-rose-500/10'
+                  ? 'border-[#c17c60]/60 bg-[#c17c60]/10'
                   : 'border-border bg-card'
               }`}
             >
-              <TrendingDown className={`w-5 h-5 mb-1 ${!sideYes ? 'text-rose-400' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold ${!sideYes ? 'text-rose-400' : 'text-foreground'}`}>NO</span>
-              <span className={`text-xs mt-0.5 font-mono ${!sideYes ? 'text-rose-400/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
+              <TrendingDown className={`w-5 h-5 mb-1 ${!sideYes ? 'text-[#c17c60]' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold ${!sideYes ? 'text-[#c17c60]' : 'text-foreground'}`}>NO</span>
+              <span className={`text-xs mt-0.5 font-mono ${!sideYes ? 'text-[#c17c60]/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
             </button>
           </div>
         </div>
@@ -255,10 +255,10 @@ export default function Markets() {
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Set the Odds</label>
             <div className="flex items-center gap-2">
-              <Badge variant={sideYes ? "default" : "outline"} className={`font-mono text-xs ${sideYes ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'text-muted-foreground'}`}>
+              <Badge variant={sideYes ? "default" : "outline"} className={`font-mono text-xs ${sideYes ? 'bg-[#6b8f71]/20 text-[#6b8f71] border-[#6b8f71]/40' : 'text-muted-foreground'}`}>
                 YES {yesPercent}%
               </Badge>
-              <Badge variant={!sideYes ? "default" : "outline"} className={`font-mono text-xs ${!sideYes ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' : 'text-muted-foreground'}`}>
+              <Badge variant={!sideYes ? "default" : "outline"} className={`font-mono text-xs ${!sideYes ? 'bg-[#c17c60]/20 text-[#c17c60] border-[#c17c60]/40' : 'text-muted-foreground'}`}>
                 NO {noPercent}%
               </Badge>
             </div>
@@ -289,7 +289,7 @@ export default function Markets() {
                 onTouchEnd={() => setShowSliderTooltip(false)}
                 className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, rgb(16,185,129) ${yesPercent}%, rgb(244,63,94) ${yesPercent}%)`,
+                  background: `linear-gradient(to right, #6b8f71 ${yesPercent}%, #c17c60 ${yesPercent}%)`,
                 }}
               />
             </div>
@@ -321,7 +321,7 @@ export default function Markets() {
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Your Bet Amount</label>
-            <span className="text-xs text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
+            <span className="text-xs text-[#6b8f71] font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
@@ -456,7 +456,7 @@ export default function Markets() {
                 <p className="text-sm font-medium leading-snug" data-testid="text-preview-question">&ldquo;{question.trim()}&rdquo;</p>
                 <p className="text-xs mt-1.5">
                   <span className="text-muted-foreground">Your position: </span>
-                  <span className={`font-bold ${sideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <span className={`font-bold ${sideYes ? 'text-[#6b8f71]' : 'text-[#c17c60]'}`}>
                     {sideYes ? 'YES' : 'NO'} @ {(oddsBps / 100).toFixed(0)}%
                   </span>
                 </p>
@@ -468,14 +468,14 @@ export default function Markets() {
                 <span className="text-sm text-muted-foreground">You put in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                  <span className="text-[#6b8f71] ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Opponent puts in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                  <span className="text-[#6b8f71] ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
@@ -485,35 +485,35 @@ export default function Markets() {
                 <span className="text-sm text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                  <span className="text-[#6b8f71] ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
                 <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
-                  -{preview.fee.toFixed(6)} ETH <span className="text-emerald-400/70">(${preview.feeUsd.toFixed(2)})</span>
+                  -{preview.fee.toFixed(6)} ETH <span className="text-[#6b8f71]/70">(${preview.feeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-400">You win</span>
+                <span className="text-sm font-medium text-[#6b8f71]">You win</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-emerald-400" data-testid="text-preview-payout">
+                  <span className="text-sm font-mono font-bold text-[#6b8f71]" data-testid="text-preview-payout">
                     +{preview.yourProfit.toFixed(6)} ETH
                   </span>
-                  <span className="text-xs text-emerald-400/70 ml-1">(${preview.yourProfitUsd.toFixed(2)})</span>
+                  <span className="text-xs text-[#6b8f71]/70 ml-1">(${preview.yourProfitUsd.toFixed(2)})</span>
                   <span className="text-xs text-muted-foreground ml-1">{preview.multiplier.toFixed(2)}x</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-rose-400">Opponent wins</span>
+                <span className="text-sm font-medium text-[#c17c60]">Opponent wins</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-rose-400" data-testid="text-preview-opponent-payout">
+                  <span className="text-sm font-mono font-bold text-[#c17c60]" data-testid="text-preview-opponent-payout">
                     +{preview.opponentProfit.toFixed(6)} ETH
                   </span>
-                  <span className="text-xs text-rose-400/70 ml-1">(${preview.opponentProfitUsd.toFixed(2)})</span>
+                  <span className="text-xs text-[#c17c60]/70 ml-1">(${preview.opponentProfitUsd.toFixed(2)})</span>
                   <span className="text-xs text-muted-foreground ml-1">{preview.opponentMultiplier.toFixed(2)}x</span>
                 </div>
               </div>
@@ -539,7 +539,7 @@ export default function Markets() {
           <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-offer">
             <Fuel className="w-3 h-3" />
             <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
-            <span className="text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
+            <span className="text-[#6b8f71]">(${gasEstimate.gasUsd.toFixed(4)})</span>
           </div>
         )}
         {connected && estimatingGas && !gasEstimate && (
@@ -587,12 +587,12 @@ export default function Markets() {
         />
 
         {(lastOfferId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="offer-created-success">
+          <div className="mt-3 p-3 rounded-md border border-[#6b8f71]/30 bg-[#6b8f71]/5 space-y-3" data-testid="offer-created-success">
             {lastOfferId && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-xs text-emerald-400 font-medium">Your bet is live!</p>
+                    <p className="text-xs text-[#6b8f71] font-medium">Your bet is live!</p>
                     <p className="text-sm font-mono mt-0.5">Bet #{lastOfferId}</p>
                   </div>
                 </div>

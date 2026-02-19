@@ -147,7 +147,7 @@ function AppSidebar() {
                         <span className="text-[10px] text-muted-foreground leading-tight">{item.desc}</span>
                       </div>
                       {item.title === 'My Bets' && notificationCount > 0 && (
-                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-emerald-500 text-white border-0" data-testid="badge-notification-count">
+                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-[#6b8f71] text-white border-0" data-testid="badge-notification-count">
                           {notificationCount}
                         </Badge>
                       )}
@@ -182,7 +182,7 @@ function VerificationBadge() {
         href={`${explorerBase}/address/${contractAddr}#code`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-[10px] text-emerald-400/80 font-medium"
+        className="flex items-center gap-1.5 text-[10px] text-[#6b8f71]/80 font-medium"
         data-testid="link-verified-contract"
       >
         <ShieldCheck className="w-3.5 h-3.5" />
@@ -216,9 +216,9 @@ function MainnetBanner() {
   const net = NETWORKS[network];
   if (net.contract) return null;
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30" data-testid="mainnet-banner">
-      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-      <p className="text-xs text-amber-400">
+    <div className="flex items-center gap-2 px-4 py-2 bg-[#b8860b]/10 border-b border-[#b8860b]/30" data-testid="mainnet-banner">
+      <AlertTriangle className="w-4 h-4 text-[#b8860b] flex-shrink-0" />
+      <p className="text-xs text-[#b8860b]">
         {net.chainName} contracts are not yet deployed. Switch to Base Sepolia to use the app.
       </p>
     </div>

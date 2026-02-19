@@ -12,7 +12,7 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 ## Architecture
 - Frontend-only dApp (React + Vite) that interacts directly with smart contracts via ethers.js v6
 - No database needed - all state is on-chain
-- Dark neutral grey theme with steel blue primary (`hsl(207 30% 62%)`) and cool grey backgrounds (`hsl(220 4% 13%)`)
+- Warm Mediterranean light theme with deep navy primary (`hsl(215 35% 35%)`), warm cream backgrounds (`hsl(30 18% 94%)`), warm white cards (`hsl(30 20% 97%)`)
 - Sidebar navigation with wallet connection
 - Legal footer with links to About, Terms, Privacy, Risk Disclosure, FAQ
 - Background notification polling every 30s for bet status changes
@@ -75,10 +75,14 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - Sidebar nav items include small description text under each title
 
 ## Design
-- Primary color: Steel blue `hsl(207 30% 62%)`
-- Background: Cool neutral grey `hsl(220 4% 13%)`
-- Cards: `hsl(220 3% 17%)`
-- USD amounts: `text-emerald-400`
+- Warm Mediterranean light theme inspired by old Italy beach aesthetic
+- Primary color: Deep navy `hsl(215 35% 35%)`
+- Background: Warm cream `hsl(30 18% 94%)`
+- Cards: Warm white `hsl(30 20% 97%)`
+- Sidebar: Warm linen `hsl(30 15% 91%)`
+- YES/positive/USD amounts: Olive green `#6b8f71`
+- NO/negative: Warm terracotta `#c17c60`
+- Warnings: Dark goldenrod `#b8860b`
 - Form labels: Bold, uppercase, centered over inputs
 - Legal footer: Edison Labs LLC copyright + navigation links
 

@@ -48,9 +48,9 @@ const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Ref
 
 function stateColor(state: number): string {
   switch (state) {
-    case 0: return 'text-blue-400 border-blue-400/30';
-    case 1: return 'text-amber-400 border-amber-400/30';
-    case 2: return 'text-emerald-400 border-emerald-400/30';
+    case 0: return 'text-primary border-primary/30';
+    case 1: return 'text-[#b8860b] border-[#b8860b]/30';
+    case 2: return 'text-[#6b8f71] border-[#6b8f71]/30';
     case 3: return 'text-muted-foreground border-border';
     default: return 'text-muted-foreground border-border';
   }
@@ -504,7 +504,7 @@ export default function MyBets() {
                             </div>
                             <div className="flex items-center gap-1.5">
                               {isExpiring && (
-                                <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-400/30">
+                                <Badge variant="outline" className="text-[10px] text-[#b8860b] border-[#b8860b]/30">
                                   <Clock className="w-2.5 h-2.5 mr-0.5" />
                                   Expiring
                                 </Badge>
@@ -519,17 +519,17 @@ export default function MyBets() {
                             <div className="flex items-center gap-3">
                               <span className="text-muted-foreground">
                                 Stake: <span className="font-mono text-foreground">{bet.stakeEth.toFixed(6)} ETH</span>
-                                <span className="text-emerald-400 ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
+                                <span className="text-[#6b8f71] ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
                               </span>
                             </div>
                             {bet.type === 'offer' && bet.oddsBps && (
                               <div className="flex items-center gap-1">
                                 {bet.sideYes ? (
-                                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                                  <TrendingUp className="w-3 h-3 text-[#6b8f71]" />
                                 ) : (
-                                  <TrendingDown className="w-3 h-3 text-rose-400" />
+                                  <TrendingDown className="w-3 h-3 text-[#c17c60]" />
                                 )}
-                                <span className={`font-mono ${bet.sideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                <span className={`font-mono ${bet.sideYes ? 'text-[#6b8f71]' : 'text-[#c17c60]'}`}>
                                   {bet.sideYes ? 'YES' : 'NO'} {Math.round(bet.oddsBps / 100)}%
                                 </span>
                               </div>
@@ -655,9 +655,9 @@ export default function MyBets() {
                         <Card className="p-4 text-center">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Record</p>
                           <p className="text-2xl font-bold">
-                            <span className="text-emerald-400">{winCount}</span>
+                            <span className="text-[#6b8f71]">{winCount}</span>
                             <span className="text-muted-foreground mx-1">-</span>
-                            <span className="text-rose-400">{lossCount}</span>
+                            <span className="text-[#c17c60]">{lossCount}</span>
                             <span className="text-muted-foreground mx-1">-</span>
                             <span className="text-muted-foreground">{draws}</span>
                           </p>
@@ -670,21 +670,21 @@ export default function MyBets() {
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Wagered</p>
                           <p className="text-sm font-bold font-mono">{totalWagered.toFixed(4)}</p>
                           <p className="text-[10px] text-muted-foreground">ETH</p>
-                          <p className="text-[10px] text-emerald-400">${(totalWagered * ethUsd).toFixed(2)}</p>
+                          <p className="text-[10px] text-[#6b8f71]">${(totalWagered * ethUsd).toFixed(2)}</p>
                         </Card>
                         <Card className="p-3 text-center">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Won</p>
-                          <p className="text-sm font-bold font-mono text-emerald-400">{totalWon.toFixed(4)}</p>
+                          <p className="text-sm font-bold font-mono text-[#6b8f71]">{totalWon.toFixed(4)}</p>
                           <p className="text-[10px] text-muted-foreground">ETH</p>
-                          <p className="text-[10px] text-emerald-400">${(totalWon * ethUsd).toFixed(2)}</p>
+                          <p className="text-[10px] text-[#6b8f71]">${(totalWon * ethUsd).toFixed(2)}</p>
                         </Card>
                         <Card className="p-3 text-center">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Net P/L</p>
-                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} data-testid="text-net-pl">
+                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-[#6b8f71]' : 'text-[#c17c60]'}`} data-testid="text-net-pl">
                             {netPL >= 0 ? '+' : ''}{netPL.toFixed(4)}
                           </p>
                           <p className="text-[10px] text-muted-foreground">ETH</p>
-                          <p className={`text-[10px] ${netPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          <p className={`text-[10px] ${netPL >= 0 ? 'text-[#6b8f71]' : 'text-[#c17c60]'}`}>
                             {netPL >= 0 ? '+' : ''}${(netPL * ethUsd).toFixed(2)}
                           </p>
                         </Card>
@@ -693,22 +693,22 @@ export default function MyBets() {
                       <div className="grid grid-cols-2 gap-3">
                         <Card className="p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                            <Trophy className="w-3.5 h-3.5 text-[#b8860b]" />
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Biggest Win</p>
                           </div>
-                          <p className="text-sm font-bold font-mono text-emerald-400">
+                          <p className="text-sm font-bold font-mono text-[#6b8f71]">
                             {biggestWin > 0 ? `${biggestWin.toFixed(4)} ETH` : '—'}
                           </p>
                           {biggestWin > 0 && (
-                            <p className="text-[10px] text-emerald-400">${(biggestWin * ethUsd).toFixed(2)}</p>
+                            <p className="text-[10px] text-[#6b8f71]">${(biggestWin * ethUsd).toFixed(2)}</p>
                           )}
                         </Card>
                         <Card className="p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <Zap className="w-3.5 h-3.5 text-amber-400" />
+                            <Zap className="w-3.5 h-3.5 text-[#b8860b]" />
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Streak</p>
                           </div>
-                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-emerald-400' : streakType === 'L' ? 'text-rose-400' : 'text-muted-foreground'}`}>
+                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-[#6b8f71]' : streakType === 'L' ? 'text-[#c17c60]' : 'text-muted-foreground'}`}>
                             {currentStreak > 0 ? `${currentStreak}${streakType}` : '—'}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
