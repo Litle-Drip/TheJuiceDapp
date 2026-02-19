@@ -12,7 +12,9 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 ## Architecture
 - Frontend-only dApp (React + Vite) that interacts directly with smart contracts via ethers.js v6
 - No database needed - all state is on-chain
-- Dark neutral grey theme with steel blue primary (`hsl(207 30% 62%)`) and cool grey backgrounds (`hsl(220 4% 13%)`)
+- Light/dark theme toggle (defaults to dark) with steel blue primary; dark: `hsl(207 30% 62%)` on `hsl(220 4% 13%)`, light: `hsl(207 35% 48%)` on `hsl(220 6% 97%)`
+- ThemeProvider in `client/src/lib/theme.tsx` persists to localStorage key "juice-theme", toggles `.dark` class on `<html>`
+- All status colors use `text-{color}-600 dark:text-{color}-400` pattern for proper contrast in both modes
 - Sidebar navigation with wallet connection
 - Legal footer with links to About, Terms, Privacy, Risk Disclosure, FAQ
 - Background notification polling every 30s for bet status changes
