@@ -54,6 +54,9 @@
   --shadow-lg: 0px 10px 15px -3px hsl(30 10% 50% / 0.08), 0px 4px 6px -4px hsl(30 10% 50% / 0.06);
   --shadow-xl: 0px 20px 25px -5px hsl(30 10% 50% / 0.08), 0px 8px 10px -6px hsl(30 10% 50% / 0.06);
   --shadow-2xl: 0px 25px 50px -12px hsl(30 10% 50% / 0.15);
+  --color-yes: 130 14% 49%;
+  --color-no: 17 44% 57%;
+  --color-warning: 43 89% 38%;
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -121,6 +124,9 @@
   --shadow-lg: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 4px 6px -1px hsl(220 6% 95% / 0.00);
   --shadow-xl: 0px 2px 0px 0px hsl(220 6% 95% / 0.00), 0px 8px 10px -1px hsl(220 6% 95% / 0.00);
   --shadow-2xl: 0px 2px 0px 0px hsl(220 6% 95% / 0.00);
+  --color-yes: 160 40% 55%;
+  --color-no: 0 65% 60%;
+  --color-warning: 45 80% 55%;
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);

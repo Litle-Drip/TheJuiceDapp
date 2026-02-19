@@ -18,9 +18,9 @@ export default function RiskDisclosure() {
         <p className="text-xs text-muted-foreground mt-1">Last updated: 2/14/2026</p>
       </div>
       <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4 p-3 rounded-md border border-[#b8860b]/30 bg-[#b8860b]/5" data-testid="risk-warning-banner">
-          <AlertTriangle className="w-5 h-5 text-[#b8860b] flex-shrink-0" />
-          <p className="text-sm text-[#b8860b] font-medium" data-testid="text-risk-warning">Using The Juice and related tools from Edison Labs LLC involves significant risks.</p>
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-md border border-warning/30 bg-warning/5" data-testid="risk-warning-banner">
+          <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0" />
+          <p className="text-sm text-warning font-medium" data-testid="text-risk-warning">Using The Juice and related tools from Edison Labs LLC involves significant risks.</p>
         </div>
 
         <div className="space-y-5 text-sm leading-relaxed text-muted-foreground">

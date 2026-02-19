@@ -23,6 +23,7 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - `client/src/lib/wallet.tsx` - WalletProvider context with MetaMask/Coinbase support
 - `client/src/lib/notifications.tsx` - NotificationProvider with background event polling for bet updates
 - `client/src/lib/ens.ts` - ENS/Basename resolution utility with caching and useEnsName hook
+- `client/src/lib/theme.tsx` - ThemeProvider with light/dark mode toggle, localStorage persistence, and system preference detection
 - `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2) with gas estimation
 - `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1) with gas estimation
 - `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID, supports URL query params (?id=X)
@@ -63,6 +64,7 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **Vote Nudge Banners**: Amber warning banners in Bet Lookup when user's vote is pending, with contextual messaging about opponent's vote status
 - **Win/Loss Stats**: Stats tab on My Bets page showing win rate, record (W-L-D), total wagered, total won, net P/L, biggest win, and current streak
 - **ENS Resolution**: Resolves Ethereum addresses to ENS names (including .base.eth Basenames) with caching, displayed throughout bet lookup, trending, and my bets pages
+- **Light/Dark Mode**: Theme toggle in header with localStorage persistence and system preference detection. Light = warm Mediterranean palette, Dark = original cool grey/steel blue palette
 
 ## UX Conventions
 - Use plain language for non-crypto users: "bet amount" not "stake", "time limits" not "deadlines", "accept" not "join", "vote" not "resolve"

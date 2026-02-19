@@ -75,6 +75,15 @@ export default {
           foreground: "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
           border: "var(--sidebar-accent-border)"
         },
+        yes: {
+          DEFAULT: "hsl(var(--color-yes) / <alpha-value>)",
+        },
+        no: {
+          DEFAULT: "hsl(var(--color-no) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--color-warning) / <alpha-value>)",
+        },
         status: {
           online: "rgb(34 197 94)",
           away: "rgb(245 158 11)",

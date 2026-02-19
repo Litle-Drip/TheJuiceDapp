@@ -241,7 +241,7 @@ export default function Trending() {
                   <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                     <div className="flex items-center gap-2">
                       {idx < 3 && (
-                        <span className="text-[#b8860b] font-bold text-xs">#{idx + 1}</span>
+                        <span className="text-warning font-bold text-xs">#{idx + 1}</span>
                       )}
                       <span className="text-sm font-bold font-mono">#{bet.id}</span>
                       <Badge variant="secondary" className="text-[10px]">
@@ -250,7 +250,7 @@ export default function Trending() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       {isJoinable && (
-                        <Badge variant="outline" className="text-[10px] text-[#6b8f71] border-[#6b8f71]/30">
+                        <Badge variant="outline" className="text-[10px] text-yes border-yes/30">
                           Open
                         </Badge>
                       )}
@@ -266,16 +266,16 @@ export default function Trending() {
                     <div>
                       <span className="text-muted-foreground">Total pot: </span>
                       <span className="font-mono font-medium text-foreground">{bet.totalPotEth.toFixed(6)} ETH</span>
-                      <span className="text-[#6b8f71] ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
+                      <span className="text-yes ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
                     </div>
                     {bet.type === 'offer' && bet.oddsBps && (
                       <div className="flex items-center gap-1">
                         {bet.sideYes ? (
-                          <TrendingUp className="w-3 h-3 text-[#6b8f71]" />
+                          <TrendingUp className="w-3 h-3 text-yes" />
                         ) : (
-                          <TrendingDown className="w-3 h-3 text-[#c17c60]" />
+                          <TrendingDown className="w-3 h-3 text-no" />
                         )}
-                        <span className={`font-mono ${bet.sideYes ? 'text-[#6b8f71]' : 'text-[#c17c60]'}`}>
+                        <span className={`font-mono ${bet.sideYes ? 'text-yes' : 'text-no'}`}>
                           {Math.round(bet.oddsBps / 100)}%
                         </span>
                       </div>
