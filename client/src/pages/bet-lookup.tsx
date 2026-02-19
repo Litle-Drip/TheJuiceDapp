@@ -43,7 +43,7 @@ function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promis
     <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground py-1" data-testid="gas-estimate">
       <Fuel className="w-3 h-3" />
       <span>Est. gas: {gas.gasEth.toFixed(8)} ETH</span>
-      <span className="text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
+      <span className="text-emerald-600 dark:text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
     </div>
   );
 }
@@ -653,7 +653,7 @@ function ChallengeView({
               <div className="h-px bg-border" />
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Winner</span>
-                <Badge variant="outline" className="text-emerald-400 border-emerald-400/30" data-testid="badge-winner">
+                <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30" data-testid="badge-winner">
                   <Trophy className="w-3 h-3 mr-1" />
                   {challenge.challengerVote === 1 ? 'Creator' : 'Opponent'}
                 </Badge>
@@ -697,9 +697,9 @@ function ChallengeView({
         if ((isChallenger || isParticipant) && myVote === 0) {
           return (
             <div className="flex items-center gap-2.5 p-3 rounded-md border border-amber-500/30 bg-amber-500/5" data-testid="vote-nudge-banner">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-amber-400">Your vote is needed</p>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Your vote is needed</p>
                 <p className="text-[10px] text-muted-foreground">
                   {theirVote !== 0
                     ? 'Your opponent has already voted. Submit your vote to proceed with resolution.'
@@ -726,8 +726,8 @@ function ChallengeView({
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: I Won' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-400" /> : <ThumbsUp className="w-6 h-6 text-emerald-400" />}
-              <span className="text-sm font-bold text-emerald-400">I Won</span>
+              {actionLoading === 'Vote: I Won' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-600 dark:text-emerald-400" /> : <ThumbsUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />}
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">I Won</span>
             </button>
             <button
               data-testid="button-vote-lost"
@@ -735,8 +735,8 @@ function ChallengeView({
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-6 h-6 animate-spin text-rose-400" /> : <ThumbsDown className="w-6 h-6 text-rose-400" />}
-              <span className="text-sm font-bold text-rose-400">Opponent Won</span>
+              {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400" /> : <ThumbsDown className="w-6 h-6 text-rose-600 dark:text-rose-400" />}
+              <span className="text-sm font-bold text-rose-600 dark:text-rose-400">Opponent Won</span>
             </button>
           </div>
         </div>
@@ -755,8 +755,8 @@ function ChallengeView({
       {challenge.state === 0 && joinExpired && !joined && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400">Join deadline passed with no opponent. Creator can reclaim funds.</p>
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">Join deadline passed with no opponent. Creator can reclaim funds.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={() => confirmRefund('No opponent')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
@@ -769,8 +769,8 @@ function ChallengeView({
       {challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400">Votes conflict - creator and opponent disagree on the outcome. Both parties can claim a refund.</p>
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">Votes conflict - creator and opponent disagree on the outcome. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
@@ -783,8 +783,8 @@ function ChallengeView({
       {challenge.state === 1 && resolveExpired && !(challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote !== challenge.participantVote) && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
@@ -962,7 +962,7 @@ function OfferView({
             <Badge variant={offer.state === 0 ? 'default' : offer.state === 1 ? 'secondary' : 'outline'}>
               {OFFER_STATES[offer.state] || `State ${offer.state}`}
             </Badge>
-            {offer.paid && <Badge variant="outline" className="text-emerald-400 border-emerald-400/30">Paid</Badge>}
+            {offer.paid && <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30">Paid</Badge>}
           </div>
         </div>
 
@@ -975,7 +975,7 @@ function OfferView({
 
         <div className="flex items-center justify-center gap-4 mb-3 py-2">
           <div className="text-center">
-            <div className={`text-2xl font-bold ${offer.creatorSideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <div className={`text-2xl font-bold ${offer.creatorSideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {offer.creatorSideYes ? 'YES' : 'NO'}
             </div>
             <div className="text-[10px] text-muted-foreground">Creator side</div>
@@ -987,7 +987,7 @@ function OfferView({
             <div className="text-[10px] text-muted-foreground">YES odds</div>
           </div>
           <div className="text-center">
-            <div className={`text-2xl font-bold ${!offer.creatorSideYes ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <div className={`text-2xl font-bold ${!offer.creatorSideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {!offer.creatorSideYes ? 'YES' : 'NO'}
             </div>
             <div className="text-[10px] text-muted-foreground">Taker side</div>
@@ -1053,7 +1053,7 @@ function OfferView({
                 <span className="text-muted-foreground">Winning position</span>
                 <Badge
                   variant="outline"
-                  className={`${offer.creatorVote === 1 ? 'text-emerald-400 border-emerald-400/30' : 'text-rose-400 border-rose-400/30'}`}
+                  className={`${offer.creatorVote === 1 ? 'text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30' : 'text-rose-600 dark:text-rose-400 border-rose-600/30 dark:border-rose-400/30'}`}
                   data-testid="badge-winner"
                 >
                   <Trophy className="w-3 h-3 mr-1" />
@@ -1099,9 +1099,9 @@ function OfferView({
         if ((isCreator || isTaker) && myVote === 0) {
           return (
             <div className="flex items-center gap-2.5 p-3 rounded-md border border-amber-500/30 bg-amber-500/5" data-testid="vote-nudge-banner">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-amber-400">Your vote is needed</p>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Your vote is needed</p>
                 <p className="text-[10px] text-muted-foreground">
                   {theirVote !== 0
                     ? 'Your opponent has already voted. Submit your vote to proceed with resolution.'
@@ -1128,8 +1128,8 @@ function OfferView({
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: YES' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-400" /> : <TrendingUp className="w-6 h-6 text-emerald-400" />}
-              <span className="text-sm font-bold text-emerald-400">YES Won</span>
+              {actionLoading === 'Vote: YES' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-600 dark:text-emerald-400" /> : <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />}
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">YES Won</span>
             </button>
             <button
               data-testid="button-vote-no"
@@ -1137,8 +1137,8 @@ function OfferView({
               disabled={!!actionLoading}
               className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: NO' ? <Loader2 className="w-6 h-6 animate-spin text-rose-400" /> : <TrendingDown className="w-6 h-6 text-rose-400" />}
-              <span className="text-sm font-bold text-rose-400">NO Won</span>
+              {actionLoading === 'Vote: NO' ? <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400" /> : <TrendingDown className="w-6 h-6 text-rose-600 dark:text-rose-400" />}
+              <span className="text-sm font-bold text-rose-600 dark:text-rose-400">NO Won</span>
             </button>
           </div>
         </div>
@@ -1157,8 +1157,8 @@ function OfferView({
       {offer.state === 0 && joinExpired && !hasTaker && !offer.paid && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400">Join deadline passed with no taker. Creator can reclaim funds.</p>
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">Join deadline passed with no taker. Creator can reclaim funds.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={() => confirmRefund('No taker')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
@@ -1171,8 +1171,8 @@ function OfferView({
       {offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote && !offer.paid && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400">Votes disagree - creator and taker voted differently. Both parties can claim a refund.</p>
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">Votes disagree - creator and taker voted differently. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
@@ -1185,8 +1185,8 @@ function OfferView({
       {offer.state === 1 && resolveExpired && !(offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote !== offer.takerVote) && !offer.paid && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 rounded-md border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-            <p className="text-xs text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <p className="text-xs text-amber-600 dark:text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
           <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">

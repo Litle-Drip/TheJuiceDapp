@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletProvider, useWallet } from "@/lib/wallet";
 import { NotificationProvider, useNotifications } from "@/lib/notifications";
+import { ThemeProvider, useTheme } from "@/lib/theme";
 import { NETWORKS } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,8 @@ import {
   LayoutDashboard,
   Flame,
   ShieldCheck,
+  Sun,
+  Moon,
 } from "lucide-react";
 import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_1771015761494.png";
 
@@ -104,7 +107,7 @@ function WalletButton() {
       >
         <Globe className="w-3.5 h-3.5" />
         <span>{net.chainName}</span>
-        <span className="ml-auto text-[11px] text-white/80 font-medium">Switch</span>
+        <span className="ml-auto text-[11px] text-foreground/80 font-medium">Switch</span>
       </Button>
     </div>
   );
@@ -182,7 +185,7 @@ function VerificationBadge() {
         href={`${explorerBase}/address/${contractAddr}#code`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-[10px] text-emerald-400/80 font-medium"
+        className="flex items-center gap-1.5 text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-medium"
         data-testid="link-verified-contract"
       >
         <ShieldCheck className="w-3.5 h-3.5" />
@@ -217,8 +220,8 @@ function MainnetBanner() {
   if (net.contract) return null;
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30" data-testid="mainnet-banner">
-      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-      <p className="text-xs text-amber-400">
+      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+      <p className="text-xs text-amber-600 dark:text-amber-400">
         {net.chainName} contracts are not yet deployed. Switch to Base Sepolia to use the app.
       </p>
     </div>
@@ -253,6 +256,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <ThemeProvider>
         <WalletProvider>
           <NotificationProvider>
             <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
@@ -262,6 +266,7 @@ function App() {
                   <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
                     <SidebarTrigger data-testid="button-sidebar-toggle" />
                     <div className="flex-1" />
+                    <ThemeToggle />
                     <EthPrice />
                   </header>
                   <MainnetBanner />
@@ -275,8 +280,23 @@ function App() {
             <Toaster />
           </NotificationProvider>
         </WalletProvider>
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      onClick={toggleTheme}
+      data-testid="button-theme-toggle"
+    >
+      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    </Button>
   );
 }
 

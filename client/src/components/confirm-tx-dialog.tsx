@@ -40,7 +40,7 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={confirming ? undefined : onClose} />
       <div className="relative bg-card border border-border rounded-md w-full max-w-sm mx-4 p-5 shadow-lg">
         <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="w-4 h-4 text-amber-400" />
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
           <h3 className="text-sm font-bold">{title}</h3>
         </div>
 
@@ -48,7 +48,7 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
           {lines.map((line, i) => (
             <div key={i} className="flex items-center justify-between gap-2">
               <span className={`text-xs ${line.muted ? 'text-muted-foreground' : 'text-foreground'}`}>{line.label}</span>
-              <span className={`text-xs font-mono text-right ${line.highlight ? 'font-bold text-emerald-400' : line.muted ? 'text-muted-foreground' : 'font-medium'}`}>
+              <span className={`text-xs font-mono text-right ${line.highlight ? 'font-bold text-emerald-600 dark:text-emerald-400' : line.muted ? 'text-muted-foreground' : 'font-medium'}`}>
                 {line.value}
               </span>
             </div>
@@ -58,7 +58,7 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
         {gas && (
           <div className="flex items-center justify-center gap-1.5 mb-4 text-[10px] text-muted-foreground">
             <span>Est. gas: {gas.gasEth.toFixed(6)} ETH</span>
-            <span className="text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
+            <span className="text-emerald-600 dark:text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
           </div>
         )}
 
