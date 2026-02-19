@@ -21,7 +21,7 @@ export function Countdown({ deadline, label }: CountdownProps) {
 
   if (remaining <= 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-no" data-testid="countdown-timer">
+      <span className="inline-flex items-center gap-0.5 text-rose-400" data-testid="countdown-timer">
         <Clock className="w-2.5 h-2.5" />
         {label ? `${label} ` : ''}Expired
       </span>
@@ -39,7 +39,7 @@ export function Countdown({ deadline, label }: CountdownProps) {
   if (minutes > 0) parts.push(`${minutes}m`);
   if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
 
-  const colorClass = remaining < 300 ? 'text-warning' : 'text-muted-foreground';
+  const colorClass = remaining < 300 ? 'text-amber-400' : 'text-muted-foreground';
 
   return (
     <span className={`inline-flex items-center gap-0.5 ${colorClass}`} data-testid="countdown-timer">

@@ -4,7 +4,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletProvider, useWallet } from "@/lib/wallet";
-import { ThemeProvider, useTheme } from "@/lib/theme";
 import { NotificationProvider, useNotifications } from "@/lib/notifications";
 import { NETWORKS } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
@@ -44,8 +43,6 @@ import {
   LayoutDashboard,
   Flame,
   ShieldCheck,
-  Sun,
-  Moon,
 } from "lucide-react";
 import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_1771015761494.png";
 
@@ -150,7 +147,7 @@ function AppSidebar() {
                         <span className="text-[10px] text-muted-foreground leading-tight">{item.desc}</span>
                       </div>
                       {item.title === 'My Bets' && notificationCount > 0 && (
-                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-yes text-white border-0" data-testid="badge-notification-count">
+                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-emerald-500 text-white border-0" data-testid="badge-notification-count">
                           {notificationCount}
                         </Badge>
                       )}
@@ -185,7 +182,7 @@ function VerificationBadge() {
         href={`${explorerBase}/address/${contractAddr}#code`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-[10px] text-yes/80 font-medium"
+        className="flex items-center gap-1.5 text-[10px] text-emerald-400/80 font-medium"
         data-testid="link-verified-contract"
       >
         <ShieldCheck className="w-3.5 h-3.5" />
@@ -219,9 +216,9 @@ function MainnetBanner() {
   const net = NETWORKS[network];
   if (net.contract) return null;
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-warning/10 border-b border-warning/30" data-testid="mainnet-banner">
-      <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0" />
-      <p className="text-xs text-warning">
+    <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30" data-testid="mainnet-banner">
+      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+      <p className="text-xs text-amber-400">
         {net.chainName} contracts are not yet deployed. Switch to Base Sepolia to use the app.
       </p>
     </div>
@@ -256,7 +253,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <ThemeProvider>
         <WalletProvider>
           <NotificationProvider>
             <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
@@ -266,7 +262,6 @@ function App() {
                   <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
                     <SidebarTrigger data-testid="button-sidebar-toggle" />
                     <div className="flex-1" />
-                    <ThemeToggle />
                     <EthPrice />
                   </header>
                   <MainnetBanner />
@@ -277,21 +272,11 @@ function App() {
                 </div>
               </div>
             </SidebarProvider>
+            <Toaster />
           </NotificationProvider>
         </WalletProvider>
-        </ThemeProvider>
-        <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
-  );
-}
-
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <Button size="icon" variant="ghost" onClick={toggleTheme} data-testid="button-theme-toggle">
-      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-    </Button>
   );
 }
 

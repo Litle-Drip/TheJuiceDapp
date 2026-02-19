@@ -12,7 +12,7 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 ## Architecture
 - Frontend-only dApp (React + Vite) that interacts directly with smart contracts via ethers.js v6
 - No database needed - all state is on-chain
-- Warm Mediterranean light theme with deep navy primary (`hsl(215 35% 35%)`), warm cream backgrounds (`hsl(30 18% 94%)`), warm white cards (`hsl(30 20% 97%)`)
+- Dark neutral grey theme with steel blue primary (`hsl(207 30% 62%)`) and cool grey backgrounds (`hsl(220 4% 13%)`)
 - Sidebar navigation with wallet connection
 - Legal footer with links to About, Terms, Privacy, Risk Disclosure, FAQ
 - Background notification polling every 30s for bet status changes
@@ -23,7 +23,6 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - `client/src/lib/wallet.tsx` - WalletProvider context with MetaMask/Coinbase support
 - `client/src/lib/notifications.tsx` - NotificationProvider with background event polling for bet updates
 - `client/src/lib/ens.ts` - ENS/Basename resolution utility with caching and useEnsName hook
-- `client/src/lib/theme.tsx` - ThemeProvider with light/dark mode toggle, localStorage persistence, and system preference detection
 - `client/src/pages/markets.tsx` - Kalshi-style market offer creation (V2) with gas estimation
 - `client/src/pages/create-challenge.tsx` - Symmetric challenge creation (V1) with gas estimation
 - `client/src/pages/bet-lookup.tsx` - Unified bet lookup: auto-detects V1 challenge or V2 offer by ID, supports URL query params (?id=X)
@@ -64,7 +63,6 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **Vote Nudge Banners**: Amber warning banners in Bet Lookup when user's vote is pending, with contextual messaging about opponent's vote status
 - **Win/Loss Stats**: Stats tab on My Bets page showing win rate, record (W-L-D), total wagered, total won, net P/L, biggest win, and current streak
 - **ENS Resolution**: Resolves Ethereum addresses to ENS names (including .base.eth Basenames) with caching, displayed throughout bet lookup, trending, and my bets pages
-- **Light/Dark Mode**: Theme toggle in header with localStorage persistence and system preference detection. Light = warm Mediterranean palette, Dark = original cool grey/steel blue palette
 
 ## UX Conventions
 - Use plain language for non-crypto users: "bet amount" not "stake", "time limits" not "deadlines", "accept" not "join", "vote" not "resolve"
@@ -77,14 +75,10 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - Sidebar nav items include small description text under each title
 
 ## Design
-- Warm Mediterranean light theme inspired by old Italy beach aesthetic
-- Primary color: Deep navy `hsl(215 35% 35%)`
-- Background: Warm cream `hsl(30 18% 94%)`
-- Cards: Warm white `hsl(30 20% 97%)`
-- Sidebar: Warm linen `hsl(30 15% 91%)`
-- YES/positive/USD amounts: Olive green `#6b8f71`
-- NO/negative: Warm terracotta `#c17c60`
-- Warnings: Dark goldenrod `#b8860b`
+- Primary color: Steel blue `hsl(207 30% 62%)`
+- Background: Cool neutral grey `hsl(220 4% 13%)`
+- Cards: `hsl(220 3% 17%)`
+- USD amounts: `text-emerald-400`
 - Form labels: Bold, uppercase, centered over inputs
 - Legal footer: Edison Labs LLC copyright + navigation links
 
