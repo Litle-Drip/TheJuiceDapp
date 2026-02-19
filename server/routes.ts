@@ -24,27 +24,40 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/lookup", (req, res, next) => {
+  function serveBotOgHtml(req: any, res: any, next: any) {
     const ua = req.headers['user-agent'] || '';
     if (!BOT_UA.test(ua)) return next();
 
-    const id = req.query.id as string || '';
-    const q = req.query.q as string || '';
-    const question = q ? decodeURIComponent(q) : '';
+    const path = req.path;
+    const origin = 'https://thejuiceapp.io';
+    const ogImage = `${origin}/og-image.png`;
 
-    const title = question
-      ? `${question} - The Juice`
-      : id
-      ? `Bet #${id} - The Juice`
-      : 'The Juice - P2P Betting on Base';
+    let title = 'The Juice - P2P Betting on Base';
+    let description = 'Peer-to-peer betting and escrow on Base network. Create challenges, set odds, and bet directly against friends with smart contract security.';
 
-    const description = question
-      ? `Join this bet: "${question}" on The Juice. Peer-to-peer prediction market on Base.`
-      : id
-      ? `View and join Bet #${id} on The Juice. Peer-to-peer prediction market on Base.`
-      : 'Peer-to-peer betting and escrow on Base network.';
+    if (path === '/lookup') {
+      const id = req.query.id as string || '';
+      const q = req.query.q as string || '';
+      const question = q ? decodeURIComponent(q) : '';
+      if (question) {
+        title = `${question} - The Juice`;
+        description = `Join this bet: "${question}" on The Juice. Peer-to-peer prediction market on Base.`;
+      } else if (id) {
+        title = `Bet #${id} - The Juice`;
+        description = `View and join Bet #${id} on The Juice. Peer-to-peer prediction market on Base.`;
+      }
+    } else if (path === '/challenge') {
+      title = 'Create Challenge - The Juice';
+      description = 'Create a head-to-head challenge with equal stakes on The Juice. Peer-to-peer betting on Base network.';
+    } else if (path === '/trending') {
+      title = 'Trending Markets - The Juice';
+      description = 'Browse the hottest open bets on The Juice. Peer-to-peer prediction markets on Base network.';
+    } else if (path === '/my-bets') {
+      title = 'My Bets - The Juice';
+      description = 'Track your betting history, wins, and active bets on The Juice.';
+    }
 
-    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const url = `${origin}${req.originalUrl}`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -55,13 +68,15 @@ export async function registerRoutes(
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
 <meta property="og:url" content="${escapeHtml(url)}" />
-<meta property="og:image" content="${req.protocol}://${req.get('host')}/logo.png" />
+<meta property="og:image" content="${ogImage}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="675" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="The Juice" />
-<meta name="twitter:card" content="summary" />
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${escapeHtml(title)}" />
 <meta name="twitter:description" content="${escapeHtml(description)}" />
-<meta name="twitter:image" content="${req.protocol}://${req.get('host')}/logo.png" />
+<meta name="twitter:image" content="${ogImage}" />
 </head>
 <body>
 <h1>${escapeHtml(title)}</h1>
@@ -72,7 +87,13 @@ export async function registerRoutes(
 
     res.set('Content-Type', 'text/html');
     res.send(html);
-  });
+  }
+
+  app.get("/", serveBotOgHtml);
+  app.get("/lookup", serveBotOgHtml);
+  app.get("/challenge", serveBotOgHtml);
+  app.get("/trending", serveBotOgHtml);
+  app.get("/my-bets", serveBotOgHtml);
 
   return httpServer;
 }
