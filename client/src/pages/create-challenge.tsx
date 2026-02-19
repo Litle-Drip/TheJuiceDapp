@@ -241,16 +241,16 @@ export default function CreateChallenge() {
         <button
           data-testid="button-toggle-advanced"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3"
         >
-          {showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           <span className="font-semibold text-foreground">Time Limits</span>
         </button>
 
         {showAdvanced && (
-          <div className="grid grid-cols-2 gap-4 mb-5 max-w-xs mx-auto">
-            <div className="space-y-1.5">
-              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Time to Accept</label>
+          <div className="grid grid-cols-2 gap-5 mb-5">
+            <div className="space-y-2">
+              <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center">Time to Accept</label>
               <div className="relative">
                 <input
                   data-testid="input-join-deadline"
@@ -259,16 +259,16 @@ export default function CreateChallenge() {
                   max={43200}
                   value={joinMins}
                   onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 pr-10 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
               </div>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-3 gap-1.5">
                 {[15, 60, 1440].map(m => (
                   <button
                     key={m}
                     onClick={() => setJoinMins(m)}
-                    className={`text-[10px] font-medium border rounded-md py-1 text-center transition-all ${
+                    className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
                       joinMins === m
                         ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
                         : 'border-border text-muted-foreground'
@@ -278,15 +278,15 @@ export default function CreateChallenge() {
                   </button>
                 ))}
               </div>
-              <div className="bg-muted/40 rounded px-2 py-1.5 text-center" data-testid="text-join-deadline-preview">
-                <span className="text-[10px] text-muted-foreground block">Accept by</span>
-                <span className="text-[11px] font-medium text-foreground">
+              <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-join-deadline-preview">
+                <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
+                <span className="text-sm font-medium text-foreground">
                   {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Time to Vote</label>
+            <div className="space-y-2">
+              <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center">Time to Vote</label>
               <div className="relative">
                 <input
                   data-testid="input-resolve-deadline"
@@ -295,16 +295,16 @@ export default function CreateChallenge() {
                   max={43200}
                   value={resolveMins}
                   onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-1.5 px-3 pr-10 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
               </div>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-3 gap-1.5">
                 {[30, 120, 2880].map(m => (
                   <button
                     key={m}
                     onClick={() => setResolveMins(m)}
-                    className={`text-[10px] font-medium border rounded-md py-1 text-center transition-all ${
+                    className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
                       resolveMins === m
                         ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
                         : 'border-border text-muted-foreground'
@@ -314,9 +314,9 @@ export default function CreateChallenge() {
                   </button>
                 ))}
               </div>
-              <div className="bg-muted/40 rounded px-2 py-1.5 text-center" data-testid="text-resolve-deadline-preview">
-                <span className="text-[10px] text-muted-foreground block">Vote by</span>
-                <span className="text-[11px] font-medium text-foreground">
+              <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-resolve-deadline-preview">
+                <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
+                <span className="text-sm font-medium text-foreground">
                   {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
