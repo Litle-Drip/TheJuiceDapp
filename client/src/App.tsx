@@ -302,10 +302,18 @@ function ThemeToggle() {
 
 function EthPrice() {
   const { ethUsd } = useWallet();
+  if (!ethUsd) return null;
   return (
-    <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-eth-price">
-      ETH ${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-    </Badge>
+    <a
+      href="https://www.coinbase.com/price/ethereum"
+      target="_blank"
+      rel="noopener noreferrer"
+      data-testid="link-eth-price"
+    >
+      <Badge variant="outline" className="font-mono text-[10px] cursor-pointer" data-testid="badge-eth-price">
+        ETH ${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+      </Badge>
+    </a>
   );
 }
 

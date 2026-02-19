@@ -15,12 +15,25 @@ export async function registerRoutes(
   app.get("/api/eth-price", async (_req, res) => {
     try {
       const response = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
+        "https://api.coinbase.com/v2/prices/ETH-USD/spot"
       );
       const data = await response.json();
-      res.json(data);
+      const usd = parseFloat(data?.data?.amount);
+      if (usd && usd > 0) {
+        res.json({ ethereum: { usd } });
+      } else {
+        throw new Error("invalid price");
+      }
     } catch {
-      res.json({ ethereum: { usd: 3500 } });
+      try {
+        const fallback = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
+        );
+        const fbData = await fallback.json();
+        res.json(fbData);
+      } catch {
+        res.json({ ethereum: { usd: 0 } });
+      }
     }
   });
 
