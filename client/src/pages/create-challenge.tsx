@@ -24,7 +24,7 @@ export default function CreateChallenge() {
   const [lastTxHash, setLastTxHash] = useState('');
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {

@@ -25,7 +25,7 @@ export default function Markets() {
   const [loading, setLoading] = useState(false);
   const [lastOfferId, setLastOfferId] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
   const [showSliderTooltip, setShowSliderTooltip] = useState(false);
