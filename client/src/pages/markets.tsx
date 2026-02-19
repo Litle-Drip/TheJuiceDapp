@@ -397,6 +397,12 @@ export default function Markets() {
                   </button>
                 ))}
               </div>
+              <div className="bg-muted/40 rounded px-2 py-1.5 text-center" data-testid="text-join-deadline-preview">
+                <span className="text-[10px] text-muted-foreground block">Accept by</span>
+                <span className="text-[11px] font-medium text-foreground">
+                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+                </span>
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] text-foreground font-semibold uppercase tracking-wider block text-center">Time to Vote</label>
@@ -426,6 +432,12 @@ export default function Markets() {
                     {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
                   </button>
                 ))}
+              </div>
+              <div className="bg-muted/40 rounded px-2 py-1.5 text-center" data-testid="text-resolve-deadline-preview">
+                <span className="text-[10px] text-muted-foreground block">Vote by</span>
+                <span className="text-[11px] font-medium text-foreground">
+                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+                </span>
               </div>
             </div>
           </div>
