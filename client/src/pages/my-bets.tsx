@@ -599,10 +599,10 @@ export default function MyBets() {
             (() => {
               const me = address?.toLowerCase() || '';
               const resolvedBets = bets.filter(b => b.state === 2);
-              const refundedBets = bets.filter(b => b.state === 3);
               const wins = resolvedBets.filter(b => b.winner && b.winner === me);
               const losses = resolvedBets.filter(b => b.winner && b.winner !== ethers.ZeroAddress.toLowerCase() && b.winner !== me);
-              const draws = refundedBets.length;
+              const draws = resolvedBets.filter(b => b.winner && b.winner === ethers.ZeroAddress.toLowerCase()).length;
+              const cancelledBets = bets.filter(b => b.state === 3);
               const winCount = wins.length;
               const lossCount = losses.length;
               const winRate = (winCount + lossCount) > 0 ? (winCount / (winCount + lossCount)) * 100 : 0;
@@ -649,7 +649,7 @@ export default function MyBets() {
                             {winRate.toFixed(0)}%
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-1">
-                            {resolvedBets.length} resolved bet{resolvedBets.length !== 1 ? 's' : ''}
+                            {winCount + lossCount} decided{draws > 0 ? `, ${draws} draw${draws !== 1 ? 's' : ''}` : ''}
                           </p>
                         </Card>
                         <Card className="p-4 text-center">
@@ -661,7 +661,7 @@ export default function MyBets() {
                             <span className="text-muted-foreground mx-1">-</span>
                             <span className="text-muted-foreground">{draws}</span>
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1">W - L - D</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">W - L - D{cancelledBets.length > 0 ? ` (${cancelledBets.length} cancelled)` : ''}</p>
                         </Card>
                       </div>
 
