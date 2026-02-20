@@ -12,6 +12,10 @@ import { Link } from 'wouter';
 import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
 import { onBetCreated, onCopyAction } from '@/lib/feedback';
 
+function XIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" className={className} fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+}
+
 export default function Markets() {
   const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network: networkKey, explorerUrl, connecting } = useWallet();
   const { toast } = useToast();
@@ -224,30 +228,36 @@ export default function Markets() {
             <button
               data-testid="button-side-yes"
               onClick={() => setSideYes(true)}
-              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all ${
+              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all duration-300 ${
                 sideYes
                   ? 'border-emerald-500/60 bg-emerald-500/10'
                   : 'border-border bg-card'
               }`}
               style={{ opacity: sideYes ? 1 : 0.5 + (yesPercent / 200) }}
             >
-              <TrendingUp className={`w-5 h-5 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>YES</span>
-              <span className={`text-base font-mono font-semibold ${sideYes ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
+              <TrendingUp className={`w-5 h-5 transition-colors duration-300 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold transition-colors duration-300 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>YES</span>
+              <span
+                className={`text-base font-mono font-semibold transition-all duration-300 ${sideYes ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-muted-foreground'}`}
+                style={{ transform: `scale(${0.9 + (yesPercent / 500)})` }}
+              >{yesPriceDisplay}</span>
             </button>
             <button
               data-testid="button-side-no"
               onClick={() => setSideYes(false)}
-              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all ${
+              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all duration-300 ${
                 !sideYes
                   ? 'border-rose-500/60 bg-rose-500/10'
                   : 'border-border bg-card'
               }`}
               style={{ opacity: !sideYes ? 1 : 0.5 + (noPercent / 200) }}
             >
-              <TrendingDown className={`w-5 h-5 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>NO</span>
-              <span className={`text-base font-mono font-semibold ${!sideYes ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
+              <TrendingDown className={`w-5 h-5 transition-colors duration-300 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold transition-colors duration-300 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>NO</span>
+              <span
+                className={`text-base font-mono font-semibold transition-all duration-300 ${!sideYes ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-muted-foreground'}`}
+                style={{ transform: `scale(${0.9 + (noPercent / 500)})` }}
+              >{noPriceDisplay}</span>
             </button>
           </div>
         </div>
@@ -582,6 +592,22 @@ export default function Markets() {
                 >
                   <Copy className="w-3.5 h-3.5 mr-1.5" />
                   Copy Share Link
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  data-testid="button-share-x-offer-success"
+                  onClick={() => {
+                    const betUrl = `${window.location.origin}/lookup?id=${lastOfferId}`;
+                    const tweetText = question.trim()
+                      ? `"${question.trim()}" - Take the other side on The Juice!`
+                      : 'Check out this bet on The Juice!';
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
+                  }}
+                >
+                  <XIcon className="w-3.5 h-3.5 mr-1.5" />
+                  Share on X
                 </Button>
               </div>
             )}

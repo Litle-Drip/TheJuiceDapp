@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -22,9 +22,7 @@ interface ConfirmTxDialogProps {
 export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confirmLabel, gas }: ConfirmTxDialogProps) {
   const [confirming, setConfirming] = useState(false);
 
-  if (!open) return null;
-
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
     setConfirming(true);
     try {
       await onConfirm();
@@ -33,7 +31,25 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
     } catch {
       setConfirming(false);
     }
-  };
+  }, [onConfirm, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !confirming) {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === 'Enter' && !confirming) {
+        e.preventDefault();
+        handleConfirm();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, confirming, onClose, handleConfirm]);
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" data-testid="confirm-tx-dialog">

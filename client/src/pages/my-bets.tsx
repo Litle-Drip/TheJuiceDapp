@@ -9,9 +9,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import {
   Loader2, LayoutDashboard, Wallet, ExternalLink, Search,
-  TrendingUp, TrendingDown, Zap, Clock, Trophy, RefreshCw, History, BarChart3
+  TrendingUp, TrendingDown, Zap, Clock, Trophy, RefreshCw, History, BarChart3, Copy
 } from 'lucide-react';
 import { useEnsName, shortAddr } from '@/lib/ens';
+import { Skeleton } from '@/components/ui/skeleton';
+import { onCopyAction } from '@/lib/feedback';
 
 function AddressName({ address }: { address: string }) {
   const { name, loading } = useEnsName(address);
@@ -450,10 +452,28 @@ export default function MyBets() {
               </div>
 
               {loading && bets.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[hsl(var(--primary))]" />
-                  <p className="text-sm text-muted-foreground">Scanning blockchain for your bets...</p>
-                </Card>
+                <div className="space-y-2">
+                  {[0, 1, 2].map(i => (
+                    <Card key={i} className="p-4">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-4 w-10" />
+                          <Skeleton className="h-4 w-16 rounded-full" />
+                          <Skeleton className="h-4 w-14 rounded-full" />
+                        </div>
+                        <Skeleton className="h-4 w-24 rounded-full" />
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <Skeleton className="h-3 w-36" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <div className="flex items-center justify-between gap-2 mt-1.5">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               ) : loaded && filteredBets.length === 0 ? (
                 <Card className="p-8 text-center">
                   <LayoutDashboard className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
@@ -495,6 +515,20 @@ export default function MyBets() {
                           <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold font-mono">#{bet.id}</span>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                data-testid={`button-copy-bet-${bet.id}`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(bet.id);
+                                  onCopyAction();
+                                  toast({ title: 'Copied', description: `Bet ID ${bet.id} copied to clipboard` });
+                                }}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
                               <Badge variant="secondary" className="text-[10px]">
                                 {bet.type === 'challenge' ? 'Challenge' : 'Offer'}
                               </Badge>
@@ -554,14 +588,41 @@ export default function MyBets() {
           {tab === 'history' && (
             <>
               {loading && txHistory.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[hsl(var(--primary))]" />
-                  <p className="text-sm text-muted-foreground">Scanning transaction history...</p>
-                </Card>
+                <div className="space-y-2">
+                  {[0, 1, 2].map(i => (
+                    <Card key={i} className="p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-4 w-24 rounded-full" />
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                        <Skeleton className="h-3 w-28" />
+                      </div>
+                      <div className="mt-1">
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               ) : loaded && txHistory.length === 0 ? (
                 <Card className="p-8 text-center">
                   <History className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No transaction history found.</p>
+                  <p className="text-sm font-medium mb-1">No transaction history found</p>
+                  <p className="text-xs text-muted-foreground mb-4">Create or join a bet to see your transaction history here.</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Link href="/">
+                      <Button variant="default" size="sm" data-testid="button-create-from-history-empty">
+                        <Zap className="w-3.5 h-3.5 mr-1.5" />
+                        Create a Bet
+                      </Button>
+                    </Link>
+                    <Link href="/trending">
+                      <Button variant="outline" size="sm" data-testid="button-trending-from-history-empty">
+                        <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
+                        Browse Trending
+                      </Button>
+                    </Link>
+                  </div>
                 </Card>
               ) : (
                 <div className="space-y-2">
@@ -631,14 +692,45 @@ export default function MyBets() {
               return (
                 <div data-testid="stats-panel" className="space-y-3">
                   {loading && bets.length === 0 ? (
-                    <Card className="p-8 text-center">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[hsl(var(--primary))]" />
-                      <p className="text-sm text-muted-foreground">Scanning blockchain for stats...</p>
-                    </Card>
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[0, 1].map(i => (
+                          <Card key={i} className="p-4 text-center">
+                            <Skeleton className="h-3 w-16 mx-auto mb-2" />
+                            <Skeleton className="h-8 w-12 mx-auto mb-1" />
+                            <Skeleton className="h-3 w-20 mx-auto" />
+                          </Card>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {[0, 1, 2].map(i => (
+                          <Card key={i} className="p-3 text-center">
+                            <Skeleton className="h-3 w-14 mx-auto mb-2" />
+                            <Skeleton className="h-4 w-16 mx-auto mb-1" />
+                            <Skeleton className="h-3 w-8 mx-auto" />
+                          </Card>
+                        ))}
+                      </div>
+                    </>
                   ) : loaded && bets.length === 0 ? (
                     <Card className="p-8 text-center">
                       <BarChart3 className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">No bets found to compute stats.</p>
+                      <p className="text-sm font-medium mb-1">No bets found to compute stats</p>
+                      <p className="text-xs text-muted-foreground mb-4">Place your first bet to start tracking your performance.</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Link href="/">
+                          <Button variant="default" size="sm" data-testid="button-create-from-stats-empty">
+                            <Zap className="w-3.5 h-3.5 mr-1.5" />
+                            Create a Bet
+                          </Button>
+                        </Link>
+                        <Link href="/trending">
+                          <Button variant="outline" size="sm" data-testid="button-trending-from-stats-empty">
+                            <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
+                            Browse Trending
+                          </Button>
+                        </Link>
+                      </div>
                     </Card>
                   ) : (
                     <>

@@ -48,6 +48,10 @@ function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promis
   );
 }
 
+function XIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" className={className} fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+}
+
 interface ChallengeData {
   type: 'challenge';
   challenger: string;
@@ -592,6 +596,20 @@ function ChallengeView({
               <Share2 className="w-3.5 h-3.5" />
             </Button>
             <Button
+              variant="ghost"
+              size="icon"
+              data-testid="button-share-x-bet"
+              onClick={() => {
+                const betUrl = `${window.location.origin}/lookup?id=${betId}`;
+                const tweetText = marketQuestion
+                  ? `"${marketQuestion}" - Take the other side on The Juice!`
+                  : 'Check out this bet on The Juice!';
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
+              }}
+            >
+              <XIcon className="w-3.5 h-3.5" />
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               data-testid="button-create-similar"
@@ -960,6 +978,20 @@ function OfferView({
               }}
             >
               <Share2 className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              data-testid="button-share-x-offer"
+              onClick={() => {
+                const betUrl = `${window.location.origin}/lookup?id=${betId}`;
+                const tweetText = marketQuestion
+                  ? `"${marketQuestion}" - Take the other side on The Juice!`
+                  : 'Check out this bet on The Juice!';
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
+              }}
+            >
+              <XIcon className="w-3.5 h-3.5" />
             </Button>
             <Button
               variant="outline"

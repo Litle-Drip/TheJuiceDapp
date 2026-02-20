@@ -65,6 +65,12 @@ A peer-to-peer betting/escrow dApp on Base network, similar to Kalshi prediction
 - **Vote Nudge Banners**: Amber warning banners in Bet Lookup when user's vote is pending, with contextual messaging about opponent's vote status
 - **Win/Loss Stats**: Stats tab on My Bets page showing win rate, record (W-L-D), total wagered, total won, net P/L, biggest win, and current streak
 - **ENS Resolution**: Resolves Ethereum addresses to ENS names (including .base.eth Basenames) with caching, displayed throughout bet lookup, trending, and my bets pages
+- **Copy Bet ID**: Quick copy buttons on Trending cards and My Bets rows to copy bet IDs to clipboard
+- **Share on X/Twitter**: Share buttons on Bet Lookup and success screens that open pre-formatted tweets
+- **Skeleton Loading**: Animated skeleton cards replace spinners while blockchain data loads on Trending, My Bets (bets/history/stats tabs)
+- **Confetti Animation**: Canvas-confetti celebration burst when a bet is successfully created
+- **Keyboard Shortcuts**: Enter to confirm and Escape to cancel in the transaction confirmation dialog
+- **Slider Animations**: Smooth color transitions and subtle scale effects on YES/NO odds labels as slider moves
 
 ## UX Conventions
 - Use plain language for non-crypto users: "bet amount" not "stake", "time limits" not "deadlines", "accept" not "join", "vote" not "resolve"

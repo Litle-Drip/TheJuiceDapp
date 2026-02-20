@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/lib/wallet';
 import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { Link } from 'wouter';
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Countdown } from '@/components/countdown';
 import { useEnsName, shortAddr } from '@/lib/ens';
+import { onCopyAction } from '@/lib/feedback';
+import { useToast } from '@/hooks/use-toast';
 
 function CreatorName({ address }: { address: string }) {
   const { name, loading } = useEnsName(address);
@@ -39,6 +42,7 @@ const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Ref
 
 export default function Trending() {
   const { ethUsd, network: networkKey } = useWallet();
+  const { toast } = useToast();
   const [bets, setBets] = useState<TrendingBet[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -210,10 +214,26 @@ export default function Trending() {
       </div>
 
       {loading && bets.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[hsl(var(--primary))]" />
-          <p className="text-sm text-muted-foreground">Scanning blockchain for recent bets...</p>
-        </Card>
+        <div className="space-y-2">
+          {[0, 1, 2].map(i => (
+            <Card key={i} className="p-4">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-8" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <Skeleton className="h-5 w-12" />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="flex items-center justify-between gap-2 mt-1.5">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </Card>
+          ))}
+        </div>
       ) : loaded && filteredBets.length === 0 ? (
         <Card className="p-8 text-center">
           <Flame className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
@@ -253,6 +273,20 @@ export default function Trending() {
                         <span className="text-amber-600 dark:text-amber-400 font-bold text-xs">#{idx + 1}</span>
                       )}
                       <span className="text-sm font-bold font-mono">#{bet.id}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        data-testid={`button-copy-id-${bet.type}-${bet.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(bet.id);
+                          onCopyAction();
+                          toast({ title: 'Bet ID copied', description: `#${bet.id} copied to clipboard` });
+                        }}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
                       <Badge variant="secondary" className="text-[10px]">
                         {bet.type === 'challenge' ? 'Challenge' : 'Offer'}
                       </Badge>

@@ -11,6 +11,10 @@ import { Link } from 'wouter';
 import { ConfirmTxDialog } from '@/components/confirm-tx-dialog';
 import { onBetCreated, onCopyAction } from '@/lib/feedback';
 
+function XIcon({ className }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" className={className} fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+}
+
 export default function CreateChallenge() {
   const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
   const { toast } = useToast();
@@ -471,6 +475,22 @@ export default function CreateChallenge() {
                 >
                   <Copy className="w-3.5 h-3.5 mr-1.5" />
                   Copy Share Link
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  data-testid="button-share-x-challenge-success"
+                  onClick={() => {
+                    const betUrl = `${window.location.origin}/lookup?id=${lastChallengeId}`;
+                    const tweetText = idea.trim()
+                      ? `"${idea.trim()}" - Take the other side on The Juice!`
+                      : 'Check out this bet on The Juice!';
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
+                  }}
+                >
+                  <XIcon className="w-3.5 h-3.5 mr-1.5" />
+                  Share on X
                 </Button>
               </div>
             )}
