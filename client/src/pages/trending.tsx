@@ -298,9 +298,9 @@ export default function Trending() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground">
-                    <span>by <CreatorName address={bet.creator} /></span>
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground flex-wrap">
+                    <span className="truncate min-w-0">by <CreatorName address={bet.creator} /></span>
+                    <div className="flex items-center gap-2 flex-wrap">
                       {isJoinable && timeLeft > 0 && (
                         <Countdown deadline={bet.joinDeadline} />
                       )}
@@ -311,7 +311,7 @@ export default function Trending() {
                         variant="ghost"
                         size="sm"
                         data-testid="button-create-similar"
-                        className="h-6 px-2 text-[10px]"
+                        className="text-[10px]"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();

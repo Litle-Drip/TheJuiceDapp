@@ -380,7 +380,7 @@ export default function MyBets() {
       ) : (
         <>
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 data-testid="button-tab-bets"
                 onClick={() => setTab('bets')}
@@ -665,7 +665,7 @@ export default function MyBets() {
                         </Card>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <Card className="p-3 text-center">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Wagered</p>
                           <p className="text-sm font-bold font-mono">{totalWagered.toFixed(4)}</p>
