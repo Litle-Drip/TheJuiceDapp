@@ -185,7 +185,7 @@ export default function CreateChallenge() {
               type="text"
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              placeholder="e.g. I can beat you at chess"
+              placeholder="This is just a label for your bet. The outcome is decided when both players vote."
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
             <button
@@ -197,7 +197,7 @@ export default function CreateChallenge() {
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground text-center mb-5">This is just a label for your bet. The outcome is decided when both players vote.</p>
+
 
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
