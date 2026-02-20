@@ -302,7 +302,6 @@ function ThemeToggle() {
 
 function EthPrice() {
   const { ethUsd } = useWallet();
-  if (!ethUsd) return null;
   return (
     <a
       href="https://www.coinbase.com/price/ethereum"
@@ -311,7 +310,7 @@ function EthPrice() {
       data-testid="link-eth-price"
     >
       <Badge variant="outline" className="font-mono text-[10px] cursor-pointer" data-testid="badge-eth-price">
-        ETH ${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+        {ethUsd > 0 ? `ETH $${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'ETH ...'}
       </Badge>
     </a>
   );

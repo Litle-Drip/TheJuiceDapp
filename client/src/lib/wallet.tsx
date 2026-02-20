@@ -59,10 +59,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         if (data?.ethereum?.usd) {
           setState(s => ({ ...s, ethUsd: data.ethereum.usd }));
+          return;
         }
-      } catch {
-        // fallback price
-      }
+      } catch {}
+      try {
+        const res = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
+        const data = await res.json();
+        const usd = parseFloat(data?.data?.amount);
+        if (usd && usd > 0) {
+          setState(s => ({ ...s, ethUsd: usd }));
+        }
+      } catch {}
     };
     fetchPrice();
     const iv = setInterval(fetchPrice, 60000);
