@@ -185,8 +185,8 @@ export default function CreateChallenge() {
               type="text"
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              placeholder="This is just a label for your bet. The outcome is decided when both players vote."
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-sm focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              placeholder="Label your bet — both players vote on the outcome"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-xs focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
             <button
               data-testid="button-shuffle-idea"
