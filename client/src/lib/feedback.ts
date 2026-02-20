@@ -87,98 +87,123 @@ export async function playSoundVictoryTrumpet() {
   } catch {}
 }
 
-export async function playSoundWindChime() {
+export async function playSoundCallToPost() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
+    const vol = 0.07;
 
-    const notes = [1318.5, 1046.5, 1568, 1174.7, 1396.9];
-    notes.forEach((freq, i) => {
-      const start = t + i * 0.1 + Math.random() * 0.04;
-      const vol = 0.06 + Math.random() * 0.03;
-      playTone(ctx, freq, start, 0.8 + Math.random() * 0.4, vol, 'sine');
-      playTone(ctx, freq * 2.01, start, 0.4, vol * 0.15, 'sine');
-    });
-  } catch {}
-}
-
-export async function playSoundCeleste() {
-  try {
-    const ctx = getAudioContext();
-    if (ctx.state === 'suspended') await ctx.resume();
-    const t = ctx.currentTime;
-    const vol = 0.09;
-
-    const celesteNote = (freq: number, start: number, dur: number, v: number) => {
-      playTone(ctx, freq, start, dur, v, 'sine');
-      playTone(ctx, freq * 4, start, dur * 0.3, v * 0.08, 'sine');
+    const trumpetNote = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'triangle');
+      playTone(ctx, freq * 2, start, dur * 0.6, v * 0.25, 'sine');
+      playTone(ctx, freq * 3, start, dur * 0.35, v * 0.1, 'sine');
     };
 
-    celesteNote(659.25, t, 0.5, vol);
-    celesteNote(783.99, t + 0.18, 0.5, vol * 0.9);
-    celesteNote(1046.50, t + 0.36, 0.7, vol * 0.7);
+    trumpetNote(523.25, t, 0.18, vol);
+    trumpetNote(523.25, t + 0.18, 0.08, vol * 0.7);
+    trumpetNote(523.25, t + 0.26, 0.08, vol * 0.7);
+    trumpetNote(659.25, t + 0.38, 0.15, vol);
+    trumpetNote(783.99, t + 0.55, 0.2, vol * 1.1);
+    trumpetNote(1046.50, t + 0.75, 0.7, vol * 0.8);
   } catch {}
 }
 
-export async function playSoundMusicBox() {
+export async function playSoundPhotoFinish() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
-    const vol = 0.1;
+    const vol = 0.06;
 
-    const notes = [783.99, 659.25, 783.99, 1046.50, 987.77];
-    notes.forEach((freq, i) => {
-      const start = t + i * 0.13;
-      playTone(ctx, freq, start, 0.35, vol * (1 - i * 0.1), 'sine');
-      playTone(ctx, freq * 3, start, 0.15, vol * 0.05, 'sine');
-    });
+    const trumpetNote = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'triangle');
+      playTone(ctx, freq * 2, start, dur * 0.5, v * 0.3, 'sine');
+      playTone(ctx, freq * 3, start, dur * 0.3, v * 0.1, 'sine');
+    };
+
+    trumpetNote(392, t, 0.1, vol);
+    trumpetNote(523.25, t + 0.08, 0.1, vol);
+    trumpetNote(659.25, t + 0.16, 0.1, vol * 1.1);
+    trumpetNote(783.99, t + 0.24, 0.12, vol * 1.1);
+    trumpetNote(1046.50, t + 0.36, 0.15, vol * 1.2);
+    trumpetNote(1318.51, t + 0.5, 0.8, vol * 0.6);
   } catch {}
 }
 
-export async function playSoundGoodResult() {
+export async function playSoundWinnerCircle() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
-    const vol = 0.1;
+    const vol = 0.065;
 
-    playTone(ctx, 587.33, t, 0.2, vol, 'triangle');
-    playTone(ctx, 587.33 * 2, t, 0.15, vol * 0.3, 'sine');
+    const brassNote = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'triangle');
+      playTone(ctx, freq * 2, start, dur * 0.7, v * 0.35, 'sine');
+      playTone(ctx, freq * 3, start, dur * 0.4, v * 0.15, 'sine');
+      playTone(ctx, freq * 0.5, start, dur * 0.5, v * 0.12, 'triangle');
+    };
 
-    playTone(ctx, 783.99, t + 0.12, 0.2, vol, 'triangle');
-    playTone(ctx, 783.99 * 2, t + 0.12, 0.15, vol * 0.3, 'sine');
+    brassNote(523.25, t, 0.3, vol);
+    brassNote(659.25, t + 0.25, 0.3, vol);
+    brassNote(783.99, t + 0.5, 0.3, vol * 1.1);
+    brassNote(1046.50, t + 0.75, 0.8, vol * 0.8);
+  } catch {}
+}
 
-    playTone(ctx, 987.77, t + 0.24, 0.25, vol * 0.95, 'triangle');
-    playTone(ctx, 987.77 * 2, t + 0.24, 0.18, vol * 0.25, 'sine');
+export async function playSoundTripleCrown() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const t = ctx.currentTime;
+    const vol = 0.06;
 
-    playTone(ctx, 1174.66, t + 0.38, 0.8, vol * 0.7, 'triangle');
-    playTone(ctx, 1174.66 * 2, t + 0.38, 0.5, vol * 0.2, 'sine');
-    playTone(ctx, 1174.66 * 3, t + 0.38, 0.3, vol * 0.08, 'sine');
+    const horn = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'triangle');
+      playTone(ctx, freq * 2, start, dur * 0.6, v * 0.28, 'sine');
+      playTone(ctx, freq * 3, start, dur * 0.35, v * 0.1, 'sine');
+    };
 
-    const shimmer = ctx.createOscillator();
-    const shimmerGain = ctx.createGain();
-    shimmer.type = 'sine';
-    shimmer.frequency.setValueAtTime(3500, t + 0.5);
-    shimmer.frequency.exponentialRampToValueAtTime(2800, t + 1.0);
-    shimmerGain.gain.setValueAtTime(0, t + 0.5);
-    shimmerGain.gain.linearRampToValueAtTime(0.015, t + 0.55);
-    shimmerGain.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
-    shimmer.connect(shimmerGain);
-    shimmerGain.connect(ctx.destination);
-    shimmer.start(t + 0.5);
-    shimmer.stop(t + 1.0);
+    horn(392, t, 0.2, vol);
+    horn(523.25, t + 0.15, 0.2, vol);
+    horn(783.99, t + 0.3, 0.15, vol * 1.15);
+    horn(659.25, t + 0.45, 0.12, vol * 0.9);
+    horn(783.99, t + 0.57, 0.15, vol * 1.1);
+    horn(1046.50, t + 0.72, 0.5, vol * 0.85);
+    horn(1046.50, t + 0.95, 0.6, vol * 0.5);
+  } catch {}
+}
+
+export async function playSoundHomeStretch() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const t = ctx.currentTime;
+    const vol = 0.065;
+
+    const bugle = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'triangle');
+      playTone(ctx, freq * 2, start, dur * 0.55, v * 0.3, 'sine');
+    };
+
+    bugle(523.25, t, 0.1, vol);
+    bugle(659.25, t + 0.08, 0.1, vol);
+    bugle(783.99, t + 0.16, 0.1, vol * 1.05);
+    bugle(1046.50, t + 0.26, 0.18, vol * 1.1);
+    bugle(783.99, t + 0.42, 0.1, vol * 0.8);
+    bugle(1046.50, t + 0.52, 0.18, vol * 1.1);
+    bugle(1318.51, t + 0.7, 0.7, vol * 0.6);
   } catch {}
 }
 
 export const SOUND_OPTIONS = [
-  { id: 'gentle-chime', name: 'Gentle Chime', description: 'Soft ascending C-E-G-C', play: playSoundGentleChime },
   { id: 'victory-trumpet', name: 'Victory Trumpet', description: 'Gentle race-day fanfare', play: playSoundVictoryTrumpet },
-  { id: 'wind-chime', name: 'Wind Chime', description: 'Airy sparkling tones', play: playSoundWindChime },
-  { id: 'celeste', name: 'Celeste', description: 'Warm three-note glow', play: playSoundCeleste },
-  { id: 'music-box', name: 'Music Box', description: 'Playful tinkling melody', play: playSoundMusicBox },
-  { id: 'good-result', name: 'Good Result', description: 'Victory sparkle chime', play: playSoundGoodResult },
+  { id: 'call-to-post', name: 'Call to Post', description: 'Classic derby bugle call', play: playSoundCallToPost },
+  { id: 'photo-finish', name: 'Photo Finish', description: 'Quick triumphant burst', play: playSoundPhotoFinish },
+  { id: 'winner-circle', name: 'Winner\'s Circle', description: 'Majestic brass crescendo', play: playSoundWinnerCircle },
+  { id: 'triple-crown', name: 'Triple Crown', description: 'Grand champion fanfare', play: playSoundTripleCrown },
+  { id: 'home-stretch', name: 'Home Stretch', description: 'Galloping finish line bugle', play: playSoundHomeStretch },
 ] as const;
 
 export type SoundId = typeof SOUND_OPTIONS[number]['id'];
