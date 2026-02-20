@@ -10,7 +10,7 @@ import { RANDOM_IDEAS } from '@/lib/contracts';
 import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
 import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
-import { onTransactionSuccess, SOUND_OPTIONS } from '@/lib/feedback';
+import { onBetCreated, onCopyAction } from '@/lib/feedback';
 
 export default function Markets() {
   const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network: networkKey, explorerUrl, connecting } = useWallet();
@@ -30,9 +30,6 @@ export default function Markets() {
   const [estimatingGas, setEstimatingGas] = useState(false);
   const [showSliderTooltip, setShowSliderTooltip] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedSound, setSelectedSound] = useState(() => {
-    try { return localStorage.getItem('juice-sound') || 'gentle-chime'; } catch { return 'gentle-chime'; }
-  });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -169,7 +166,7 @@ export default function Markets() {
           localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
         } catch {}
       }
-      onTransactionSuccess();
+      onBetCreated();
       toast({
         title: 'Offer created!',
         description: offerId ? `Offer #${offerId} is live. Share the link or wait for someone to take the other side.` : 'Your offer is live on the blockchain.',
@@ -192,34 +189,6 @@ export default function Markets() {
         <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Markets</h1>
         <p className="text-sm text-muted-foreground mt-1">Create a bet with custom odds. Your opponent pays more or less depending on how likely the outcome is.</p>
       </div>
-
-      <Card className="p-4 border-amber-500/30 dark:border-amber-400/30 bg-amber-50/50 dark:bg-amber-950/20">
-        <div className="text-center mb-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">Sound Test Panel</span>
-          <p className="text-xs text-muted-foreground mt-0.5">Tap each to preview, then pick your favorite</p>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {SOUND_OPTIONS.map((sound) => {
-            const isSelected = selectedSound === sound.id;
-            return (
-              <button
-                key={sound.id}
-                data-testid={`button-sound-${sound.id}`}
-                onClick={() => { sound.play(); setSelectedSound(sound.id); try { localStorage.setItem('juice-sound', sound.id); } catch {} }}
-                className={`flex flex-col items-center p-3 rounded-md border text-xs transition-colors ${
-                  isSelected
-                    ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 text-foreground'
-                    : 'border-border hover-elevate text-muted-foreground'
-                }`}
-              >
-                <span className="font-medium text-foreground">{sound.name}</span>
-                <span className="mt-0.5 text-[10px]">{sound.description}</span>
-                {isSelected && <span className="mt-1 text-[10px] font-semibold text-[hsl(var(--primary))]">Selected</span>}
-              </button>
-            );
-          })}
-        </div>
-      </Card>
 
       <Card className="p-5">
         <div className="flex items-center justify-center gap-2 mb-4">
@@ -611,6 +580,7 @@ export default function Markets() {
                   onClick={() => {
                     const shareUrl = `${window.location.origin}/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`;
                     navigator.clipboard.writeText(shareUrl);
+                    onCopyAction();
                     toast({ title: 'Link copied!', description: 'Send this to a friend so they can take the other side.' });
                   }}
                 >
@@ -625,6 +595,7 @@ export default function Markets() {
                   data-testid="button-copy-offer-tx"
                   onClick={() => {
                     navigator.clipboard.writeText(lastTxHash);
+                    onCopyAction();
                     toast({ title: 'Copied', description: 'Transaction hash copied' });
                   }}
                   className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"

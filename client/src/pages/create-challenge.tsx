@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shuffle, Clock, Shield, Zap, ExternalLink, Search, Fuel, Info, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
 import { Link } from 'wouter';
 import { ConfirmTxDialog } from '@/components/confirm-tx-dialog';
-import { onTransactionSuccess } from '@/lib/feedback';
+import { onBetCreated, onCopyAction } from '@/lib/feedback';
 
 export default function CreateChallenge() {
   const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
@@ -130,7 +130,7 @@ export default function CreateChallenge() {
           localStorage.setItem('juice_bet_questions', JSON.stringify(stored));
         } catch {}
       }
-      onTransactionSuccess();
+      onBetCreated();
       toast({ title: 'Challenge created!', description: challengeId ? `Challenge #${challengeId} is live. Share it with a friend to get them to accept.` : 'Your challenge is live on the blockchain.' });
     } catch (e: any) {
       toast({ title: 'Transaction failed', description: e?.shortMessage || e?.message || 'Something went wrong. Check your wallet and try again.', variant: 'destructive' });
@@ -468,6 +468,7 @@ export default function CreateChallenge() {
                   onClick={() => {
                     const shareUrl = `${window.location.origin}/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`;
                     navigator.clipboard.writeText(shareUrl);
+                    onCopyAction();
                     toast({ title: 'Link copied!', description: 'Send this to a friend so they can accept the challenge.' });
                   }}
                 >
@@ -482,6 +483,7 @@ export default function CreateChallenge() {
                   data-testid="button-copy-tx"
                   onClick={() => {
                     navigator.clipboard.writeText(lastTxHash);
+                    onCopyAction();
                     toast({ title: 'Copied', description: 'Transaction hash copied' });
                   }}
                   className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"

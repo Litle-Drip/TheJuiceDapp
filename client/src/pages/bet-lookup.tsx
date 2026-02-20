@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Countdown } from '@/components/countdown';
 import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
-import { onTransactionSuccess } from '@/lib/feedback';
+import { onBetJoined, onVoteSubmitted, onBetResolved, onBetRefunded, onCopyAction } from '@/lib/feedback';
 import { useEnsName, shortAddr } from '@/lib/ens';
 
 function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promise<{ gasEth: number; gasUsd: number } | null>; ethUsd: number; address?: string }) {
@@ -332,7 +332,15 @@ export default function BetLookup() {
       if (action === 'Payout' || action === 'Resolve') {
         setPayoutTxHash(receipt.hash);
       }
-      onTransactionSuccess();
+      if (action === 'Join' || action === 'Take Offer') {
+        onBetJoined();
+      } else if (action.startsWith('Vote')) {
+        onVoteSubmitted();
+      } else if (action === 'Payout' || action === 'Resolve') {
+        onBetResolved();
+      } else if (action === 'Refund') {
+        onBetRefunded();
+      }
       toast({ title: 'Success', description: `${action} completed` });
       await new Promise(r => setTimeout(r, 1500));
       await loadBet(true);
@@ -413,6 +421,7 @@ export default function BetLookup() {
                 data-testid="button-copy-tx"
                 onClick={() => {
                   navigator.clipboard.writeText(lastTxHash);
+                  onCopyAction();
                   toast({ title: 'Copied', description: 'Transaction hash copied' });
                 }}
                 className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
@@ -576,6 +585,7 @@ function ChallengeView({
               onClick={() => {
                 const url = `${window.location.origin}/lookup?id=${betId}`;
                 navigator.clipboard.writeText(url);
+                onCopyAction();
                 toast({ title: 'Link copied', description: 'Share this link so someone can join your bet.' });
               }}
             >
@@ -945,6 +955,7 @@ function OfferView({
               onClick={() => {
                 const url = `${window.location.origin}/lookup?id=${betId}`;
                 navigator.clipboard.writeText(url);
+                onCopyAction();
                 toast({ title: 'Link copied', description: 'Share this link so someone can take the other side.' });
               }}
             >

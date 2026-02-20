@@ -208,14 +208,24 @@ export const SOUND_OPTIONS = [
 
 export type SoundId = typeof SOUND_OPTIONS[number]['id'];
 
-export async function playSuccessSound() {
-  const selected = (typeof localStorage !== 'undefined' && localStorage.getItem('juice-sound')) || 'gentle-chime';
-  const option = SOUND_OPTIONS.find(o => o.id === selected);
-  if (option) {
-    await option.play();
-  } else {
-    await playSoundGentleChime();
-  }
+export async function playSoundCopyClick() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const t = ctx.currentTime;
+    playTone(ctx, 1200, t, 0.08, 0.06, 'sine');
+    playTone(ctx, 1600, t + 0.04, 0.1, 0.04, 'sine');
+  } catch {}
+}
+
+export async function playSoundRefund() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') await ctx.resume();
+    const t = ctx.currentTime;
+    playTone(ctx, 659.25, t, 0.3, 0.08, 'triangle');
+    playTone(ctx, 523.25, t + 0.2, 0.5, 0.07, 'triangle');
+  } catch {}
 }
 
 export function triggerHaptic() {
@@ -226,7 +236,36 @@ export function triggerHaptic() {
   } catch {}
 }
 
+export async function onBetCreated() {
+  await playSoundCallToPost();
+  triggerHaptic();
+}
+
+export async function onBetJoined() {
+  await playSoundCallToPost();
+  triggerHaptic();
+}
+
+export async function onVoteSubmitted() {
+  await playSoundHomeStretch();
+  triggerHaptic();
+}
+
+export async function onBetResolved() {
+  await playSoundPhotoFinish();
+  triggerHaptic();
+}
+
+export async function onBetRefunded() {
+  await playSoundRefund();
+  triggerHaptic();
+}
+
+export async function onCopyAction() {
+  await playSoundCopyClick();
+}
+
 export async function onTransactionSuccess() {
-  await playSuccessSound();
+  await playSoundCallToPost();
   triggerHaptic();
 }
