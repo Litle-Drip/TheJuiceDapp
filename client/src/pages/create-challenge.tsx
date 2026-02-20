@@ -281,7 +281,7 @@ export default function CreateChallenge() {
               <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-join-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
                 <span className="text-sm font-medium text-foreground">
-                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function CreateChallenge() {
               <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-resolve-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
                 <span className="text-sm font-medium text-foreground">
-                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
             </div>

@@ -225,28 +225,30 @@ export default function Markets() {
             <button
               data-testid="button-side-yes"
               onClick={() => setSideYes(true)}
-              className={`relative flex flex-col items-center justify-center py-4 rounded-md border transition-all ${
+              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all ${
                 sideYes
                   ? 'border-emerald-500/60 bg-emerald-500/10'
                   : 'border-border bg-card'
               }`}
+              style={{ opacity: sideYes ? 1 : 0.5 + (yesPercent / 200) }}
             >
-              <TrendingUp className={`w-5 h-5 mb-1 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
+              <TrendingUp className={`w-5 h-5 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
               <span className={`text-lg font-bold ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>YES</span>
-              <span className={`text-xs mt-0.5 font-mono ${sideYes ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
+              <span className={`text-base font-mono font-semibold ${sideYes ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
             </button>
             <button
               data-testid="button-side-no"
               onClick={() => setSideYes(false)}
-              className={`relative flex flex-col items-center justify-center py-4 rounded-md border transition-all ${
+              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all ${
                 !sideYes
                   ? 'border-rose-500/60 bg-rose-500/10'
                   : 'border-border bg-card'
               }`}
+              style={{ opacity: !sideYes ? 1 : 0.5 + (noPercent / 200) }}
             >
-              <TrendingDown className={`w-5 h-5 mb-1 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`} />
+              <TrendingDown className={`w-5 h-5 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`} />
               <span className={`text-lg font-bold ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>NO</span>
-              <span className={`text-xs mt-0.5 font-mono ${!sideYes ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
+              <span className={`text-base font-mono font-semibold ${!sideYes ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
             </button>
           </div>
         </div>
@@ -288,20 +290,12 @@ export default function Markets() {
               <span className="text-[10px] text-muted-foreground">50%</span>
               <span className="text-[10px] text-muted-foreground">95%</span>
             </div>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <Badge variant={sideYes ? "default" : "outline"} className={`font-mono text-xs ${sideYes ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-600/40 dark:border-emerald-500/40' : 'text-muted-foreground'}`}>
-                YES {yesPercent}%
-              </Badge>
-              <Badge variant={!sideYes ? "default" : "outline"} className={`font-mono text-xs ${!sideYes ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-600/40 dark:border-rose-500/40' : 'text-muted-foreground'}`}>
-                NO {noPercent}%
-              </Badge>
-            </div>
           </div>
 
         </div>
 
         <div className="mb-5">
-          <div className="flex items-center justify-center mb-2 gap-3">
+          <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Your Bet Amount</label>
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
@@ -382,7 +376,7 @@ export default function Markets() {
               <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-join-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
                 <span className="text-sm font-medium text-foreground">
-                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
             </div>
@@ -418,7 +412,7 @@ export default function Markets() {
               <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-resolve-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
                 <span className="text-sm font-medium text-foreground">
-                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
+                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
             </div>
