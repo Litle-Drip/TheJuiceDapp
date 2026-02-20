@@ -309,7 +309,7 @@ function EthPrice() {
       rel="noopener noreferrer"
       data-testid="link-eth-price"
     >
-      <Badge variant="outline" className="font-mono text-[10px] cursor-pointer" data-testid="badge-eth-price">
+      <Badge variant="outline" className="font-mono text-sm cursor-pointer text-[#627EEA] border-[#627EEA]/30" data-testid="badge-eth-price">
         {ethUsd > 0 ? `ETH $${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'ETH ...'}
       </Badge>
     </a>
