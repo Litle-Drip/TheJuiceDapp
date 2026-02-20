@@ -259,9 +259,9 @@ export default function CreateChallenge() {
                   max={43200}
                   value={joinMins}
                   onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))]">min</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {[15, 60, 1440].map(m => (
@@ -280,7 +280,7 @@ export default function CreateChallenge() {
               </div>
               <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-join-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-medium text-[hsl(var(--primary))]">
                   {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
@@ -295,9 +295,9 @@ export default function CreateChallenge() {
                   max={43200}
                   value={resolveMins}
                   onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))]">min</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {[30, 120, 2880].map(m => (
@@ -316,7 +316,7 @@ export default function CreateChallenge() {
               </div>
               <div className="bg-muted/40 rounded-md px-3 py-2 text-center" data-testid="text-resolve-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-medium text-[hsl(var(--primary))]">
                   {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
