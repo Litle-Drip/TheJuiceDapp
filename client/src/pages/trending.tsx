@@ -8,7 +8,7 @@ import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { Link } from 'wouter';
 import {
   Loader2, Flame, TrendingUp, TrendingDown,
-  Search, RefreshCw, Zap, Copy
+  Search, RefreshCw, Zap, Copy, MessageSquare
 } from 'lucide-react';
 import { Countdown } from '@/components/countdown';
 import { useEnsName, shortAddr } from '@/lib/ens';
@@ -31,6 +31,7 @@ interface TrendingBet {
   sideYes?: boolean;
   oddsBps?: number;
   hasOpponent: boolean;
+  question?: string;
 }
 
 const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
@@ -143,6 +144,14 @@ export default function Trending() {
           }
         }
       }
+
+      try {
+        const stored = JSON.parse(localStorage.getItem('juice_bet_questions') || '{}');
+        for (const r of results) {
+          const key = r.type === 'challenge' ? `c${r.id}` : r.id;
+          if (stored[key]) r.question = stored[key];
+        }
+      } catch {}
 
       results.sort((a, b) => b.totalPotEth - a.totalPotEth);
       setBets(results);
@@ -261,6 +270,13 @@ export default function Trending() {
                       )}
                     </div>
                   </div>
+
+                  {bet.question && (
+                    <p className="text-xs leading-snug mb-2 text-foreground" data-testid={`text-question-${bet.type}-${bet.id}`}>
+                      <MessageSquare className="w-3 h-3 inline-block mr-1 text-muted-foreground shrink-0 -mt-0.5" />
+                      &ldquo;{bet.question}&rdquo;
+                    </p>
+                  )}
 
                   <div className="flex items-center justify-between gap-2 text-xs">
                     <div>
