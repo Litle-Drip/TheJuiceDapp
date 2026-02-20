@@ -372,7 +372,7 @@ export default function BetLookup() {
               onChange={(e) => setBetId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && loadBet()}
               placeholder="Enter a numeric ID, e.g. 1, 2, 3..."
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-sm font-mono focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-xs focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
             />
           </div>
           <Button data-testid="button-load-bet" onClick={() => loadBet()} disabled={loading || !betId.trim()} variant="secondary">
