@@ -27,6 +27,25 @@ if (typeof window !== 'undefined') {
   events.forEach(e => document.addEventListener(e, handler, true));
 }
 
+function playTone(ctx: AudioContext, freq: number, startTime: number, duration: number, volume: number) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, startTime);
+
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+  gain.gain.setValueAtTime(volume, startTime + duration * 0.3);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+}
+
 export async function playSuccessSound() {
   try {
     const ctx = getAudioContext();
@@ -35,30 +54,19 @@ export async function playSuccessSound() {
     }
 
     const t = ctx.currentTime;
+    const vol = 0.12;
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1760, t);
-
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.4, t + 0.005);
-    gain.gain.setValueAtTime(0.4, t + 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start(t);
-    osc.stop(t + 1.2);
+    playTone(ctx, 523.25, t, 0.35, vol);
+    playTone(ctx, 659.25, t + 0.12, 0.35, vol);
+    playTone(ctx, 783.99, t + 0.24, 0.5, vol * 0.9);
+    playTone(ctx, 1046.50, t + 0.38, 0.7, vol * 0.6);
   } catch {}
 }
 
 export function triggerHaptic() {
   try {
     if ('vibrate' in navigator) {
-      navigator.vibrate([50, 30, 50]);
+      navigator.vibrate([40, 20, 40]);
     }
   } catch {}
 }
