@@ -219,7 +219,7 @@ export default function Markets() {
 
 
         <div className="mb-5">
-          <label className="text-xs text-foreground mb-1 block font-semibold uppercase tracking-wider text-center">Pick Your Side</label>
+          <label className="text-xs text-foreground mb-3 block font-semibold uppercase tracking-wider text-center">Pick Your Side</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               data-testid="button-side-yes"

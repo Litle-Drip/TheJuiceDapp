@@ -200,8 +200,8 @@ export default function CreateChallenge() {
 
 
         <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Bet Amount (Each Player)</label>
+          <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center mb-1">Bet Amount (Each Player)</label>
+          <div className="flex items-center justify-center mb-2">
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
