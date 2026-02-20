@@ -220,7 +220,6 @@ export default function Markets() {
 
         <div className="mb-5">
           <label className="text-xs text-foreground mb-1 block font-semibold uppercase tracking-wider text-center">Pick Your Side</label>
-          <p className="text-[10px] text-muted-foreground text-center mb-2">Which outcome are you betting on?</p>
           <div className="grid grid-cols-2 gap-3">
             <button
               data-testid="button-side-yes"
@@ -313,7 +312,7 @@ export default function Markets() {
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-8 pr-14 text-sm font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
               placeholder="0.01"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">ETH</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))] font-medium">ETH</span>
           </div>
           <div className="grid grid-cols-4 gap-1.5 mt-2">
             {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
