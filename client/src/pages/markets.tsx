@@ -294,14 +294,9 @@ export default function Markets() {
         </div>
 
         <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs text-foreground font-semibold uppercase tracking-wider">Your Bet Amount</label>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
-              {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
-            </span>
-          </div>
+          <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center mb-2">Your Bet Amount</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[hsl(var(--primary))] font-medium">&#926;</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))] font-medium">ETH</span>
             <input
               data-testid="input-stake"
               type="number"
@@ -309,10 +304,12 @@ export default function Markets() {
               min="0"
               value={stakeEth}
               onChange={(e) => setStakeEth(e.target.value)}
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-8 pr-14 text-sm font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
               placeholder="0.01"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))] font-medium">ETH</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
+              {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
+            </span>
           </div>
           <div className="grid grid-cols-4 gap-1.5 mt-2">
             {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
