@@ -66,115 +66,74 @@ export async function playSoundGentleChime() {
   } catch {}
 }
 
-export async function playSoundCoinDrop() {
+export async function playSoundVictoryTrumpet() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
+    const vol = 0.07;
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1800, t);
-    osc.frequency.exponentialRampToValueAtTime(900, t + 0.08);
-    osc.frequency.setValueAtTime(1400, t + 0.08);
-    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.4);
+    const trumpetNote = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'triangle');
+      playTone(ctx, freq * 2, start, dur * 0.6, v * 0.3, 'sine');
+      playTone(ctx, freq * 3, start, dur * 0.4, v * 0.12, 'sine');
+    };
 
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.15, t + 0.005);
-    gain.gain.setValueAtTime(0.12, t + 0.08);
-    gain.gain.linearRampToValueAtTime(0.1, t + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.5);
-
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(2600, t + 0.08);
-    osc2.frequency.exponentialRampToValueAtTime(2200, t + 0.5);
-    gain2.gain.setValueAtTime(0, t + 0.08);
-    gain2.gain.linearRampToValueAtTime(0.06, t + 0.09);
-    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(t + 0.08);
-    osc2.stop(t + 0.5);
+    trumpetNote(392, t, 0.12, vol);
+    trumpetNote(523.25, t + 0.1, 0.12, vol);
+    trumpetNote(659.25, t + 0.2, 0.15, vol * 1.1);
+    trumpetNote(783.99, t + 0.35, 0.25, vol * 0.9);
+    trumpetNote(1046.50, t + 0.55, 0.6, vol * 0.7);
   } catch {}
 }
 
-export async function playSoundWarmHarp() {
+export async function playSoundWindChime() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
 
-    const notes = [392, 523.25];
+    const notes = [1318.5, 1046.5, 1568, 1174.7, 1396.9];
     notes.forEach((freq, i) => {
-      const start = t + i * 0.15;
-      playTone(ctx, freq, start, 0.8, 0.14, 'triangle');
-      playTone(ctx, freq * 2, start, 0.5, 0.04, 'sine');
-      playTone(ctx, freq * 3, start, 0.3, 0.02, 'sine');
+      const start = t + i * 0.1 + Math.random() * 0.04;
+      const vol = 0.06 + Math.random() * 0.03;
+      playTone(ctx, freq, start, 0.8 + Math.random() * 0.4, vol, 'sine');
+      playTone(ctx, freq * 2.01, start, 0.4, vol * 0.15, 'sine');
     });
   } catch {}
 }
 
-export async function playSoundSoftBell() {
+export async function playSoundCeleste() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
+    const vol = 0.09;
 
-    const fundamental = 880;
-    const harmonics = [1, 2.76, 5.4, 8.93];
-    const volumes = [0.12, 0.04, 0.02, 0.008];
-    const durations = [1.5, 0.8, 0.4, 0.2];
+    const celesteNote = (freq: number, start: number, dur: number, v: number) => {
+      playTone(ctx, freq, start, dur, v, 'sine');
+      playTone(ctx, freq * 4, start, dur * 0.3, v * 0.08, 'sine');
+    };
 
-    harmonics.forEach((h, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(fundamental * h, t);
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(volumes[i], t + 0.003);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + durations[i]);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + durations[i]);
-    });
+    celesteNote(659.25, t, 0.5, vol);
+    celesteNote(783.99, t + 0.18, 0.5, vol * 0.9);
+    celesteNote(1046.50, t + 0.36, 0.7, vol * 0.7);
   } catch {}
 }
 
-export async function playSoundLevelUp() {
+export async function playSoundMusicBox() {
   try {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') await ctx.resume();
     const t = ctx.currentTime;
+    const vol = 0.1;
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(440, t);
-    osc.frequency.linearRampToValueAtTime(880, t + 0.15);
-    osc.frequency.setValueAtTime(660, t + 0.15);
-    osc.frequency.linearRampToValueAtTime(1320, t + 0.3);
-
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.06, t + 0.01);
-    gain.gain.setValueAtTime(0.05, t + 0.14);
-    gain.gain.linearRampToValueAtTime(0.06, t + 0.16);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.5);
-
-    playTone(ctx, 1320, t + 0.3, 0.4, 0.04, 'sine');
+    const notes = [783.99, 659.25, 783.99, 1046.50, 987.77];
+    notes.forEach((freq, i) => {
+      const start = t + i * 0.13;
+      playTone(ctx, freq, start, 0.35, vol * (1 - i * 0.1), 'sine');
+      playTone(ctx, freq * 3, start, 0.15, vol * 0.05, 'sine');
+    });
   } catch {}
 }
 
@@ -215,10 +174,10 @@ export async function playSoundGoodResult() {
 
 export const SOUND_OPTIONS = [
   { id: 'gentle-chime', name: 'Gentle Chime', description: 'Soft ascending C-E-G-C', play: playSoundGentleChime },
-  { id: 'coin-drop', name: 'Coin Drop', description: 'Bright metallic ding', play: playSoundCoinDrop },
-  { id: 'warm-harp', name: 'Warm Harp', description: 'Two-note pluck', play: playSoundWarmHarp },
-  { id: 'soft-bell', name: 'Soft Bell', description: 'Mellow bell with fade', play: playSoundSoftBell },
-  { id: 'level-up', name: 'Level Up', description: 'Quick upward sweep', play: playSoundLevelUp },
+  { id: 'victory-trumpet', name: 'Victory Trumpet', description: 'Gentle race-day fanfare', play: playSoundVictoryTrumpet },
+  { id: 'wind-chime', name: 'Wind Chime', description: 'Airy sparkling tones', play: playSoundWindChime },
+  { id: 'celeste', name: 'Celeste', description: 'Warm three-note glow', play: playSoundCeleste },
+  { id: 'music-box', name: 'Music Box', description: 'Playful tinkling melody', play: playSoundMusicBox },
   { id: 'good-result', name: 'Good Result', description: 'Victory sparkle chime', play: playSoundGoodResult },
 ] as const;
 
