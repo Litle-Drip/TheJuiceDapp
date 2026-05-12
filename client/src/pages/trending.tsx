@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/lib/wallet';
 import { ABI_V1, ABI_V2, NETWORKS, CHALLENGE_STATES, OFFER_STATES } from '@/lib/contracts';
 import { Link } from 'wouter';
+import { TabButton } from '@/components/tab-button';
 import {
   Loader2, Flame, TrendingUp, TrendingDown,
   Search, RefreshCw, Zap, Copy, MessageSquare
@@ -186,18 +187,9 @@ export default function Trending() {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
           {(['open', 'all'] as const).map(t => (
-            <button
-              key={t}
-              data-testid={`button-filter-${t}`}
-              onClick={() => setFilter(t)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                filter === t
-                  ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                  : 'border-border bg-card text-muted-foreground'
-              }`}
-            >
+            <TabButton key={t} data-testid={`button-filter-${t}`} active={filter === t} onClick={() => setFilter(t)}>
               {t === 'open' ? 'Open to Join' : 'All Bets'}
-            </button>
+            </TabButton>
           ))}
         </div>
         <Button
@@ -286,18 +278,18 @@ export default function Trending() {
                       >
                         <Copy className="w-3 h-3" />
                       </Button>
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary" className="text-2xs">
                         {bet.type === 'challenge' ? 'Challenge' : 'Offer'}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1.5">
                       {isJoinable && (
-                        <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30">
+                        <Badge variant="outline" className="text-2xs text-success border-success/30">
                           Open
                         </Badge>
                       )}
                       {!isJoinable && (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                        <Badge variant="outline" className="text-2xs text-muted-foreground">
                           {stateLabels[bet.state]}
                         </Badge>
                       )}
@@ -315,23 +307,23 @@ export default function Trending() {
                     <div>
                       <span className="text-muted-foreground">Total pot: </span>
                       <span className="font-mono font-medium text-foreground">{bet.totalPotEth.toFixed(6)} ETH</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
+                      <span className="text-success ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
                     </div>
                     {bet.type === 'offer' && bet.oddsBps && (
                       <div className="flex items-center gap-1">
                         {bet.sideYes ? (
-                          <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                          <TrendingUp className="w-3 h-3 text-success" />
                         ) : (
-                          <TrendingDown className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                          <TrendingDown className="w-3 h-3 text-danger" />
                         )}
-                        <span className={`font-mono ${bet.sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        <span className={`font-mono ${bet.sideYes ? 'text-success' : 'text-danger'}`}>
                           {Math.round(bet.oddsBps / 100)}%
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground flex-wrap">
+                  <div className="flex items-center justify-between gap-2 mt-1.5 text-2xs text-muted-foreground flex-wrap">
                     <span className="truncate min-w-0">by <CreatorName address={bet.creator} /></span>
                     <div className="flex items-center gap-2 flex-wrap">
                       {isJoinable && timeLeft > 0 && (
@@ -344,7 +336,7 @@ export default function Trending() {
                         variant="ghost"
                         size="sm"
                         data-testid="button-create-similar"
-                        className="text-[10px]"
+                        className="text-2xs"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -380,7 +372,7 @@ export default function Trending() {
 
       {loaded && bets.length > 0 && (
         <div className="text-center">
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             {filteredBets.length} of {bets.length} bets shown on {NETWORKS[networkKey].chainName}
           </p>
         </div>

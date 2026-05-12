@@ -21,7 +21,7 @@ export function Countdown({ deadline, label }: CountdownProps) {
 
   if (remaining <= 0) {
     return (
-      <span className="inline-flex items-center gap-0.5 text-rose-600 dark:text-rose-400" data-testid="countdown-timer">
+      <span className="inline-flex items-center gap-0.5 text-danger" data-testid="countdown-timer">
         <Clock className="w-2.5 h-2.5" />
         {label ? `${label} ` : ''}Expired
       </span>

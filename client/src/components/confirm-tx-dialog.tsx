@@ -64,7 +64,7 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
           {lines.map((line, i) => (
             <div key={i} className="flex items-center justify-between gap-2">
               <span className={`text-xs ${line.muted ? 'text-muted-foreground' : 'text-foreground'}`}>{line.label}</span>
-              <span className={`text-xs font-mono text-right ${line.highlight ? 'font-bold text-emerald-600 dark:text-emerald-400' : line.muted ? 'text-muted-foreground' : 'font-medium'}`}>
+              <span className={`text-xs font-mono text-right ${line.highlight ? 'font-bold text-success' : line.muted ? 'text-muted-foreground' : 'font-medium'}`}>
                 {line.value}
               </span>
             </div>
@@ -72,13 +72,13 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
         </div>
 
         {gas && (
-          <div className="flex items-center justify-center gap-1.5 mb-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 mb-4 text-2xs text-muted-foreground">
             <span>Est. gas: {gas.gasEth.toFixed(6)} ETH</span>
-            <span className="text-emerald-600 dark:text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
+            <span className="text-success">(${gas.gasUsd.toFixed(4)})</span>
           </div>
         )}
 
-        <p className="text-[10px] text-muted-foreground text-center mb-4">
+        <p className="text-2xs text-muted-foreground text-center mb-4">
           This will send a transaction to the blockchain. Make sure you've reviewed the details above.
         </p>
 

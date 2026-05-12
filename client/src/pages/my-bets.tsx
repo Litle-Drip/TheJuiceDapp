@@ -15,6 +15,7 @@ import {
 import { useEnsName, shortAddr } from '@/lib/ens';
 import { Skeleton } from '@/components/ui/skeleton';
 import { onCopyAction } from '@/lib/feedback';
+import { TabButton } from '@/components/tab-button';
 
 function AddressName({ address }: { address: string }) {
   const { name, loading } = useEnsName(address);
@@ -375,42 +376,15 @@ export default function MyBets() {
         <>
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                data-testid="button-tab-bets"
-                onClick={() => setTab('bets')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                  tab === 'bets'
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                <LayoutDashboard className="w-3 h-3 inline mr-1" />
-                Bets
-              </button>
-              <button
-                data-testid="button-tab-history"
-                onClick={() => setTab('history')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                  tab === 'history'
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                <History className="w-3 h-3 inline mr-1" />
-                History ({txHistory.length})
-              </button>
-              <button
-                data-testid="button-tab-stats"
-                onClick={() => setTab('stats')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                  tab === 'stats'
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                <BarChart3 className="w-3 h-3 inline mr-1" />
-                Stats
-              </button>
+              <TabButton data-testid="button-tab-bets" active={tab === 'bets'} onClick={() => setTab('bets')}>
+                <LayoutDashboard className="w-3 h-3 inline mr-1" />Bets
+              </TabButton>
+              <TabButton data-testid="button-tab-history" active={tab === 'history'} onClick={() => setTab('history')}>
+                <History className="w-3 h-3 inline mr-1" />History ({txHistory.length})
+              </TabButton>
+              <TabButton data-testid="button-tab-stats" active={tab === 'stats'} onClick={() => setTab('stats')}>
+                <BarChart3 className="w-3 h-3 inline mr-1" />Stats
+              </TabButton>
             </div>
             <Button
               data-testid="button-refresh-bets"
@@ -428,18 +402,9 @@ export default function MyBets() {
             <>
               <div className="flex items-center gap-1.5">
                 {(['all', 'active', 'resolved'] as const).map(t => (
-                  <button
-                    key={t}
-                    data-testid={`button-filter-${t}`}
-                    onClick={() => setFilterTab(t)}
-                    className={`px-2.5 py-1 rounded-md text-[10px] font-medium border transition-all ${
-                      filterTab === t
-                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
-                        : 'border-border bg-card text-muted-foreground'
-                    }`}
-                  >
+                  <TabButton key={t} data-testid={`button-filter-${t}`} active={filterTab === t} onClick={() => setFilterTab(t)} size="sm">
                     {t.charAt(0).toUpperCase() + t.slice(1)}
-                  </button>
+                  </TabButton>
                 ))}
               </div>
 
@@ -521,21 +486,21 @@ export default function MyBets() {
                               >
                                 <Copy className="w-3 h-3" />
                               </Button>
-                              <Badge variant="secondary" className="text-[10px]">
+                              <Badge variant="secondary" className="text-2xs">
                                 {bet.type === 'challenge' ? 'Challenge' : 'Offer'}
                               </Badge>
-                              <Badge variant="outline" className="text-[10px]">
+                              <Badge variant="outline" className="text-2xs">
                                 {bet.role === 'creator' ? 'Creator' : 'Opponent'}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-1.5">
                               {isExpiring && (
-                                <Badge variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-600/30 dark:border-amber-400/30">
+                                <Badge variant="outline" className="text-2xs text-amber-600 dark:text-amber-400 border-amber-600/30 dark:border-amber-400/30">
                                   <Clock className="w-2.5 h-2.5 mr-0.5" />
                                   Expiring
                                 </Badge>
                               )}
-                              <Badge variant="outline" className={`text-[10px] ${stateColorClass(bet.state)}`}>
+                              <Badge variant="outline" className={`text-2xs ${stateColorClass(bet.state)}`}>
                                 {stateLabels[bet.state] || `State ${bet.state}`}
                               </Badge>
                             </div>
@@ -545,24 +510,24 @@ export default function MyBets() {
                             <div className="flex items-center gap-3">
                               <span className="text-muted-foreground">
                                 Stake: <span className="font-mono text-foreground">{bet.stakeEth.toFixed(6)} ETH</span>
-                                <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
+                                <span className="text-success ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
                               </span>
                             </div>
                             {bet.type === 'offer' && bet.oddsBps && (
                               <div className="flex items-center gap-1">
                                 {bet.sideYes ? (
-                                  <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  <TrendingUp className="w-3 h-3 text-success" />
                                 ) : (
-                                  <TrendingDown className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                                  <TrendingDown className="w-3 h-3 text-danger" />
                                 )}
-                                <span className={`font-mono ${bet.sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                <span className={`font-mono ${bet.sideYes ? 'text-success' : 'text-danger'}`}>
                                   {bet.sideYes ? 'YES' : 'NO'} {Math.round(bet.oddsBps / 100)}%
                                 </span>
                               </div>
                             )}
                           </div>
 
-                          <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground">
+                          <div className="flex items-center justify-between gap-2 mt-1.5 text-2xs text-muted-foreground">
                             <span>{new Date(bet.createdAt * 1000).toLocaleDateString()}</span>
                             {bet.counterparty && (
                               <span>vs <AddressName address={bet.counterparty} /></span>
@@ -622,7 +587,7 @@ export default function MyBets() {
                     <Card key={`${tx.txHash}-${idx}`} className="p-3" data-testid={`tx-entry-${idx}`}>
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-[10px]">
+                          <Badge variant="secondary" className="text-2xs">
                             {tx.betType === 'challenge' ? 'Challenge' : 'Offer'} #{tx.betId}
                           </Badge>
                           <span className="text-xs font-medium">{tx.action}</span>
@@ -631,14 +596,14 @@ export default function MyBets() {
                           href={`${explorerUrl}/tx/${tx.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[10px] font-mono text-[hsl(var(--primary))]"
+                          className="flex items-center gap-1 text-2xs font-mono text-primary"
                           data-testid={`link-tx-${idx}`}
                         >
                           {tx.txHash.slice(0, 8)}...{tx.txHash.slice(-6)}
                           <ExternalLink className="w-2.5 h-2.5" />
                         </a>
                       </div>
-                      <div className="text-[10px] text-muted-foreground mt-1">
+                      <div className="text-2xs text-muted-foreground mt-1">
                         Block #{tx.blockNumber}
                       </div>
                     </Card>
@@ -728,47 +693,47 @@ export default function MyBets() {
                     <>
                       <div className="grid grid-cols-2 gap-3">
                         <Card className="p-4 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Win Rate</p>
-                          <p className="text-3xl font-bold text-[hsl(var(--primary))]" data-testid="text-win-rate">
+                          <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Win Rate</p>
+                          <p className="text-3xl font-bold text-primary" data-testid="text-win-rate">
                             {winRate.toFixed(0)}%
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1">
+                          <p className="text-2xs text-muted-foreground mt-1">
                             {winCount + lossCount} decided{draws > 0 ? `, ${draws} draw${draws !== 1 ? 's' : ''}` : ''}
                           </p>
                         </Card>
                         <Card className="p-4 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Record</p>
+                          <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Record</p>
                           <p className="text-2xl font-bold">
-                            <span className="text-emerald-600 dark:text-emerald-400">{winCount}</span>
+                            <span className="text-success">{winCount}</span>
                             <span className="text-muted-foreground mx-1">-</span>
-                            <span className="text-rose-600 dark:text-rose-400">{lossCount}</span>
+                            <span className="text-danger">{lossCount}</span>
                             <span className="text-muted-foreground mx-1">-</span>
                             <span className="text-muted-foreground">{draws}</span>
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1">W - L - D{cancelledBets.length > 0 ? ` (${cancelledBets.length} cancelled)` : ''}</p>
+                          <p className="text-2xs text-muted-foreground mt-1">W - L - D{cancelledBets.length > 0 ? ` (${cancelledBets.length} cancelled)` : ''}</p>
                         </Card>
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <Card className="p-3 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Wagered</p>
+                          <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Wagered</p>
                           <p className="text-sm font-bold font-mono">{totalWagered.toFixed(4)}</p>
-                          <p className="text-[10px] text-muted-foreground">ETH</p>
-                          <p className="text-[10px] text-emerald-600 dark:text-emerald-400">${(totalWagered * ethUsd).toFixed(2)}</p>
+                          <p className="text-2xs text-muted-foreground">ETH</p>
+                          <p className="text-2xs text-success">${(totalWagered * ethUsd).toFixed(2)}</p>
                         </Card>
                         <Card className="p-3 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Won</p>
-                          <p className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">{totalWon.toFixed(4)}</p>
-                          <p className="text-[10px] text-muted-foreground">ETH</p>
-                          <p className="text-[10px] text-emerald-600 dark:text-emerald-400">${(totalWon * ethUsd).toFixed(2)}</p>
+                          <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Won</p>
+                          <p className="text-sm font-bold font-mono text-success">{totalWon.toFixed(4)}</p>
+                          <p className="text-2xs text-muted-foreground">ETH</p>
+                          <p className="text-2xs text-success">${(totalWon * ethUsd).toFixed(2)}</p>
                         </Card>
                         <Card className="p-3 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Net P/L</p>
-                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} data-testid="text-net-pl">
+                          <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Net P/L</p>
+                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-success' : 'text-danger'}`} data-testid="text-net-pl">
                             {netPL >= 0 ? '+' : ''}{netPL.toFixed(4)}
                           </p>
-                          <p className="text-[10px] text-muted-foreground">ETH</p>
-                          <p className={`text-[10px] ${netPL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                          <p className="text-2xs text-muted-foreground">ETH</p>
+                          <p className={`text-2xs ${netPL >= 0 ? 'text-success' : 'text-danger'}`}>
                             {netPL >= 0 ? '+' : ''}${(netPL * ethUsd).toFixed(2)}
                           </p>
                         </Card>
@@ -778,29 +743,29 @@ export default function MyBets() {
                         <Card className="p-3">
                           <div className="flex items-center gap-2 mb-1">
                             <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Biggest Win</p>
+                            <p className="text-2xs text-muted-foreground uppercase tracking-wider">Biggest Win</p>
                           </div>
-                          <p className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                          <p className="text-sm font-bold font-mono text-success">
                             {biggestWin > 0 ? `${biggestWin.toFixed(4)} ETH` : '—'}
                           </p>
                           {biggestWin > 0 && (
-                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400">${(biggestWin * ethUsd).toFixed(2)}</p>
+                            <p className="text-2xs text-success">${(biggestWin * ethUsd).toFixed(2)}</p>
                           )}
                         </Card>
                         <Card className="p-3">
                           <div className="flex items-center gap-2 mb-1">
                             <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Streak</p>
+                            <p className="text-2xs text-muted-foreground uppercase tracking-wider">Streak</p>
                           </div>
-                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-emerald-600 dark:text-emerald-400' : streakType === 'L' ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`}>
+                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-success' : streakType === 'L' ? 'text-danger' : 'text-muted-foreground'}`}>
                             {currentStreak > 0 ? `${currentStreak}${streakType}` : '—'}
                           </p>
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-2xs text-muted-foreground">
                             {streakType === 'W' ? 'Winning' : streakType === 'L' ? 'Losing' : 'No streak'}
                           </p>
                         </Card>
                       </div>
-                      <p className="text-[10px] text-muted-foreground text-center mt-2">
+                      <p className="text-2xs text-muted-foreground text-center mt-2">
                         Based on bets found in the last ~100k blocks on {NETWORKS[networkKey].chainName}.
                       </p>
                     </>
@@ -812,7 +777,7 @@ export default function MyBets() {
 
           {loaded && bets.length > 0 && tab !== 'stats' && (
             <div className="text-center">
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 Found {bets.length} bet{bets.length !== 1 ? 's' : ''} on {NETWORKS[networkKey].chainName}
               </p>
             </div>

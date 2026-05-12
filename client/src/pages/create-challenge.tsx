@@ -174,7 +174,7 @@ export default function CreateChallenge() {
 
       <Card className="p-5 sm:p-6">
         <div className="flex items-center justify-center gap-2 mb-5">
-          <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
+          <Zap className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold tracking-wide">New Challenge</span>
         </div>
 
@@ -187,12 +187,12 @@ export default function CreateChallenge() {
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               placeholder="Label your bet — both players vote on the outcome"
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-xs focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-xs focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
             />
             <button
               data-testid="button-shuffle-idea"
               onClick={shuffleIdea}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-[hsl(var(--primary))]/40 text-[hsl(var(--primary))]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-primary/40 text-primary"
             >
               <Shuffle className="w-3.5 h-3.5" />
             </button>
@@ -203,7 +203,7 @@ export default function CreateChallenge() {
         <div className="mb-5">
           <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center mb-2">Bet Amount (Each Player)</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))] font-medium">ETH</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-primary font-medium">ETH</span>
             <input
               data-testid="input-stake-amount"
               type="number"
@@ -211,10 +211,10 @@ export default function CreateChallenge() {
               min="0"
               value={stakeEth}
               onChange={(e) => setStakeEth(e.target.value)}
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
               placeholder="0.01"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
@@ -226,7 +226,7 @@ export default function CreateChallenge() {
                 onClick={() => setStakeEth(amt)}
                 className={`py-1.5 rounded-md text-xs font-mono border transition-all ${
                   stakeEth === amt
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    ? 'border-primary/50 bg-primary/10 text-primary'
                     : 'border-border bg-card text-muted-foreground'
                 }`}
               >
@@ -257,9 +257,9 @@ export default function CreateChallenge() {
                   max={43200}
                   value={joinMins}
                   onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-primary focus:outline-none focus:border-primary/50"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))]">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">min</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {[15, 60, 1440].map(m => (
@@ -268,7 +268,7 @@ export default function CreateChallenge() {
                     onClick={() => setJoinMins(m)}
                     className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
                       joinMins === m
-                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        ? 'border-primary/50 bg-primary/10 text-primary'
                         : 'border-border text-muted-foreground'
                     }`}
                   >
@@ -278,7 +278,7 @@ export default function CreateChallenge() {
               </div>
               <div className="bg-muted/40 rounded-md px-2 py-2 text-center" data-testid="text-join-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
-                <span className="text-[11px] sm:text-sm font-medium text-[hsl(var(--primary))]">
+                <span className="text-[11px] sm:text-sm font-medium text-primary">
                   {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
@@ -293,9 +293,9 @@ export default function CreateChallenge() {
                   max={43200}
                   value={resolveMins}
                   onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-[hsl(var(--primary))] focus:outline-none focus:border-[hsl(var(--primary))]/50"
+                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-primary focus:outline-none focus:border-primary/50"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[hsl(var(--primary))]">min</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">min</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {[30, 120, 2880].map(m => (
@@ -304,7 +304,7 @@ export default function CreateChallenge() {
                     onClick={() => setResolveMins(m)}
                     className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
                       resolveMins === m
-                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        ? 'border-primary/50 bg-primary/10 text-primary'
                         : 'border-border text-muted-foreground'
                     }`}
                   >
@@ -314,7 +314,7 @@ export default function CreateChallenge() {
               </div>
               <div className="bg-muted/40 rounded-md px-2 py-2 text-center" data-testid="text-resolve-deadline-preview">
                 <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
-                <span className="text-[11px] sm:text-sm font-medium text-[hsl(var(--primary))]">
+                <span className="text-[11px] sm:text-sm font-medium text-primary">
                   {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                 </span>
               </div>
@@ -325,7 +325,7 @@ export default function CreateChallenge() {
         {preview && (
           <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="challenge-preview">
             <div className="flex items-center gap-1.5 mb-3">
-              <Info className="w-3.5 h-3.5 text-[hsl(var(--primary))]" />
+              <Info className="w-3.5 h-3.5 text-primary" />
               <span className="text-sm font-semibold">Order Preview</span>
             </div>
 
@@ -341,14 +341,14 @@ export default function CreateChallenge() {
                 <span className="text-sm text-muted-foreground">You put in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Opponent puts in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
@@ -358,7 +358,7 @@ export default function CreateChallenge() {
                 <span className="text-sm text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -371,9 +371,9 @@ export default function CreateChallenge() {
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Winner takes</span>
+                <span className="text-sm font-medium text-success">Winner takes</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-preview-payout">
+                  <span className="text-sm font-mono font-bold text-success" data-testid="text-preview-payout">
                     +{preview.profit.toFixed(6)} ETH
                   </span>
                   <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70 ml-1">(${preview.profitUsd.toFixed(2)})</span>
@@ -383,7 +383,7 @@ export default function CreateChallenge() {
             </div>
 
             <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center justify-between text-xs font-medium text-[hsl(var(--primary))]">
+              <div className="flex items-center justify-between text-xs font-medium text-primary">
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
@@ -399,14 +399,14 @@ export default function CreateChallenge() {
         )}
 
         {connected && gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-challenge">
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-challenge">
             <Fuel className="w-3 h-3" />
             <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
-            <span className="text-emerald-600 dark:text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
+            <span className="text-success">(${gasEstimate.gasUsd.toFixed(4)})</span>
           </div>
         )}
         {connected && estimatingGas && !gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground">
             <Loader2 className="w-3 h-3 animate-spin" />
             <span>Estimating gas...</span>
           </div>
@@ -449,12 +449,12 @@ export default function CreateChallenge() {
         />
 
         {(lastChallengeId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="challenge-created-success">
+          <div className="mt-3 p-3 rounded-md border border-success/30 bg-success/5 space-y-3" data-testid="challenge-created-success">
             {lastChallengeId && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Your challenge is live!</p>
+                    <p className="text-xs text-success font-medium">Your challenge is live!</p>
                     <p className="text-sm font-mono mt-0.5">Challenge #{lastChallengeId}</p>
                   </div>
                 </div>
@@ -500,7 +500,7 @@ export default function CreateChallenge() {
                     onCopyAction();
                     toast({ title: 'Copied', description: 'Transaction hash copied' });
                   }}
-                  className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
+                  className="text-2xs font-mono text-muted-foreground truncate flex-1 text-left"
                 >
                   TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
                 </button>
@@ -508,7 +508,7 @@ export default function CreateChallenge() {
                   href={`${explorerUrl}/tx/${lastTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[hsl(var(--primary))] flex-shrink-0"
+                  className="text-primary flex-shrink-0"
                   data-testid="link-tx-explorer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
