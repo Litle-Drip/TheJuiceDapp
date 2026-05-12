@@ -442,5 +442,16 @@ contract TheJuice is Ownable, ReentrancyGuard {
         require(ok, "Transfer failed");
     }
 
+    /// @notice Rescue ETH accidentally sent to the contract outside of normal functions.
+    /// Only withdraws the surplus balance not accounted for by active bets or accumulated fees.
+    function rescueETH(address to) external onlyOwner nonReentrant {
+        require(to != address(0), "Zero address");
+        uint256 surplus = address(this).balance - accumulatedFees;
+        require(surplus > 0, "No surplus");
+
+        (bool ok, ) = to.call{value: surplus}("");
+        require(ok, "Transfer failed");
+    }
+
     receive() external payable {}
 }
