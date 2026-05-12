@@ -292,7 +292,7 @@ export default function Trending() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       {isJoinable && (
-                        <Badge variant="outline" className="text-2xs text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30">
+                        <Badge variant="outline" className="text-2xs text-success border-success/30">
                           Open
                         </Badge>
                       )}
@@ -315,16 +315,16 @@ export default function Trending() {
                     <div>
                       <span className="text-muted-foreground">Total pot: </span>
                       <span className="font-mono font-medium text-foreground">{bet.totalPotEth.toFixed(6)} ETH</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
+                      <span className="text-success ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
                     </div>
                     {bet.type === 'offer' && bet.oddsBps && (
                       <div className="flex items-center gap-1">
                         {bet.sideYes ? (
-                          <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                          <TrendingUp className="w-3 h-3 text-success" />
                         ) : (
-                          <TrendingDown className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                          <TrendingDown className="w-3 h-3 text-danger" />
                         )}
-                        <span className={`font-mono ${bet.sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        <span className={`font-mono ${bet.sideYes ? 'text-success' : 'text-danger'}`}>
                           {Math.round(bet.oddsBps / 100)}%
                         </span>
                       </div>

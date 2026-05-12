@@ -545,17 +545,17 @@ export default function MyBets() {
                             <div className="flex items-center gap-3">
                               <span className="text-muted-foreground">
                                 Stake: <span className="font-mono text-foreground">{bet.stakeEth.toFixed(6)} ETH</span>
-                                <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
+                                <span className="text-success ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
                               </span>
                             </div>
                             {bet.type === 'offer' && bet.oddsBps && (
                               <div className="flex items-center gap-1">
                                 {bet.sideYes ? (
-                                  <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  <TrendingUp className="w-3 h-3 text-success" />
                                 ) : (
-                                  <TrendingDown className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                                  <TrendingDown className="w-3 h-3 text-danger" />
                                 )}
-                                <span className={`font-mono ${bet.sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                <span className={`font-mono ${bet.sideYes ? 'text-success' : 'text-danger'}`}>
                                   {bet.sideYes ? 'YES' : 'NO'} {Math.round(bet.oddsBps / 100)}%
                                 </span>
                               </div>
@@ -739,9 +739,9 @@ export default function MyBets() {
                         <Card className="p-4 text-center">
                           <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Record</p>
                           <p className="text-2xl font-bold">
-                            <span className="text-emerald-600 dark:text-emerald-400">{winCount}</span>
+                            <span className="text-success">{winCount}</span>
                             <span className="text-muted-foreground mx-1">-</span>
-                            <span className="text-rose-600 dark:text-rose-400">{lossCount}</span>
+                            <span className="text-danger">{lossCount}</span>
                             <span className="text-muted-foreground mx-1">-</span>
                             <span className="text-muted-foreground">{draws}</span>
                           </p>
@@ -754,21 +754,21 @@ export default function MyBets() {
                           <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Wagered</p>
                           <p className="text-sm font-bold font-mono">{totalWagered.toFixed(4)}</p>
                           <p className="text-2xs text-muted-foreground">ETH</p>
-                          <p className="text-2xs text-emerald-600 dark:text-emerald-400">${(totalWagered * ethUsd).toFixed(2)}</p>
+                          <p className="text-2xs text-success">${(totalWagered * ethUsd).toFixed(2)}</p>
                         </Card>
                         <Card className="p-3 text-center">
                           <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Won</p>
-                          <p className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">{totalWon.toFixed(4)}</p>
+                          <p className="text-sm font-bold font-mono text-success">{totalWon.toFixed(4)}</p>
                           <p className="text-2xs text-muted-foreground">ETH</p>
-                          <p className="text-2xs text-emerald-600 dark:text-emerald-400">${(totalWon * ethUsd).toFixed(2)}</p>
+                          <p className="text-2xs text-success">${(totalWon * ethUsd).toFixed(2)}</p>
                         </Card>
                         <Card className="p-3 text-center">
                           <p className="text-2xs text-muted-foreground uppercase tracking-wider mb-1">Net P/L</p>
-                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} data-testid="text-net-pl">
+                          <p className={`text-sm font-bold font-mono ${netPL >= 0 ? 'text-success' : 'text-danger'}`} data-testid="text-net-pl">
                             {netPL >= 0 ? '+' : ''}{netPL.toFixed(4)}
                           </p>
                           <p className="text-2xs text-muted-foreground">ETH</p>
-                          <p className={`text-2xs ${netPL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                          <p className={`text-2xs ${netPL >= 0 ? 'text-success' : 'text-danger'}`}>
                             {netPL >= 0 ? '+' : ''}${(netPL * ethUsd).toFixed(2)}
                           </p>
                         </Card>
@@ -780,11 +780,11 @@ export default function MyBets() {
                             <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                             <p className="text-2xs text-muted-foreground uppercase tracking-wider">Biggest Win</p>
                           </div>
-                          <p className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                          <p className="text-sm font-bold font-mono text-success">
                             {biggestWin > 0 ? `${biggestWin.toFixed(4)} ETH` : '—'}
                           </p>
                           {biggestWin > 0 && (
-                            <p className="text-2xs text-emerald-600 dark:text-emerald-400">${(biggestWin * ethUsd).toFixed(2)}</p>
+                            <p className="text-2xs text-success">${(biggestWin * ethUsd).toFixed(2)}</p>
                           )}
                         </Card>
                         <Card className="p-3">
@@ -792,7 +792,7 @@ export default function MyBets() {
                             <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                             <p className="text-2xs text-muted-foreground uppercase tracking-wider">Streak</p>
                           </div>
-                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-emerald-600 dark:text-emerald-400' : streakType === 'L' ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`}>
+                          <p className={`text-sm font-bold ${streakType === 'W' ? 'text-success' : streakType === 'L' ? 'text-danger' : 'text-muted-foreground'}`}>
                             {currentStreak > 0 ? `${currentStreak}${streakType}` : '—'}
                           </p>
                           <p className="text-2xs text-muted-foreground">

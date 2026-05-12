@@ -37,6 +37,10 @@
   --destructive-foreground: 0 0% 98%;
   --input: 220 6% 88%;
   --ring: 207 35% 48%;
+  --success: 152 69% 31%;
+  --success-foreground: 152 69% 41%;
+  --danger: 347 77% 50%;
+  --danger-foreground: 347 77% 60%;
   --chart-1: 207 35% 48%;
   --chart-2: 340 60% 50%;
   --chart-3: 45 80% 50%;
@@ -106,6 +110,10 @@
   --accent-foreground: 220 4% 88%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 98%;
+  --success: 152 56% 52%;
+  --success-foreground: 152 56% 52%;
+  --danger: 347 77% 65%;
+  --danger-foreground: 347 77% 65%;
   --input: 220 3% 25%;
   --ring: 207 30% 62%;
   --chart-1: 207 35% 60%;

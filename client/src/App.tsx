@@ -151,7 +151,7 @@ function AppSidebar() {
                         <span className="text-2xs text-muted-foreground leading-tight">{item.desc}</span>
                       </div>
                       {item.title === 'My Bets' && notificationCount > 0 && (
-                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-emerald-500 text-white border-0" data-testid="badge-notification-count">
+                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-success text-white border-0" data-testid="badge-notification-count">
                           {notificationCount}
                         </Badge>
                       )}
@@ -186,7 +186,7 @@ function VerificationBadge() {
         href={`${explorerBase}/address/${contractAddr}#code`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-2xs text-emerald-600/80 dark:text-emerald-400/80 font-medium"
+        className="flex items-center gap-1.5 text-2xs text-success/80 font-medium"
         data-testid="link-verified-contract"
       >
         <ShieldCheck className="w-3.5 h-3.5" />

@@ -227,15 +227,15 @@ export default function Markets() {
               onClick={() => setSideYes(true)}
               className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all duration-300 ${
                 sideYes
-                  ? 'border-emerald-500/60 bg-emerald-500/10'
+                  ? 'border-success/60 bg-success/10'
                   : 'border-border bg-card'
               }`}
               style={{ opacity: sideYes ? 1 : 0.5 + (yesPercent / 200) }}
             >
-              <TrendingUp className={`w-5 h-5 transition-colors duration-300 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold transition-colors duration-300 ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>YES</span>
+              <TrendingUp className={`w-5 h-5 transition-colors duration-300 ${sideYes ? 'text-success' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold transition-colors duration-300 ${sideYes ? 'text-success' : 'text-foreground'}`}>YES</span>
               <span
-                className={`text-base font-mono font-semibold transition-all duration-300 ${sideYes ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-muted-foreground'}`}
+                className={`text-base font-mono font-semibold transition-all duration-300 ${sideYes ? 'text-success/80' : 'text-muted-foreground'}`}
                 style={{ transform: `scale(${0.9 + (yesPercent / 500)})` }}
               >{yesPriceDisplay}</span>
             </button>
@@ -244,15 +244,15 @@ export default function Markets() {
               onClick={() => setSideYes(false)}
               className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all duration-300 ${
                 !sideYes
-                  ? 'border-rose-500/60 bg-rose-500/10'
+                  ? 'border-danger/60 bg-danger/10'
                   : 'border-border bg-card'
               }`}
               style={{ opacity: !sideYes ? 1 : 0.5 + (noPercent / 200) }}
             >
-              <TrendingDown className={`w-5 h-5 transition-colors duration-300 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold transition-colors duration-300 ${!sideYes ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>NO</span>
+              <TrendingDown className={`w-5 h-5 transition-colors duration-300 ${!sideYes ? 'text-danger' : 'text-muted-foreground'}`} />
+              <span className={`text-lg font-bold transition-colors duration-300 ${!sideYes ? 'text-danger' : 'text-foreground'}`}>NO</span>
               <span
-                className={`text-base font-mono font-semibold transition-all duration-300 ${!sideYes ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-muted-foreground'}`}
+                className={`text-base font-mono font-semibold transition-all duration-300 ${!sideYes ? 'text-danger/80' : 'text-muted-foreground'}`}
                 style={{ transform: `scale(${0.9 + (noPercent / 500)})` }}
               >{noPriceDisplay}</span>
             </button>
@@ -314,7 +314,7 @@ export default function Markets() {
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
               placeholder="0.01"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
@@ -435,7 +435,7 @@ export default function Markets() {
                 <p className="text-sm font-medium leading-snug" data-testid="text-preview-question">&ldquo;{question.trim()}&rdquo;</p>
                 <p className="text-xs mt-1.5">
                   <span className="text-muted-foreground">Your position: </span>
-                  <span className={`font-bold ${sideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  <span className={`font-bold ${sideYes ? 'text-success' : 'text-danger'}`}>
                     {sideYes ? 'YES' : 'NO'} @ {(oddsBps / 100).toFixed(0)}%
                   </span>
                 </p>
@@ -447,14 +447,14 @@ export default function Markets() {
                 <span className="text-sm text-muted-foreground">You put in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Opponent puts in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
@@ -464,7 +464,7 @@ export default function Markets() {
                 <span className="text-sm text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -477,9 +477,9 @@ export default function Markets() {
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">You win</span>
+                <span className="text-sm font-medium text-success">You win</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-preview-payout">
+                  <span className="text-sm font-mono font-bold text-success" data-testid="text-preview-payout">
                     +{preview.yourProfit.toFixed(6)} ETH
                   </span>
                   <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70 ml-1">(${preview.yourProfitUsd.toFixed(2)})</span>
@@ -487,9 +487,9 @@ export default function Markets() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-rose-600 dark:text-rose-400">Opponent wins</span>
+                <span className="text-sm font-medium text-danger">Opponent wins</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-rose-600 dark:text-rose-400" data-testid="text-preview-opponent-payout">
+                  <span className="text-sm font-mono font-bold text-danger" data-testid="text-preview-opponent-payout">
                     +{preview.opponentProfit.toFixed(6)} ETH
                   </span>
                   <span className="text-xs text-rose-600/70 dark:text-rose-400/70 ml-1">(${preview.opponentProfitUsd.toFixed(2)})</span>
@@ -518,7 +518,7 @@ export default function Markets() {
           <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-offer">
             <Fuel className="w-3 h-3" />
             <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
-            <span className="text-emerald-600 dark:text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
+            <span className="text-success">(${gasEstimate.gasUsd.toFixed(4)})</span>
           </div>
         )}
         {connected && estimatingGas && !gasEstimate && (
@@ -566,12 +566,12 @@ export default function Markets() {
         />
 
         {(lastOfferId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="offer-created-success">
+          <div className="mt-3 p-3 rounded-md border border-success/30 bg-success/5 space-y-3" data-testid="offer-created-success">
             {lastOfferId && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Your bet is live!</p>
+                    <p className="text-xs text-success font-medium">Your bet is live!</p>
                     <p className="text-sm font-mono mt-0.5">Bet #{lastOfferId}</p>
                   </div>
                 </div>

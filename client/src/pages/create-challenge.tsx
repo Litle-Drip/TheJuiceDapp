@@ -214,7 +214,7 @@ export default function CreateChallenge() {
               className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
               placeholder="0.01"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-emerald-600 dark:text-emerald-400 font-mono font-medium" data-testid="text-stake-usd">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success font-mono font-medium" data-testid="text-stake-usd">
               {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
             </span>
           </div>
@@ -341,14 +341,14 @@ export default function CreateChallenge() {
                 <span className="text-sm text-muted-foreground">You put in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
                   {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Opponent puts in</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
                   {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
                 </span>
               </div>
 
@@ -358,7 +358,7 @@ export default function CreateChallenge() {
                 <span className="text-sm text-muted-foreground">Total pot</span>
                 <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
                   {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-emerald-600 dark:text-emerald-400 ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
+                  <span className="text-success ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -371,9 +371,9 @@ export default function CreateChallenge() {
               <div className="h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Winner takes</span>
+                <span className="text-sm font-medium text-success">Winner takes</span>
                 <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400" data-testid="text-preview-payout">
+                  <span className="text-sm font-mono font-bold text-success" data-testid="text-preview-payout">
                     +{preview.profit.toFixed(6)} ETH
                   </span>
                   <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70 ml-1">(${preview.profitUsd.toFixed(2)})</span>
@@ -402,7 +402,7 @@ export default function CreateChallenge() {
           <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-challenge">
             <Fuel className="w-3 h-3" />
             <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
-            <span className="text-emerald-600 dark:text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
+            <span className="text-success">(${gasEstimate.gasUsd.toFixed(4)})</span>
           </div>
         )}
         {connected && estimatingGas && !gasEstimate && (
@@ -449,12 +449,12 @@ export default function CreateChallenge() {
         />
 
         {(lastChallengeId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 space-y-3" data-testid="challenge-created-success">
+          <div className="mt-3 p-3 rounded-md border border-success/30 bg-success/5 space-y-3" data-testid="challenge-created-success">
             {lastChallengeId && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Your challenge is live!</p>
+                    <p className="text-xs text-success font-medium">Your challenge is live!</p>
                     <p className="text-sm font-mono mt-0.5">Challenge #{lastChallengeId}</p>
                   </div>
                 </div>

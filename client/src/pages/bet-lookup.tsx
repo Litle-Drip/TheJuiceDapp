@@ -44,7 +44,7 @@ function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promis
     <div className="flex items-center justify-center gap-1.5 text-2xs text-muted-foreground py-1" data-testid="gas-estimate">
       <Fuel className="w-3 h-3" />
       <span>Est. gas: {gas.gasEth.toFixed(8)} ETH</span>
-      <span className="text-emerald-600 dark:text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
+      <span className="text-success">(${gas.gasUsd.toFixed(4)})</span>
     </div>
   );
 }
@@ -677,7 +677,7 @@ function ChallengeView({
               <div className="h-px bg-border" />
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Winner</span>
-                <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30" data-testid="badge-winner">
+                <Badge variant="outline" className="text-success border-success/30" data-testid="badge-winner">
                   <Trophy className="w-3 h-3 mr-1" />
                   {challenge.challengerVote === 1 ? 'Creator' : 'Opponent'}
                 </Badge>
@@ -748,19 +748,19 @@ function ChallengeView({
               data-testid="button-vote-won"
               onClick={() => confirmVote(true)}
               disabled={!!actionLoading}
-              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-success/40 bg-success/10 transition-all hover:bg-success/20 hover:border-success/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: I Won' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-600 dark:text-emerald-400" /> : <ThumbsUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />}
-              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">I Won</span>
+              {actionLoading === 'Vote: I Won' ? <Loader2 className="w-6 h-6 animate-spin text-success" /> : <ThumbsUp className="w-6 h-6 text-success" />}
+              <span className="text-sm font-bold text-success">I Won</span>
             </button>
             <button
               data-testid="button-vote-lost"
               onClick={() => confirmVote(false)}
               disabled={!!actionLoading}
-              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-danger/40 bg-danger/10 transition-all hover:bg-danger/20 hover:border-danger/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400" /> : <ThumbsDown className="w-6 h-6 text-rose-600 dark:text-rose-400" />}
-              <span className="text-sm font-bold text-rose-600 dark:text-rose-400">Opponent Won</span>
+              {actionLoading === 'Vote: Opponent Won' ? <Loader2 className="w-6 h-6 animate-spin text-danger" /> : <ThumbsDown className="w-6 h-6 text-danger" />}
+              <span className="text-sm font-bold text-danger">Opponent Won</span>
             </button>
           </div>
         </div>
@@ -1001,7 +1001,7 @@ function OfferView({
             <Badge variant={offer.state === 0 ? 'default' : offer.state === 1 ? 'secondary' : 'outline'}>
               {OFFER_STATES[offer.state] || `State ${offer.state}`}
             </Badge>
-            {offer.paid && <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30">Paid</Badge>}
+            {offer.paid && <Badge variant="outline" className="text-success border-success/30">Paid</Badge>}
           </div>
         </div>
 
@@ -1014,7 +1014,7 @@ function OfferView({
 
         <div className="flex items-center justify-center gap-4 mb-3 py-2">
           <div className="text-center">
-            <div className={`text-2xl font-bold ${offer.creatorSideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            <div className={`text-2xl font-bold ${offer.creatorSideYes ? 'text-success' : 'text-danger'}`}>
               {offer.creatorSideYes ? 'YES' : 'NO'}
             </div>
             <div className="text-2xs text-muted-foreground">Creator side</div>
@@ -1026,7 +1026,7 @@ function OfferView({
             <div className="text-2xs text-muted-foreground">YES odds</div>
           </div>
           <div className="text-center">
-            <div className={`text-2xl font-bold ${!offer.creatorSideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            <div className={`text-2xl font-bold ${!offer.creatorSideYes ? 'text-success' : 'text-danger'}`}>
               {!offer.creatorSideYes ? 'YES' : 'NO'}
             </div>
             <div className="text-2xs text-muted-foreground">Taker side</div>
@@ -1092,7 +1092,7 @@ function OfferView({
                 <span className="text-muted-foreground">Winning position</span>
                 <Badge
                   variant="outline"
-                  className={`${offer.creatorVote === 1 ? 'text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30' : 'text-rose-600 dark:text-rose-400 border-rose-600/30 dark:border-rose-400/30'}`}
+                  className={`${offer.creatorVote === 1 ? 'text-success border-success/30' : 'text-danger border-rose-600/30 dark:border-rose-400/30'}`}
                   data-testid="badge-winner"
                 >
                   <Trophy className="w-3 h-3 mr-1" />
@@ -1165,19 +1165,19 @@ function OfferView({
               data-testid="button-vote-yes"
               onClick={() => confirmVote(true)}
               disabled={!!actionLoading}
-              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/60 disabled:opacity-50"
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-success/40 bg-success/10 transition-all hover:bg-success/20 hover:border-success/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: YES' ? <Loader2 className="w-6 h-6 animate-spin text-emerald-600 dark:text-emerald-400" /> : <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />}
-              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">YES Won</span>
+              {actionLoading === 'Vote: YES' ? <Loader2 className="w-6 h-6 animate-spin text-success" /> : <TrendingUp className="w-6 h-6 text-success" />}
+              <span className="text-sm font-bold text-success">YES Won</span>
             </button>
             <button
               data-testid="button-vote-no"
               onClick={() => confirmVote(false)}
               disabled={!!actionLoading}
-              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-rose-500/40 bg-rose-500/10 transition-all hover:bg-rose-500/20 hover:border-rose-500/60 disabled:opacity-50"
+              className="flex flex-col items-center gap-1.5 p-4 rounded-md border-2 border-danger/40 bg-danger/10 transition-all hover:bg-danger/20 hover:border-danger/60 disabled:opacity-50"
             >
-              {actionLoading === 'Vote: NO' ? <Loader2 className="w-6 h-6 animate-spin text-rose-600 dark:text-rose-400" /> : <TrendingDown className="w-6 h-6 text-rose-600 dark:text-rose-400" />}
-              <span className="text-sm font-bold text-rose-600 dark:text-rose-400">NO Won</span>
+              {actionLoading === 'Vote: NO' ? <Loader2 className="w-6 h-6 animate-spin text-danger" /> : <TrendingDown className="w-6 h-6 text-danger" />}
+              <span className="text-sm font-bold text-danger">NO Won</span>
             </button>
           </div>
         </div>
