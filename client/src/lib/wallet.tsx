@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { ethers } from 'ethers';
 import { NETWORKS, ABI_V1, ABI_V2, type NetworkKey } from './contracts';
+import { logError } from './logger';
 
 interface WalletState {
   provider: ethers.BrowserProvider | null;
@@ -61,7 +62,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           setState(s => ({ ...s, ethUsd: data.ethereum.usd }));
           return;
         }
-      } catch {}
+      } catch (e) {
+        logError('wallet/fetchPrice', e);
+      }
       try {
         const res = await fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot');
         const data = await res.json();
@@ -69,7 +72,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (usd && usd > 0) {
           setState(s => ({ ...s, ethUsd: usd }));
         }
-      } catch {}
+      } catch (e) {
+        logError('wallet/fetchPrice-fallback', e);
+      }
     };
     fetchPrice();
     const iv = setInterval(fetchPrice, 60000);
@@ -148,7 +153,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const rpcProvider = new ethers.JsonRpcProvider(net.rpc);
         const c = new ethers.Contract(net.contract, ABI_V1, rpcProvider);
         feeBps = Number(await c.protocolFeeBps());
-      } catch {}
+      } catch (e) {
+        logError('wallet/protocolFeeBps', e);
+      }
 
       setState(s => ({
         ...s,
