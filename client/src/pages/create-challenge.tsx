@@ -167,15 +167,15 @@ export default function CreateChallenge() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto" data-testid="create-challenge-page">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Create Challenge</h1>
-        <p className="text-sm text-muted-foreground mt-1">Both players bet the same amount. Winner takes all (minus a small fee).</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Create Challenge</h1>
+        <p className="page-subtitle">Both players bet the same amount. Winner takes all (minus a small fee).</p>
       </div>
 
-      <Card className="p-5">
-        <div className="flex items-center justify-center gap-2 mb-4">
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-center justify-center gap-2 mb-5">
           <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
-          <span className="text-sm font-semibold">New Challenge</span>
+          <span className="text-sm font-semibold tracking-wide">New Challenge</span>
         </div>
 
         <div className="mb-5">

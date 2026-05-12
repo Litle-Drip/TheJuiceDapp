@@ -356,12 +356,12 @@ export default function BetLookup() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto" data-testid="bet-lookup-page">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Bet Lookup</h1>
-        <p className="text-sm text-muted-foreground mt-1">Enter a bet ID to join, vote on the outcome, or check its status.</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Bet Lookup</h1>
+        <p className="page-subtitle">Enter a bet ID to join, vote on the outcome, or check its status.</p>
       </div>
 
-      <Card className="p-5">
+      <Card className="p-5 sm:p-6">
         <div className="flex gap-2 mb-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

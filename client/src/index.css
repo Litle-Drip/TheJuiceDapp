@@ -146,6 +146,21 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.35);
+  }
 }
 
 @layer utilities {
@@ -216,6 +231,21 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+}
+
+@layer utilities {
+  .page-section {
+    @apply text-center mb-8;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1.5 max-w-md mx-auto leading-relaxed;
+  }
+  .info-card-header {
+    @apply flex items-center gap-2 mb-3 pb-2.5 border-b border-border/50;
   }
 }
 

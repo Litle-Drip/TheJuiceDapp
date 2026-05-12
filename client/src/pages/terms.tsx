@@ -13,11 +13,11 @@ export default function Terms() {
           </Button>
         </Link>
       </div>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Terms of Use</h1>
-        <p className="text-xs text-muted-foreground mt-1">Last updated: 2/14/2026</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Terms of Use</h1>
+        <p className="text-xs text-muted-foreground mt-1.5">Last updated: 2/14/2026</p>
       </div>
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6">
         <div className="space-y-5 text-sm leading-relaxed text-muted-foreground">
           <p>These Terms of Use ("Terms") govern your access to and use of the websites, applications, and smart contracts operated by Edison Labs LLC, including thejuiceapp.io and any related interfaces (collectively, the "Service").</p>
           <p>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.</p>

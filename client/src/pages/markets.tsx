@@ -186,15 +186,15 @@ export default function Markets() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto" data-testid="markets-page">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Markets</h1>
-        <p className="text-sm text-muted-foreground mt-1">Create a bet with custom odds. Your opponent pays more or less depending on how likely the outcome is.</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Markets</h1>
+        <p className="page-subtitle">Create a bet with custom odds. Your opponent pays more or less depending on how likely the outcome is.</p>
       </div>
 
-      <Card className="p-5">
-        <div className="flex items-center justify-center gap-2 mb-4">
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-center justify-center gap-2 mb-5">
           <Zap className="w-4 h-4 text-[hsl(var(--primary))]" />
-          <span className="text-sm font-semibold">New Market Offer</span>
+          <span className="text-sm font-semibold tracking-wide">New Market Offer</span>
         </div>
 
         <div className="mb-5">
@@ -642,12 +642,12 @@ export default function Markets() {
         )}
       </Card>
 
-      <Card className="p-4">
-        <div className="flex items-center gap-1.5 mb-3">
-          <Info className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs font-medium text-muted-foreground">How Market Odds Work</span>
+      <Card className="p-5 sm:p-6">
+        <div className="info-card-header">
+          <Info className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-muted-foreground">How Market Odds Work</span>
         </div>
-        <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+        <div className="space-y-2.5 text-xs text-muted-foreground leading-relaxed">
           <p>Market offers use <span className="text-foreground font-medium">asymmetric stakes</span> based on implied probability, just like Kalshi prediction markets.</p>
           <p>If you set YES at <span className="text-foreground font-medium">70%</span>, you risk more for a smaller return. Your opponent gets a better payout if they're right.</p>
           <p>Both sides vote on the outcome. If votes match, the winner is paid automatically. If they disagree, funds are refunded after the deadline.</p>

@@ -13,10 +13,10 @@ export default function About() {
           </Button>
         </Link>
       </div>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">About Edison Labs</h1>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">About Edison Labs</h1>
       </div>
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6">
         <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
           <p>
             Edison Labs LLC develops software and digital tools, including blockchain-based applications, digital asset operations, and experimental technology projects. The studio focuses on building secure, user-friendly interfaces that make on-chain experiences more approachable, transparent, and fun.

@@ -178,9 +178,9 @@ export default function Trending() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto" data-testid="trending-page">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Trending</h1>
-        <p className="text-sm text-muted-foreground mt-1">See what others are betting on. Jump in and take the other side.</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Trending</h1>
+        <p className="page-subtitle">See what others are betting on. Jump in and take the other side.</p>
       </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap">

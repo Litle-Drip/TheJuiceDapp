@@ -13,11 +13,11 @@ export default function Privacy() {
           </Button>
         </Link>
       </div>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Privacy Policy</h1>
-        <p className="text-xs text-muted-foreground mt-1">Last updated: 12/4/2025</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Privacy Policy</h1>
+        <p className="text-xs text-muted-foreground mt-1.5">Last updated: 12/4/2025</p>
       </div>
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6">
         <div className="space-y-5 text-sm leading-relaxed text-muted-foreground">
           <p>This Privacy Policy explains how Edison Labs LLC ("Edison Labs", "we", "us") collects, uses, and protects information in connection with thejuiceapp.io and related services (the "Service").</p>
 
