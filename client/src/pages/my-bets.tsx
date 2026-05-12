@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { ABI_V1, ABI_V2, NETWORKS, CHALLENGE_STATES, OFFER_STATES } from '@/lib/contracts';
+import { stateColorClass } from '@/lib/chain-utils';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import {
@@ -47,15 +48,7 @@ interface TxEntry {
 
 
 
-function stateColor(state: number): string {
-  switch (state) {
-    case 0: return 'text-blue-600 dark:text-blue-400 border-blue-600/30 dark:border-blue-400/30';
-    case 1: return 'text-amber-600 dark:text-amber-400 border-amber-600/30 dark:border-amber-400/30';
-    case 2: return 'text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30';
-    case 3: return 'text-muted-foreground border-border';
-    default: return 'text-muted-foreground border-border';
-  }
-}
+
 
 export default function MyBets() {
   const { connected, connect, address, ethUsd, network: networkKey, explorerUrl, getV1Contract, getV2Contract, connecting } = useWallet();
@@ -542,7 +535,7 @@ export default function MyBets() {
                                   Expiring
                                 </Badge>
                               )}
-                              <Badge variant="outline" className={`text-[10px] ${stateColor(bet.state)}`}>
+                              <Badge variant="outline" className={`text-[10px] ${stateColorClass(bet.state)}`}>
                                 {stateLabels[bet.state] || `State ${bet.state}`}
                               </Badge>
                             </div>
