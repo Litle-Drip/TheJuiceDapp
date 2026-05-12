@@ -268,7 +268,7 @@ export default function Markets() {
                   className="absolute -top-8 transform -translate-x-1/2 pointer-events-none z-10"
                   style={{ left: `${((oddsBps - 500) / 9000) * 100}%` }}
                 >
-                  <div className="bg-foreground text-background text-[10px] font-mono font-bold px-2 py-1 rounded-md whitespace-nowrap">
+                  <div className="bg-foreground text-background text-2xs font-mono font-bold px-2 py-1 rounded-md whitespace-nowrap">
                     {yesPercent}%
                   </div>
                 </div>
@@ -292,9 +292,9 @@ export default function Markets() {
               />
             </div>
             <div className="flex justify-between mt-1.5">
-              <span className="text-[10px] text-muted-foreground">5%</span>
-              <span className="text-[10px] text-muted-foreground">50%</span>
-              <span className="text-[10px] text-muted-foreground">95%</span>
+              <span className="text-2xs text-muted-foreground">5%</span>
+              <span className="text-2xs text-muted-foreground">50%</span>
+              <span className="text-2xs text-muted-foreground">95%</span>
             </div>
           </div>
 
@@ -515,14 +515,14 @@ export default function Markets() {
         )}
 
         {connected && gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-offer">
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-offer">
             <Fuel className="w-3 h-3" />
             <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
             <span className="text-emerald-600 dark:text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
           </div>
         )}
         {connected && estimatingGas && !gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground">
             <Loader2 className="w-3 h-3 animate-spin" />
             <span>Estimating gas...</span>
           </div>
@@ -617,7 +617,7 @@ export default function Markets() {
                     onCopyAction();
                     toast({ title: 'Copied', description: 'Transaction hash copied' });
                   }}
-                  className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
+                  className="text-2xs font-mono text-muted-foreground truncate flex-1 text-left"
                 >
                   TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
                 </button>

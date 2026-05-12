@@ -399,14 +399,14 @@ export default function CreateChallenge() {
         )}
 
         {connected && gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground" data-testid="gas-estimate-challenge">
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-challenge">
             <Fuel className="w-3 h-3" />
             <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
             <span className="text-emerald-600 dark:text-emerald-400">(${gasEstimate.gasUsd.toFixed(4)})</span>
           </div>
         )}
         {connected && estimatingGas && !gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground">
             <Loader2 className="w-3 h-3 animate-spin" />
             <span>Estimating gas...</span>
           </div>
@@ -500,7 +500,7 @@ export default function CreateChallenge() {
                     onCopyAction();
                     toast({ title: 'Copied', description: 'Transaction hash copied' });
                   }}
-                  className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
+                  className="text-2xs font-mono text-muted-foreground truncate flex-1 text-left"
                 >
                   TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
                 </button>

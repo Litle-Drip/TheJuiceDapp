@@ -72,13 +72,13 @@ export function ConfirmTxDialog({ open, onClose, onConfirm, title, lines, confir
         </div>
 
         {gas && (
-          <div className="flex items-center justify-center gap-1.5 mb-4 text-[10px] text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 mb-4 text-2xs text-muted-foreground">
             <span>Est. gas: {gas.gasEth.toFixed(6)} ETH</span>
             <span className="text-emerald-600 dark:text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
           </div>
         )}
 
-        <p className="text-[10px] text-muted-foreground text-center mb-4">
+        <p className="text-2xs text-muted-foreground text-center mb-4">
           This will send a transaction to the blockchain. Make sure you've reviewed the details above.
         </p>
 

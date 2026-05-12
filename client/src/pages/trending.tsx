@@ -286,18 +286,18 @@ export default function Trending() {
                       >
                         <Copy className="w-3 h-3" />
                       </Button>
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary" className="text-2xs">
                         {bet.type === 'challenge' ? 'Challenge' : 'Offer'}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1.5">
                       {isJoinable && (
-                        <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30">
+                        <Badge variant="outline" className="text-2xs text-emerald-600 dark:text-emerald-400 border-emerald-600/30 dark:border-emerald-400/30">
                           Open
                         </Badge>
                       )}
                       {!isJoinable && (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                        <Badge variant="outline" className="text-2xs text-muted-foreground">
                           {stateLabels[bet.state]}
                         </Badge>
                       )}
@@ -331,7 +331,7 @@ export default function Trending() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-1.5 text-[10px] text-muted-foreground flex-wrap">
+                  <div className="flex items-center justify-between gap-2 mt-1.5 text-2xs text-muted-foreground flex-wrap">
                     <span className="truncate min-w-0">by <CreatorName address={bet.creator} /></span>
                     <div className="flex items-center gap-2 flex-wrap">
                       {isJoinable && timeLeft > 0 && (
@@ -344,7 +344,7 @@ export default function Trending() {
                         variant="ghost"
                         size="sm"
                         data-testid="button-create-similar"
-                        className="text-[10px]"
+                        className="text-2xs"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -380,7 +380,7 @@ export default function Trending() {
 
       {loaded && bets.length > 0 && (
         <div className="text-center">
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             {filteredBets.length} of {bets.length} bets shown on {NETWORKS[networkKey].chainName}
           </p>
         </div>

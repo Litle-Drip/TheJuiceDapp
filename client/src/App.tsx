@@ -69,7 +69,7 @@ function WalletButton() {
     <div className="space-y-2 p-2">
       {connected ? (
         <div className="flex items-center justify-between gap-2">
-          <Badge variant="outline" className="font-mono text-[10px]" data-testid="badge-address">
+          <Badge variant="outline" className="font-mono text-2xs" data-testid="badge-address">
             {shortAddress}
           </Badge>
           <a
@@ -126,7 +126,7 @@ function AppSidebar() {
             <img src={logoImg} alt="The Juice" className="w-9 h-9 rounded-lg shadow-sm" />
             <div>
               <div className="text-base font-bold tracking-tight leading-none">The Juice</div>
-              <div className="text-[10px] text-muted-foreground leading-none mt-1">P2P Betting on Base</div>
+              <div className="text-2xs text-muted-foreground leading-none mt-1">P2P Betting on Base</div>
             </div>
           </div>
         </Link>
@@ -148,7 +148,7 @@ function AppSidebar() {
                       <item.icon />
                       <div className="flex flex-col min-w-0">
                         <span className="text-sm leading-tight">{item.title}</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight">{item.desc}</span>
+                        <span className="text-2xs text-muted-foreground leading-tight">{item.desc}</span>
                       </div>
                       {item.title === 'My Bets' && notificationCount > 0 && (
                         <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-emerald-500 text-white border-0" data-testid="badge-notification-count">
@@ -186,7 +186,7 @@ function VerificationBadge() {
         href={`${explorerBase}/address/${contractAddr}#code`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-medium"
+        className="flex items-center gap-1.5 text-2xs text-emerald-600/80 dark:text-emerald-400/80 font-medium"
         data-testid="link-verified-contract"
       >
         <ShieldCheck className="w-3.5 h-3.5" />

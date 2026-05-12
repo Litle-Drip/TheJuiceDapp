@@ -33,7 +33,7 @@ function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promis
   if (!address) return null;
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground py-1">
+      <div className="flex items-center justify-center gap-1.5 text-2xs text-muted-foreground py-1">
         <Fuel className="w-3 h-3" />
         <span>Estimating gas...</span>
       </div>
@@ -41,7 +41,7 @@ function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promis
   }
   if (!gas) return null;
   return (
-    <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground py-1" data-testid="gas-estimate">
+    <div className="flex items-center justify-center gap-1.5 text-2xs text-muted-foreground py-1" data-testid="gas-estimate">
       <Fuel className="w-3 h-3" />
       <span>Est. gas: {gas.gasEth.toFixed(8)} ETH</span>
       <span className="text-emerald-600 dark:text-emerald-400">(${gas.gasUsd.toFixed(4)})</span>
@@ -424,7 +424,7 @@ export default function BetLookup() {
                   onCopyAction();
                   toast({ title: 'Copied', description: 'Transaction hash copied' });
                 }}
-                className="text-[10px] font-mono text-muted-foreground truncate flex-1 text-left"
+                className="text-2xs font-mono text-muted-foreground truncate flex-1 text-left"
               >
                 Last TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
               </button>
@@ -575,7 +575,7 @@ function ChallengeView({
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold">#{betId}</span>
-            <Badge variant="secondary" className="text-[10px]">Challenge</Badge>
+            <Badge variant="secondary" className="text-2xs">Challenge</Badge>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -642,19 +642,19 @@ function ChallengeView({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Accept by</span>
-            <span className="font-mono text-[10px]">{new Date(challenge.joinDeadline * 1000).toLocaleString()}</span>
+            <span className="font-mono text-2xs">{new Date(challenge.joinDeadline * 1000).toLocaleString()}</span>
           </div>
           {challenge.state === 0 && !joinExpired && (
-            <div className="flex justify-end text-[10px]">
+            <div className="flex justify-end text-2xs">
               <Countdown deadline={challenge.joinDeadline} />
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Vote by</span>
-            <span className="font-mono text-[10px]">{new Date(challenge.resolveDeadline * 1000).toLocaleString()}</span>
+            <span className="font-mono text-2xs">{new Date(challenge.resolveDeadline * 1000).toLocaleString()}</span>
           </div>
           {challenge.state === 1 && !resolveExpired && (
-            <div className="flex justify-end text-[10px]">
+            <div className="flex justify-end text-2xs">
               <Countdown deadline={challenge.resolveDeadline} label="Vote closes in" />
             </div>
           )}
@@ -689,7 +689,7 @@ function ChallengeView({
                     href={`${explorerUrl}/tx/${payoutTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[10px] text-primary flex items-center gap-1"
+                    className="font-mono text-2xs text-primary flex items-center gap-1"
                     data-testid="link-payout-tx"
                   >
                     {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
@@ -724,7 +724,7 @@ function ChallengeView({
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
                 <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Your vote is needed</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   {theirVote !== 0
                     ? 'Your opponent has already voted. Submit your vote to proceed with resolution.'
                     : 'This bet is waiting for both players to vote on the outcome.'}
@@ -959,7 +959,7 @@ function OfferView({
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold">#{betId}</span>
-            <Badge variant="secondary" className="text-[10px]">Market Offer</Badge>
+            <Badge variant="secondary" className="text-2xs">Market Offer</Badge>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -1017,19 +1017,19 @@ function OfferView({
             <div className={`text-2xl font-bold ${offer.creatorSideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {offer.creatorSideYes ? 'YES' : 'NO'}
             </div>
-            <div className="text-[10px] text-muted-foreground">Creator side</div>
+            <div className="text-2xs text-muted-foreground">Creator side</div>
           </div>
           <div className="text-center px-4 border-l border-r border-border">
             <div className="text-2xl font-bold font-mono text-primary">
               {Math.round(offer.pBps / 100)}%
             </div>
-            <div className="text-[10px] text-muted-foreground">YES odds</div>
+            <div className="text-2xs text-muted-foreground">YES odds</div>
           </div>
           <div className="text-center">
             <div className={`text-2xl font-bold ${!offer.creatorSideYes ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {!offer.creatorSideYes ? 'YES' : 'NO'}
             </div>
-            <div className="text-[10px] text-muted-foreground">Taker side</div>
+            <div className="text-2xs text-muted-foreground">Taker side</div>
           </div>
         </div>
 
@@ -1059,19 +1059,19 @@ function OfferView({
           <div className="h-px bg-border" />
           <div className="flex justify-between">
             <span className="text-muted-foreground">Accept by</span>
-            <span className="font-mono text-[10px]">{new Date(offer.joinDeadline * 1000).toLocaleString()}</span>
+            <span className="font-mono text-2xs">{new Date(offer.joinDeadline * 1000).toLocaleString()}</span>
           </div>
           {offer.state === 0 && !joinExpired && (
-            <div className="flex justify-end text-[10px]">
+            <div className="flex justify-end text-2xs">
               <Countdown deadline={offer.joinDeadline} />
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Vote by</span>
-            <span className="font-mono text-[10px]">{new Date(offer.resolveDeadline * 1000).toLocaleString()}</span>
+            <span className="font-mono text-2xs">{new Date(offer.resolveDeadline * 1000).toLocaleString()}</span>
           </div>
           {offer.state === 1 && !resolveExpired && (
-            <div className="flex justify-end text-[10px]">
+            <div className="flex justify-end text-2xs">
               <Countdown deadline={offer.resolveDeadline} label="Vote closes in" />
             </div>
           )}
@@ -1106,7 +1106,7 @@ function OfferView({
                     href={`${explorerUrl}/tx/${payoutTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[10px] text-primary flex items-center gap-1"
+                    className="font-mono text-2xs text-primary flex items-center gap-1"
                     data-testid="link-payout-tx"
                   >
                     {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
@@ -1141,7 +1141,7 @@ function OfferView({
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
                 <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Your vote is needed</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   {theirVote !== 0
                     ? 'Your opponent has already voted. Submit your vote to proceed with resolution.'
                     : 'This bet is waiting for both players to vote on the outcome.'}

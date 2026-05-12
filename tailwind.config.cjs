@@ -80,6 +80,9 @@ module.exports = {
           offline: "rgb(156 163 175)",
         },
       },
+      fontSize: {
+        "2xs": ["10px", { lineHeight: "14px" }],
+      },
       fontFamily: {
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
