@@ -1,3 +1,8 @@
+const MAINNET_CONTRACT = import.meta.env.VITE_MAINNET_CONTRACT || '0x80BC4133BcCC0491ACdebf4d7375aeF75729671a';
+const MAINNET_V2_CONTRACT = import.meta.env.VITE_MAINNET_V2_CONTRACT || MAINNET_CONTRACT;
+const TESTNET_CONTRACT = import.meta.env.VITE_TESTNET_CONTRACT || '0x474b39dF73745CFC9D84A961b2544b4b236757Dc';
+const TESTNET_V2_CONTRACT = import.meta.env.VITE_TESTNET_V2_CONTRACT || TESTNET_CONTRACT;
+
 export const NETWORKS = {
   mainnet: {
     key: 'mainnet',
@@ -6,8 +11,8 @@ export const NETWORKS = {
     chainName: 'Base Mainnet',
     rpc: 'https://mainnet.base.org',
     explorer: 'https://basescan.org',
-    contract: '0x80BC4133BcCC0491ACdebf4d7375aeF75729671a',
-    v2contract: '0x80BC4133BcCC0491ACdebf4d7375aeF75729671a',
+    contract: MAINNET_CONTRACT,
+    v2contract: MAINNET_V2_CONTRACT,
   },
   testnet: {
     key: 'testnet',
@@ -16,10 +21,10 @@ export const NETWORKS = {
     chainName: 'Base Sepolia',
     rpc: 'https://sepolia.base.org',
     explorer: 'https://sepolia.basescan.org',
-    contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
-    v2contract: '0x474b39dF73745CFC9D84A961b2544b4b236757Dc',
+    contract: TESTNET_CONTRACT,
+    v2contract: TESTNET_V2_CONTRACT,
   },
-} as const;
+};
 
 export type NetworkKey = keyof typeof NETWORKS;
 
