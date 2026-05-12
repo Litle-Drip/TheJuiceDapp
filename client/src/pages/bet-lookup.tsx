@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
-import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
+import { ABI_V1, ABI_V2, NETWORKS, CHALLENGE_STATES, OFFER_STATES } from '@/lib/contracts';
+import { XIcon } from '@/components/x-icon';
 import { useToast } from '@/hooks/use-toast';
 import {
   Loader2, Search, UserPlus, ArrowDownToLine, ThumbsUp, ThumbsDown,
@@ -48,10 +49,6 @@ function GasEstimate({ estimateFn, ethUsd, address }: { estimateFn: () => Promis
   );
 }
 
-function XIcon({ className }: { className?: string }) {
-  return <svg viewBox="0 0 24 24" className={className} fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
-}
-
 interface ChallengeData {
   type: 'challenge';
   challenger: string;
@@ -85,8 +82,7 @@ interface OfferData {
 
 type BetData = ChallengeData | OfferData;
 
-const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
-const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'];
+
 
 export default function BetLookup() {
   const { connected, connect, signer, address, ethUsd, feeBps, getV1Contract, getV2Contract, explorerUrl, network: networkKey } = useWallet();

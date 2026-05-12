@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { logError } from './logger';
 
 const ETH_MAINNET_RPCS = [
   'https://eth.llamarpc.com',
@@ -34,7 +35,8 @@ async function resolveAddress(address: string): Promise<string | null> {
         }
         cache.set(lower, null);
         return null;
-      } catch {
+      } catch (e) {
+        logError('ens/resolveAddress', e);
         rpcIndex++;
       }
     }

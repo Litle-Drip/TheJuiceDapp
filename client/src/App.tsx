@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, useLocation, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -9,14 +10,6 @@ import { ThemeProvider, useTheme } from "@/lib/theme";
 import { NETWORKS } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Markets from "@/pages/markets";
-import CreateChallenge from "@/pages/create-challenge";
-import BetLookup from "@/pages/bet-lookup";
-import About from "@/pages/about";
-import Terms from "@/pages/terms";
-import Privacy from "@/pages/privacy";
-import RiskDisclosure from "@/pages/risk";
-import FAQ from "@/pages/faq";
 import NotFound from "@/pages/not-found";
 import {
   Sidebar,
@@ -49,8 +42,16 @@ import {
 } from "lucide-react";
 import logoImg from "@assets/ChatGPT_Image_Nov_11,_2025,_12_24_49_PM_1771015761494.png";
 
-import MyBets from "@/pages/my-bets";
-import Trending from "@/pages/trending";
+const Markets = lazy(() => import("@/pages/markets"));
+const CreateChallenge = lazy(() => import("@/pages/create-challenge"));
+const BetLookup = lazy(() => import("@/pages/bet-lookup"));
+const MyBets = lazy(() => import("@/pages/my-bets"));
+const Trending = lazy(() => import("@/pages/trending"));
+const About = lazy(() => import("@/pages/about"));
+const Terms = lazy(() => import("@/pages/terms"));
+const Privacy = lazy(() => import("@/pages/privacy"));
+const RiskDisclosure = lazy(() => import("@/pages/risk"));
+const FAQ = lazy(() => import("@/pages/faq"));
 
 const navItems = [
   { title: "Markets", url: "/", icon: TrendingUp, desc: "Create odds-based bets" },
@@ -196,21 +197,31 @@ function VerificationBadge() {
   );
 }
 
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Markets} />
-      <Route path="/challenge" component={CreateChallenge} />
-      <Route path="/lookup" component={BetLookup} />
-      <Route path="/my-bets" component={MyBets} />
-      <Route path="/trending" component={Trending} />
-      <Route path="/about" component={About} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/risk" component={RiskDisclosure} />
-      <Route path="/faq" component={FAQ} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/" component={Markets} />
+        <Route path="/challenge" component={CreateChallenge} />
+        <Route path="/lookup" component={BetLookup} />
+        <Route path="/my-bets" component={MyBets} />
+        <Route path="/trending" component={Trending} />
+        <Route path="/about" component={About} />
+        <Route path="/terms" component={Terms} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/risk" component={RiskDisclosure} />
+        <Route path="/faq" component={FAQ} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
