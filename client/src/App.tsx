@@ -120,13 +120,13 @@ function AppSidebar() {
 
   return (
     <Sidebar data-testid="app-sidebar">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className="px-4 py-5 border-b border-sidebar-border">
         <Link href="/" data-testid="link-logo">
-          <div className="flex items-center gap-2">
-            <img src={logoImg} alt="The Juice" className="w-8 h-8 rounded-md" />
+          <div className="flex items-center gap-3">
+            <img src={logoImg} alt="The Juice" className="w-9 h-9 rounded-lg shadow-sm" />
             <div>
               <div className="text-base font-bold tracking-tight leading-none">The Juice</div>
-              <div className="text-[10px] text-muted-foreground leading-none mt-0.5">P2P Betting on Base</div>
+              <div className="text-[10px] text-muted-foreground leading-none mt-1">P2P Betting on Base</div>
             </div>
           </div>
         </Link>
@@ -164,7 +164,7 @@ function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className="border-t border-sidebar-border pt-1">
         <WalletButton />
         <VerificationBadge />
       </SidebarFooter>
@@ -241,17 +241,18 @@ function MainnetBanner() {
 
 function LegalFooter() {
   return (
-    <footer className="mt-12 mb-4" data-testid="legal-footer">
-      <div className="max-w-xl mx-auto rounded-lg border border-border/60 px-6 py-5">
-        <p className="text-sm text-muted-foreground leading-relaxed mb-4 text-center">
+    <footer className="mt-16 mb-6" data-testid="legal-footer">
+      <div className="max-w-xl mx-auto">
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-6" />
+        <p className="text-xs text-muted-foreground/70 leading-relaxed mb-3 text-center">
           &copy; 2026 Edison Labs LLC &middot; Experimental software. Use at your own risk.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-          <Link href="/about" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-about">About</Link>
-          <Link href="/terms" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-terms">Terms</Link>
-          <Link href="/privacy" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-privacy">Privacy</Link>
-          <Link href="/risk" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-risk">Risk</Link>
-          <Link href="/faq" className="text-[13px] text-[hsl(var(--primary))]" data-testid="link-faq">FAQ</Link>
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+          <Link href="/about" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-about">About</Link>
+          <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-terms">Terms</Link>
+          <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-privacy">Privacy</Link>
+          <Link href="/risk" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-risk">Risk</Link>
+          <Link href="/faq" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-faq">FAQ</Link>
         </div>
       </div>
     </footer>
@@ -274,14 +275,14 @@ function App() {
               <div className="flex h-screen w-full">
                 <AppSidebar />
                 <div className="flex flex-col flex-1 min-w-0">
-                  <header className="flex items-center gap-2 p-2 border-b border-border h-12 sticky top-0 z-50 bg-background">
+                  <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border h-14 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
                     <SidebarTrigger data-testid="button-sidebar-toggle" />
                     <div className="flex-1" />
                     <ThemeToggle />
                     <EthPrice />
                   </header>
                   <MainnetBanner />
-                  <main className="flex-1 overflow-auto p-4">
+                  <main className="flex-1 overflow-auto px-4 py-6 sm:px-6">
                     <Router />
                     <LegalFooter />
                   </main>

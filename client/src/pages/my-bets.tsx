@@ -356,9 +356,9 @@ export default function MyBets() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto" data-testid="my-bets-page">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">My Bets</h1>
-        <p className="text-sm text-muted-foreground mt-1">Track all your bets, see your stats, and check transaction history.</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">My Bets</h1>
+        <p className="page-subtitle">Track all your bets, see your stats, and check transaction history.</p>
       </div>
 
       {!connected ? (

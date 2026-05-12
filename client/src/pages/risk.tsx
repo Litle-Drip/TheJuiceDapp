@@ -13,11 +13,11 @@ export default function RiskDisclosure() {
           </Button>
         </Link>
       </div>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Risk Disclosure</h1>
-        <p className="text-xs text-muted-foreground mt-1">Last updated: 2/14/2026</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">Risk Disclosure</h1>
+        <p className="text-xs text-muted-foreground mt-1.5">Last updated: 2/14/2026</p>
       </div>
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6">
         <div className="flex items-center gap-2 mb-4 p-3 rounded-md border border-amber-500/30 bg-amber-500/5" data-testid="risk-warning-banner">
           <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
           <p className="text-sm text-amber-400 font-medium" data-testid="text-risk-warning">Using The Juice and related tools from Edison Labs LLC involves significant risks.</p>

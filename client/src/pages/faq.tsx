@@ -84,9 +84,9 @@ export default function FAQ() {
           </Button>
         </Link>
       </div>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">FAQ</h1>
-        <p className="text-sm text-muted-foreground mt-1">Frequently asked questions about The Juice</p>
+      <div className="page-section">
+        <h1 className="page-title" data-testid="text-page-title">FAQ</h1>
+        <p className="page-subtitle">Frequently asked questions about The Juice</p>
       </div>
 
       <div className="space-y-3">
@@ -98,7 +98,7 @@ export default function FAQ() {
         ))}
       </div>
 
-      <Card className="p-4 mt-4">
+      <Card className="p-5 sm:p-6 mt-4">
         <div className="space-y-2 text-xs text-muted-foreground">
           <p className="font-semibold text-foreground text-sm">Key Rules to Remember</p>
           <ul className="list-disc pl-5 space-y-1">
