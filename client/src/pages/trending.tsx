@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/lib/wallet';
 import { ABI_V1, ABI_V2, NETWORKS, CHALLENGE_STATES, OFFER_STATES } from '@/lib/contracts';
 import { Link } from 'wouter';
+import { TabButton } from '@/components/tab-button';
 import {
   Loader2, Flame, TrendingUp, TrendingDown,
   Search, RefreshCw, Zap, Copy, MessageSquare
@@ -186,18 +187,9 @@ export default function Trending() {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
           {(['open', 'all'] as const).map(t => (
-            <button
-              key={t}
-              data-testid={`button-filter-${t}`}
-              onClick={() => setFilter(t)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                filter === t
-                  ? 'border-primary/50 bg-primary/10 text-primary'
-                  : 'border-border bg-card text-muted-foreground'
-              }`}
-            >
+            <TabButton key={t} data-testid={`button-filter-${t}`} active={filter === t} onClick={() => setFilter(t)}>
               {t === 'open' ? 'Open to Join' : 'All Bets'}
-            </button>
+            </TabButton>
           ))}
         </div>
         <Button

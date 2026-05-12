@@ -15,6 +15,7 @@ import {
 import { useEnsName, shortAddr } from '@/lib/ens';
 import { Skeleton } from '@/components/ui/skeleton';
 import { onCopyAction } from '@/lib/feedback';
+import { TabButton } from '@/components/tab-button';
 
 function AddressName({ address }: { address: string }) {
   const { name, loading } = useEnsName(address);
@@ -375,42 +376,15 @@ export default function MyBets() {
         <>
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                data-testid="button-tab-bets"
-                onClick={() => setTab('bets')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                  tab === 'bets'
-                    ? 'border-primary/50 bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                <LayoutDashboard className="w-3 h-3 inline mr-1" />
-                Bets
-              </button>
-              <button
-                data-testid="button-tab-history"
-                onClick={() => setTab('history')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                  tab === 'history'
-                    ? 'border-primary/50 bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                <History className="w-3 h-3 inline mr-1" />
-                History ({txHistory.length})
-              </button>
-              <button
-                data-testid="button-tab-stats"
-                onClick={() => setTab('stats')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
-                  tab === 'stats'
-                    ? 'border-primary/50 bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                <BarChart3 className="w-3 h-3 inline mr-1" />
-                Stats
-              </button>
+              <TabButton data-testid="button-tab-bets" active={tab === 'bets'} onClick={() => setTab('bets')}>
+                <LayoutDashboard className="w-3 h-3 inline mr-1" />Bets
+              </TabButton>
+              <TabButton data-testid="button-tab-history" active={tab === 'history'} onClick={() => setTab('history')}>
+                <History className="w-3 h-3 inline mr-1" />History ({txHistory.length})
+              </TabButton>
+              <TabButton data-testid="button-tab-stats" active={tab === 'stats'} onClick={() => setTab('stats')}>
+                <BarChart3 className="w-3 h-3 inline mr-1" />Stats
+              </TabButton>
             </div>
             <Button
               data-testid="button-refresh-bets"
@@ -428,18 +402,9 @@ export default function MyBets() {
             <>
               <div className="flex items-center gap-1.5">
                 {(['all', 'active', 'resolved'] as const).map(t => (
-                  <button
-                    key={t}
-                    data-testid={`button-filter-${t}`}
-                    onClick={() => setFilterTab(t)}
-                    className={`px-2.5 py-1 rounded-md text-2xs font-medium border transition-all ${
-                      filterTab === t
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border bg-card text-muted-foreground'
-                    }`}
-                  >
+                  <TabButton key={t} data-testid={`button-filter-${t}`} active={filterTab === t} onClick={() => setFilterTab(t)} size="sm">
                     {t.charAt(0).toUpperCase() + t.slice(1)}
-                  </button>
+                  </TabButton>
                 ))}
               </div>
 
