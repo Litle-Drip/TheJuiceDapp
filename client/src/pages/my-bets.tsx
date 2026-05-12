@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
-import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
+import { ABI_V1, ABI_V2, NETWORKS, CHALLENGE_STATES, OFFER_STATES } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import {
@@ -45,8 +45,7 @@ interface TxEntry {
   timestamp?: number;
 }
 
-const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
-const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'];
+
 
 function stateColor(state: number): string {
   switch (state) {

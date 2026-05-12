@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWallet } from '@/lib/wallet';
-import { ABI_V1, ABI_V2, NETWORKS } from '@/lib/contracts';
+import { ABI_V1, ABI_V2, NETWORKS, CHALLENGE_STATES, OFFER_STATES } from '@/lib/contracts';
 import { Link } from 'wouter';
 import {
   Loader2, Flame, TrendingUp, TrendingDown,
@@ -37,8 +37,7 @@ interface TrendingBet {
   question?: string;
 }
 
-const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'];
-const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'];
+
 
 export default function Trending() {
   const { ethUsd, network: networkKey } = useWallet();

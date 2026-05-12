@@ -66,6 +66,9 @@ export function computeTakerStake(creatorWei: bigint, creatorSideYes: boolean, p
   }
 }
 
+export const CHALLENGE_STATES = ['Waiting for opponent', 'Voting in progress', 'Settled', 'Refunded'] as const;
+export const OFFER_STATES = ['Waiting for taker', 'Voting in progress', 'Settled', 'Refunded'] as const;
+
 export const RANDOM_IDEAS = [
   "BTC hits $150K by end of Q1",
   "ETH flips SOL in daily volume this week",
