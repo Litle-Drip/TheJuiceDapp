@@ -380,7 +380,7 @@ export default function MyBets() {
                 onClick={() => setTab('bets')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
                   tab === 'bets'
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    ? 'border-primary/50 bg-primary/10 text-primary'
                     : 'border-border bg-card text-muted-foreground'
                 }`}
               >
@@ -392,7 +392,7 @@ export default function MyBets() {
                 onClick={() => setTab('history')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
                   tab === 'history'
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    ? 'border-primary/50 bg-primary/10 text-primary'
                     : 'border-border bg-card text-muted-foreground'
                 }`}
               >
@@ -404,7 +404,7 @@ export default function MyBets() {
                 onClick={() => setTab('stats')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
                   tab === 'stats'
-                    ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                    ? 'border-primary/50 bg-primary/10 text-primary'
                     : 'border-border bg-card text-muted-foreground'
                 }`}
               >
@@ -434,7 +434,7 @@ export default function MyBets() {
                     onClick={() => setFilterTab(t)}
                     className={`px-2.5 py-1 rounded-md text-[10px] font-medium border transition-all ${
                       filterTab === t
-                        ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                        ? 'border-primary/50 bg-primary/10 text-primary'
                         : 'border-border bg-card text-muted-foreground'
                     }`}
                   >
@@ -631,7 +631,7 @@ export default function MyBets() {
                           href={`${explorerUrl}/tx/${tx.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[10px] font-mono text-[hsl(var(--primary))]"
+                          className="flex items-center gap-1 text-[10px] font-mono text-primary"
                           data-testid={`link-tx-${idx}`}
                         >
                           {tx.txHash.slice(0, 8)}...{tx.txHash.slice(-6)}
@@ -729,7 +729,7 @@ export default function MyBets() {
                       <div className="grid grid-cols-2 gap-3">
                         <Card className="p-4 text-center">
                           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Win Rate</p>
-                          <p className="text-3xl font-bold text-[hsl(var(--primary))]" data-testid="text-win-rate">
+                          <p className="text-3xl font-bold text-primary" data-testid="text-win-rate">
                             {winRate.toFixed(0)}%
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-1">

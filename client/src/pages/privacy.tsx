@@ -87,7 +87,7 @@ export default function Privacy() {
           </Section>
 
           <Section title="9. Contact">
-            For privacy-related questions, you can reach us at: <a href="mailto:arrakeensubstack@gmail.com" className="text-[hsl(var(--primary))] underline">arrakeensubstack@gmail.com</a>
+            For privacy-related questions, you can reach us at: <a href="mailto:arrakeensubstack@gmail.com" className="text-primary underline">arrakeensubstack@gmail.com</a>
           </Section>
         </div>
       </Card>

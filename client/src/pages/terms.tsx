@@ -120,7 +120,7 @@ export default function Terms() {
           </Section>
 
           <Section title="14. Contact">
-            If you have questions about these Terms, you may contact us at: <a href="mailto:arrakeensubstack@gmail.com" className="text-[hsl(var(--primary))] underline">arrakeensubstack@gmail.com</a>
+            If you have questions about these Terms, you may contact us at: <a href="mailto:arrakeensubstack@gmail.com" className="text-primary underline">arrakeensubstack@gmail.com</a>
           </Section>
         </div>
       </Card>

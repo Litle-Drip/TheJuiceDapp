@@ -104,7 +104,7 @@ function WalletButton() {
         disabled={connecting}
         variant="outline"
         size="sm"
-        className="w-full text-xs justify-start gap-1.5 border-[hsl(var(--primary))]/30 text-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5"
+        className="w-full text-xs justify-start gap-1.5 border-primary/30 text-primary bg-primary/5"
       >
         <Globe className="w-3.5 h-3.5" />
         <span>{net.chainName}</span>

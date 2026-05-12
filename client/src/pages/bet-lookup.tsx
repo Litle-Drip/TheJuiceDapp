@@ -372,7 +372,7 @@ export default function BetLookup() {
               onChange={(e) => setBetId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && loadBet()}
               placeholder="Enter a numeric ID, e.g. 1, 2, 3..."
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-xs focus:outline-none focus:border-[hsl(var(--primary))]/50 focus:ring-1 focus:ring-[hsl(var(--primary))]/20"
+              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-xs focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
             />
           </div>
           <Button data-testid="button-load-bet" onClick={() => loadBet()} disabled={loading || !betId.trim()} variant="secondary">
@@ -432,7 +432,7 @@ export default function BetLookup() {
                 href={`${explorerUrl}/tx/${lastTxHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[hsl(var(--primary))] flex-shrink-0"
+                className="text-primary flex-shrink-0"
                 data-testid="link-tx-explorer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -689,7 +689,7 @@ function ChallengeView({
                     href={`${explorerUrl}/tx/${payoutTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[10px] text-[hsl(var(--primary))] flex items-center gap-1"
+                    className="font-mono text-[10px] text-primary flex items-center gap-1"
                     data-testid="link-payout-tx"
                   >
                     {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
@@ -737,7 +737,7 @@ function ChallengeView({
       })()}
 
       {challenge.state === 1 && joined && !resolveExpired && (
-        <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">
+        <div className="rounded-md border-2 border-primary/40 bg-primary/5 p-4 space-y-3">
           <div className="text-center">
             <p className="text-sm font-bold text-foreground">Who won this bet?</p>
             <p className="text-xs text-muted-foreground mt-0.5">Both players must agree on the outcome. If you disagree, both get refunded.</p>
@@ -1020,7 +1020,7 @@ function OfferView({
             <div className="text-[10px] text-muted-foreground">Creator side</div>
           </div>
           <div className="text-center px-4 border-l border-r border-border">
-            <div className="text-2xl font-bold font-mono text-[hsl(var(--primary))]">
+            <div className="text-2xl font-bold font-mono text-primary">
               {Math.round(offer.pBps / 100)}%
             </div>
             <div className="text-[10px] text-muted-foreground">YES odds</div>
@@ -1106,7 +1106,7 @@ function OfferView({
                     href={`${explorerUrl}/tx/${payoutTxHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[10px] text-[hsl(var(--primary))] flex items-center gap-1"
+                    className="font-mono text-[10px] text-primary flex items-center gap-1"
                     data-testid="link-payout-tx"
                   >
                     {payoutTxHash.slice(0, 8)}...{payoutTxHash.slice(-6)}
@@ -1154,7 +1154,7 @@ function OfferView({
       })()}
 
       {offer.state === 1 && hasTaker && (
-        <div className="rounded-md border-2 border-[hsl(var(--primary))]/40 bg-[hsl(var(--primary))]/5 p-4 space-y-3">
+        <div className="rounded-md border-2 border-primary/40 bg-primary/5 p-4 space-y-3">
           <div className="text-center">
             <p className="text-sm font-bold text-foreground">What was the outcome?</p>
             <p className="text-xs text-muted-foreground mt-0.5">Both players must agree for payout</p>

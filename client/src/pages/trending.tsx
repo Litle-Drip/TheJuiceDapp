@@ -192,7 +192,7 @@ export default function Trending() {
               onClick={() => setFilter(t)}
               className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-all ${
                 filter === t
-                  ? 'border-[hsl(var(--primary))]/50 bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]'
+                  ? 'border-primary/50 bg-primary/10 text-primary'
                   : 'border-border bg-card text-muted-foreground'
               }`}
             >
