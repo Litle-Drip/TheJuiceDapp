@@ -8,8 +8,8 @@ interface TabButtonProps {
 
 export function TabButton({ active, onClick, children, size = 'md', ...props }: TabButtonProps) {
   const sizeClasses = size === 'sm'
-    ? 'px-2.5 py-1 text-2xs'
-    : 'px-3 py-1.5 text-xs';
+    ? 'min-h-8 px-3 text-2xs'
+    : 'min-h-9 px-3.5 text-xs';
 
   return (
     <button

@@ -1,41 +1,21 @@
 import { lazy, Suspense } from "react";
-import { Switch, Route, useLocation, Link } from "wouter";
+import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletProvider, useWallet } from "@/lib/wallet";
-import { NotificationProvider, useNotifications } from "@/lib/notifications";
+import { NotificationProvider } from "@/lib/notifications";
 import { ThemeProvider, useTheme } from "@/lib/theme";
 import { NETWORKS } from "@/lib/contracts";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { SideNav, BottomNav } from "@/components/nav";
 import NotFound from "@/pages/not-found";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarFooter,
-} from "@/components/ui/sidebar";
-import {
-  TrendingUp,
-  Zap,
-  Search,
   Wallet,
   ExternalLink,
-  Globe,
   Loader2,
   AlertTriangle,
-  LayoutDashboard,
-  Flame,
   ShieldCheck,
   Sun,
   Moon,
@@ -53,122 +33,69 @@ const Privacy = lazy(() => import("@/pages/privacy"));
 const RiskDisclosure = lazy(() => import("@/pages/risk"));
 const FAQ = lazy(() => import("@/pages/faq"));
 
-const navItems = [
-  { title: "Markets", url: "/", icon: TrendingUp, desc: "Create odds-based bets" },
-  { title: "Create Challenge", url: "/challenge", icon: Zap, desc: "Equal-stakes head-to-head" },
-  { title: "Bet Lookup", url: "/lookup", icon: Search, desc: "Join, vote, or check status" },
-  { title: "My Bets", url: "/my-bets", icon: LayoutDashboard, desc: "Your betting history" },
-  { title: "Trending", url: "/trending", icon: Flame, desc: "Browse open bets" },
-];
-
-function WalletButton() {
-  const { connected, connect, shortAddress, network, switchNetwork, connecting, explorerUrl, address } = useWallet();
-  const net = NETWORKS[network];
-
+function Brand({ className = "", tagline = true }: { className?: string; tagline?: boolean }) {
   return (
-    <div className="space-y-2 p-2">
-      {connected ? (
-        <div className="flex items-center justify-between gap-2">
-          <Badge variant="outline" className="font-mono text-2xs" data-testid="badge-address">
-            {shortAddress}
-          </Badge>
-          <a
-            href={`${explorerUrl}/address/${address}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground"
-            data-testid="link-explorer"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </div>
-      ) : (
-        <Button
-          data-testid="button-connect-wallet"
-          onClick={connect}
-          disabled={connecting}
-          className="w-full"
-          size="sm"
-        >
-          {connecting ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-          ) : (
-            <Wallet className="w-4 h-4 mr-1.5" />
-          )}
-          {connecting ? "Connecting..." : "Connect Wallet"}
-        </Button>
-      )}
-      <Button
-        data-testid="button-switch-network"
-        onClick={switchNetwork}
-        disabled={connecting}
-        variant="outline"
-        size="sm"
-        className="w-full text-xs justify-start gap-1.5 border-primary/30 text-primary bg-primary/5"
-      >
-        <Globe className="w-3.5 h-3.5" />
-        <span>{net.chainName}</span>
-        <span className="ml-auto text-[11px] text-foreground/80 font-medium">Switch</span>
-      </Button>
-    </div>
+    <Link href="/" data-testid="link-logo" className={`flex shrink-0 items-center gap-2.5 ${className}`}>
+      <img src={logoImg} alt="The Juice" className="h-8 w-8 shrink-0 rounded-lg shadow-sm" />
+      <span className="min-w-0">
+        <span className="block whitespace-nowrap text-base font-bold leading-none tracking-tight">The Juice</span>
+        {tagline && (
+          <span className="mt-1 block whitespace-nowrap text-2xs leading-none text-muted-foreground">P2P Betting on Base</span>
+        )}
+      </span>
+    </Link>
   );
 }
 
-function AppSidebar() {
-  const [location] = useLocation();
-  const { notificationCount, clearNotifications } = useNotifications();
+function NetworkPill() {
+  const { network, switchNetwork, connecting } = useWallet();
+  const net = NETWORKS[network];
+  const live = Boolean(net.contract || net.v2contract);
 
   return (
-    <Sidebar data-testid="app-sidebar">
-      <SidebarHeader className="px-4 py-5 border-b border-sidebar-border">
-        <Link href="/" data-testid="link-logo">
-          <div className="flex items-center gap-3">
-            <img src={logoImg} alt="The Juice" className="w-9 h-9 rounded-lg shadow-sm" />
-            <div>
-              <div className="text-base font-bold tracking-tight leading-none">The Juice</div>
-              <div className="text-2xs text-muted-foreground leading-none mt-1">P2P Betting on Base</div>
-            </div>
-          </div>
-        </Link>
-      </SidebarHeader>
+    <button
+      type="button"
+      data-testid="button-switch-network"
+      onClick={switchNetwork}
+      disabled={connecting}
+      title="Switch network"
+      className="flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-success" : "bg-amber-500"}`} />
+      <span className="max-w-24 truncate">{net.chainName.replace("Base ", "")}</span>
+    </button>
+  );
+}
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url} className="h-auto py-2">
-                    <Link
-                      href={item.url}
-                      data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                      onClick={() => { if (item.url === '/my-bets') clearNotifications(); }}
-                    >
-                      <item.icon />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm leading-tight">{item.title}</span>
-                        <span className="text-2xs text-muted-foreground leading-tight">{item.desc}</span>
-                      </div>
-                      {item.title === 'My Bets' && notificationCount > 0 && (
-                        <Badge variant="default" className="ml-auto text-[9px] px-1.5 py-0 min-h-0 h-4 bg-success text-white border-0" data-testid="badge-notification-count">
-                          {notificationCount}
-                        </Badge>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+function WalletButton() {
+  const { connected, connect, shortAddress, connecting, explorerUrl, address } = useWallet();
 
-      <SidebarFooter className="border-t border-sidebar-border pt-1">
-        <WalletButton />
-        <VerificationBadge />
-      </SidebarFooter>
-    </Sidebar>
+  if (connected) {
+    return (
+      <a
+        href={`${explorerUrl}/address/${address}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-testid="link-explorer"
+        className="flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 font-mono text-xs text-foreground"
+      >
+        <span data-testid="badge-address">{shortAddress}</span>
+        <ExternalLink className="h-3 w-3 text-muted-foreground" />
+      </a>
+    );
+  }
+
+  return (
+    <Button
+      data-testid="button-connect-wallet"
+      onClick={connect}
+      disabled={connecting}
+      size="sm"
+      className="rounded-full"
+    >
+      {connecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+      <span>{connecting ? "Connecting" : "Connect"}</span>
+    </Button>
   );
 }
 
@@ -176,31 +103,28 @@ function VerificationBadge() {
   const { network } = useWallet();
   const net = NETWORKS[network];
   const contractAddr = net.contract || net.v2contract;
-  const explorerBase = net.explorer;
 
   if (!contractAddr) return null;
 
   return (
-    <div className="px-2 pb-2">
-      <a
-        href={`${explorerBase}/address/${contractAddr}#code`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-2xs text-success/80 font-medium"
-        data-testid="link-verified-contract"
-      >
-        <ShieldCheck className="w-3.5 h-3.5" />
-        <span>Verified Contract</span>
-        <ExternalLink className="w-2.5 h-2.5 ml-auto" />
-      </a>
-    </div>
+    <a
+      href={`${net.explorer}/address/${contractAddr}#code`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-1.5 text-2xs font-medium text-success/80"
+      data-testid="link-verified-contract"
+    >
+      <ShieldCheck className="h-3.5 w-3.5" />
+      <span>Verified contract</span>
+      <ExternalLink className="ml-auto h-2.5 w-2.5" />
+    </a>
   );
 }
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+    <div className="flex items-center justify-center py-16">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   );
 }
@@ -230,84 +154,50 @@ function MainnetBanner() {
   const net = NETWORKS[network];
   if (net.contract) return null;
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30" data-testid="mainnet-banner">
-      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-      <p className="text-xs text-amber-600 dark:text-amber-400">
+    <div className="flex items-start gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2" data-testid="mainnet-banner">
+      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+      <p className="text-xs leading-relaxed text-amber-600 dark:text-amber-400">
         {net.chainName} contracts are not yet deployed. Switch to Base Sepolia to use the app.
       </p>
     </div>
   );
 }
 
+const legalLinks = [
+  { href: "/about", label: "About", testId: "link-about" },
+  { href: "/terms", label: "Terms", testId: "link-terms" },
+  { href: "/privacy", label: "Privacy", testId: "link-privacy" },
+  { href: "/risk", label: "Risk", testId: "link-risk" },
+  { href: "/faq", label: "FAQ", testId: "link-faq" },
+];
+
 function LegalFooter() {
   return (
-    <footer className="mt-16 mb-6" data-testid="legal-footer">
-      <div className="max-w-xl mx-auto">
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-6" />
-        <p className="text-xs text-muted-foreground/70 leading-relaxed mb-3 text-center">
-          &copy; 2026 Edison Labs LLC &middot; Experimental software. Use at your own risk.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
-          <Link href="/about" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-about">About</Link>
-          <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-terms">Terms</Link>
-          <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-privacy">Privacy</Link>
-          <Link href="/risk" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-risk">Risk</Link>
-          <Link href="/faq" className="text-xs text-muted-foreground hover:text-foreground transition-colors" data-testid="link-faq">FAQ</Link>
-        </div>
+    <footer className="mx-auto mt-12 max-w-xl border-t border-border/60 pt-6" data-testid="legal-footer">
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+        {legalLinks.map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            data-testid={l.testId}
+          >
+            {l.label}
+          </Link>
+        ))}
       </div>
+      <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground/70">
+        &copy; 2026 Edison Labs LLC &middot; Experimental software. Use at your own risk.
+      </p>
     </footer>
-  );
-}
-
-function App() {
-  const style = {
-    "--sidebar-width": "16rem",
-    "--sidebar-width-icon": "3rem",
-  };
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider>
-        <WalletProvider>
-          <NotificationProvider>
-            <SidebarProvider defaultOpen={true} style={style as React.CSSProperties}>
-              <div className="flex h-screen w-full">
-                <AppSidebar />
-                <div className="flex flex-col flex-1 min-w-0">
-                  <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border h-14 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-                    <SidebarTrigger data-testid="button-sidebar-toggle" />
-                    <div className="flex-1" />
-                    <ThemeToggle />
-                    <EthPrice />
-                  </header>
-                  <MainnetBanner />
-                  <main className="flex-1 overflow-auto px-4 py-6 sm:px-6">
-                    <Router />
-                    <LegalFooter />
-                  </main>
-                </div>
-              </div>
-            </SidebarProvider>
-            <Toaster />
-          </NotificationProvider>
-        </WalletProvider>
-        </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
   );
 }
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   return (
-    <Button
-      size="icon"
-      variant="ghost"
-      onClick={toggleTheme}
-      data-testid="button-theme-toggle"
-    >
-      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    <Button size="icon" variant="ghost" onClick={toggleTheme} data-testid="button-theme-toggle" title="Toggle theme">
+      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
 }
@@ -320,11 +210,64 @@ function EthPrice() {
       target="_blank"
       rel="noopener noreferrer"
       data-testid="link-eth-price"
+      className="hidden sm:block"
     >
-      <Badge variant="outline" className="font-mono text-sm cursor-pointer text-[#627EEA] border-[#627EEA]/30" data-testid="badge-eth-price">
-        {ethUsd > 0 ? `ETH $${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'ETH ...'}
-      </Badge>
+      <span
+        className="flex min-h-9 items-center rounded-full border border-[#627EEA]/30 px-2.5 font-mono text-xs text-[#627EEA]"
+        data-testid="badge-eth-price"
+      >
+        {ethUsd > 0 ? `ETH $${ethUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "ETH ..."}
+      </span>
     </a>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <ThemeProvider>
+          <WalletProvider>
+            <NotificationProvider>
+              <div className="flex min-h-screen w-full">
+                <aside
+                  className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex"
+                  data-testid="app-sidebar"
+                >
+                  <div className="border-b border-sidebar-border px-4 py-4">
+                    <Brand />
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <SideNav />
+                  </div>
+                  <div className="space-y-2 border-t border-sidebar-border p-3">
+                    <VerificationBadge />
+                  </div>
+                </aside>
+
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <header className="sticky top-0 z-30 flex h-14 items-center gap-1.5 border-b border-border bg-background/85 px-3 backdrop-blur sm:gap-2 sm:px-4">
+                    <Brand className="md:hidden" tagline={false} />
+                    <div className="flex-1" />
+                    <EthPrice />
+                    <NetworkPill />
+                    <WalletButton />
+                    <ThemeToggle />
+                  </header>
+                  <MainnetBanner />
+                  <main className="flex-1 px-4 pb-24 pt-5 sm:px-6 md:pb-10 md:pt-8">
+                    <Router />
+                    <LegalFooter />
+                  </main>
+                </div>
+              </div>
+              <BottomNav />
+              <Toaster />
+            </NotificationProvider>
+          </WalletProvider>
+        </ThemeProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

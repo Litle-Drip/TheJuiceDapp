@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
+import { formatEth } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ABI_V1, NETWORKS, CHALLENGE_STATES } from '@/lib/contracts';
@@ -59,9 +60,9 @@ export function ChallengeView({
       title: 'Confirm Join Challenge', label: 'Join & Fund',
       lines: [
         { label: 'Bet ID', value: `#${betId}` },
-        { label: 'Your stake', value: `${stakeEth.toFixed(6)} ETH` },
-        { label: 'Total pot', value: `${potEth.toFixed(6)} ETH` },
-        { label: 'Winner takes', value: `${winnerEth.toFixed(6)} ETH`, highlight: true },
+        { label: 'Your stake', value: `${formatEth(stakeEth)} ETH` },
+        { label: 'Total pot', value: `${formatEth(potEth)} ETH` },
+        { label: 'Winner takes', value: `${formatEth(winnerEth)} ETH`, highlight: true },
       ],
       action: directJoin,
     });
@@ -97,7 +98,7 @@ export function ChallengeView({
       lines: [
         { label: 'Bet ID', value: `#${betId}` },
         { label: 'Action', value: 'Resolve & pay winner' },
-        { label: 'Winner receives', value: `${winnerEth.toFixed(6)} ETH`, highlight: true },
+        { label: 'Winner receives', value: `${formatEth(winnerEth)} ETH`, highlight: true },
       ],
       action,
     });
@@ -114,7 +115,7 @@ export function ChallengeView({
       lines: [
         { label: 'Bet ID', value: `#${betId}` },
         { label: 'Reason', value: reason },
-        { label: 'Refund amount', value: `${stakeEth.toFixed(6)} ETH`, highlight: true },
+        { label: 'Refund amount', value: `${formatEth(stakeEth)} ETH`, highlight: true },
       ],
       action,
     });
@@ -196,7 +197,7 @@ export function ChallengeView({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Bet amount (each)</span>
-            <span className="font-mono">{Number(ethers.formatEther(challenge.stakeWei)).toFixed(6)} ETH</span>
+            <span className="font-mono">{formatEth(Number(ethers.formatEther(challenge.stakeWei)))} ETH</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Accept by</span>
@@ -263,9 +264,9 @@ export function ChallengeView({
       {challenge.state === 0 && !joined && !joinExpired && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('joinChallenge', [BigInt(betId)], challenge.stakeWei)} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-join" onClick={confirmJoin} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-join" onClick={confirmJoin} disabled={!!actionLoading} className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Join' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
-            Join Challenge ({stakeEth.toFixed(6)} ETH)
+            Join Challenge ({formatEth(stakeEth)} ETH)
           </Button>
         </div>
       )}
@@ -327,7 +328,7 @@ export function ChallengeView({
       {challenge.state === 1 && challenge.challengerVote !== 0 && challenge.participantVote !== 0 && challenge.challengerVote === challenge.participantVote && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('resolveChallenge', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-payout" onClick={confirmPayout} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-payout" onClick={confirmPayout} disabled={!!actionLoading} className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Payout' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
             Finalize & Payout
           </Button>
@@ -341,7 +342,7 @@ export function ChallengeView({
             <p className="text-xs text-amber-600 dark:text-amber-400">Join deadline passed with no opponent. Creator can reclaim funds.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={() => confirmRefund('No opponent')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('No opponent')} disabled={!!actionLoading} variant="outline" className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (No Opponent)
           </Button>
@@ -355,7 +356,7 @@ export function ChallengeView({
             <p className="text-xs text-amber-600 dark:text-amber-400">Votes conflict - creator and opponent disagree on the outcome. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Vote Conflict)
           </Button>
@@ -369,7 +370,7 @@ export function ChallengeView({
             <p className="text-xs text-amber-600 dark:text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('issueRefund', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Deadline Expired)
           </Button>

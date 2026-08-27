@@ -244,16 +244,24 @@
 
 @layer utilities {
   .page-section {
-    @apply text-center mb-8;
+    @apply mb-5;
   }
   .page-title {
-    @apply text-2xl font-bold tracking-tight;
+    @apply text-xl sm:text-2xl font-bold tracking-tight;
   }
   .page-subtitle {
-    @apply text-sm text-muted-foreground mt-1.5 max-w-md mx-auto leading-relaxed;
+    @apply text-sm text-muted-foreground mt-1 max-w-prose leading-relaxed;
   }
   .info-card-header {
     @apply flex items-center gap-2 mb-3 pb-2.5 border-b border-border/50;
+  }
+  .field-input {
+    @apply w-full min-h-12 rounded-md border border-input bg-background text-base sm:text-sm text-foreground
+      placeholder:text-muted-foreground transition-colors
+      focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/25;
+  }
+  .stack-divider > * + * {
+    @apply mt-5 pt-5 border-t border-border/50;
   }
 }
 
