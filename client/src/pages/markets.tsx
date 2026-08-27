@@ -7,14 +7,16 @@ import { useWallet } from '@/lib/wallet';
 import { computeTakerStake, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
 import { RANDOM_IDEAS } from '@/lib/contracts';
-import { TrendingUp, TrendingDown, ArrowRight, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
+import { TrendingUp, TrendingDown, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
-import { ConfirmTxDialog, TxConfirmLine } from '@/components/confirm-tx-dialog';
+import { Field, Chip, SummaryRow } from '@/components/field';
+import { formatEth, formatUsd, formatDuration, formatDeadline } from '@/lib/format';
+import { ConfirmTxDialog } from '@/components/confirm-tx-dialog';
 import { XIcon } from '@/components/x-icon';
 import { onBetCreated, onCopyAction } from '@/lib/feedback';
 
 export default function Markets() {
-  const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network: networkKey, explorerUrl, connecting } = useWallet();
+  const { connected, connect, signer, ethUsd, feeBps, getV2Contract, network: networkKey, explorerUrl } = useWallet();
   const { toast } = useToast();
 
   const [question, setQuestion] = useState('');
@@ -185,90 +187,77 @@ export default function Markets() {
   const noPriceDisplay = `${noPercent}¢`;
 
   return (
-    <div className="space-y-4 max-w-xl mx-auto" data-testid="markets-page">
+    <div className="mx-auto max-w-xl space-y-4" data-testid="markets-page">
       <div className="page-section">
         <h1 className="page-title" data-testid="text-page-title">Markets</h1>
-        <p className="page-subtitle">Create a bet with custom odds. Your opponent pays more or less depending on how likely the outcome is.</p>
+        <p className="page-subtitle">Set your own odds. Your opponent stakes more or less depending on how likely the outcome is.</p>
       </div>
 
-      <Card className="p-5 sm:p-6">
-        <div className="flex items-center justify-center gap-2 mb-5">
-          <Zap className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold tracking-wide">New Market Offer</span>
-        </div>
-
-        <div className="mb-5">
-          <div className="relative">
-            <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              data-testid="input-market-question"
-              type="text"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Label your bet — both players vote on the outcome"
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-xs focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-            />
-            <button
-              data-testid="button-shuffle-question"
-              onClick={shuffleQuestion}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-primary/40 text-primary"
-            >
-              <Shuffle className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-
-        <div className="mb-5">
-          <label className="text-xs text-foreground mb-3 block font-semibold uppercase tracking-wider text-center">Pick Your Side</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              data-testid="button-side-yes"
-              onClick={() => setSideYes(true)}
-              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all duration-300 ${
-                sideYes
-                  ? 'border-success/60 bg-success/10'
-                  : 'border-border bg-card'
-              }`}
-              style={{ opacity: sideYes ? 1 : 0.5 + (yesPercent / 200) }}
-            >
-              <TrendingUp className={`w-5 h-5 transition-colors duration-300 ${sideYes ? 'text-success' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold transition-colors duration-300 ${sideYes ? 'text-success' : 'text-foreground'}`}>YES</span>
-              <span
-                className={`text-base font-mono font-semibold transition-all duration-300 ${sideYes ? 'text-success/80' : 'text-muted-foreground'}`}
-                style={{ transform: `scale(${0.9 + (yesPercent / 500)})` }}
-              >{yesPriceDisplay}</span>
-            </button>
-            <button
-              data-testid="button-side-no"
-              onClick={() => setSideYes(false)}
-              className={`relative flex items-center justify-center gap-2 py-4 rounded-md border transition-all duration-300 ${
-                !sideYes
-                  ? 'border-danger/60 bg-danger/10'
-                  : 'border-border bg-card'
-              }`}
-              style={{ opacity: !sideYes ? 1 : 0.5 + (noPercent / 200) }}
-            >
-              <TrendingDown className={`w-5 h-5 transition-colors duration-300 ${!sideYes ? 'text-danger' : 'text-muted-foreground'}`} />
-              <span className={`text-lg font-bold transition-colors duration-300 ${!sideYes ? 'text-danger' : 'text-foreground'}`}>NO</span>
-              <span
-                className={`text-base font-mono font-semibold transition-all duration-300 ${!sideYes ? 'text-danger/80' : 'text-muted-foreground'}`}
-                style={{ transform: `scale(${0.9 + (noPercent / 500)})` }}
-              >{noPriceDisplay}</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-5">
-          <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center mb-2">Set the Odds</label>
-          <div className="relative">
+      <Card className="p-4 sm:p-6">
+        <div className="stack-divider">
+          <Field label="What's the bet?" hint="Optional">
             <div className="relative">
+              <MessageSquare className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                data-testid="input-market-question"
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="e.g. Will ETH close above $4k Friday?"
+                className="field-input pl-9 pr-12"
+              />
+              <button
+                data-testid="button-shuffle-question"
+                onClick={shuffleQuestion}
+                title="Random idea"
+                className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-primary hover:bg-primary/10"
+              >
+                <Shuffle className="h-4 w-4" />
+              </button>
+            </div>
+          </Field>
+
+          <Field label="Pick your side" hint={`${yesPercent}% YES · ${noPercent}% NO`}>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                data-testid="button-side-yes"
+                onClick={() => setSideYes(true)}
+                aria-pressed={sideYes}
+                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-lg border transition-colors ${
+                  sideYes ? 'border-success/60 bg-success/10' : 'border-border bg-card'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <TrendingUp className={`h-4 w-4 ${sideYes ? 'text-success' : 'text-muted-foreground'}`} />
+                  <span className={`text-base font-bold ${sideYes ? 'text-success' : 'text-foreground'}`}>YES</span>
+                </span>
+                <span className={`font-mono text-sm ${sideYes ? 'text-success/80' : 'text-muted-foreground'}`}>{yesPriceDisplay}</span>
+              </button>
+              <button
+                data-testid="button-side-no"
+                onClick={() => setSideYes(false)}
+                aria-pressed={!sideYes}
+                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-lg border transition-colors ${
+                  !sideYes ? 'border-danger/60 bg-danger/10' : 'border-border bg-card'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <TrendingDown className={`h-4 w-4 ${!sideYes ? 'text-danger' : 'text-muted-foreground'}`} />
+                  <span className={`text-base font-bold ${!sideYes ? 'text-danger' : 'text-foreground'}`}>NO</span>
+                </span>
+                <span className={`font-mono text-sm ${!sideYes ? 'text-danger/80' : 'text-muted-foreground'}`}>{noPriceDisplay}</span>
+              </button>
+            </div>
+          </Field>
+
+          <Field label="Chance of YES" hint={`${yesPercent}%`}>
+            <div className="relative pt-1">
               {showSliderTooltip && (
                 <div
-                  className="absolute -top-8 transform -translate-x-1/2 pointer-events-none z-10"
+                  className="pointer-events-none absolute -top-6 z-10 -translate-x-1/2"
                   style={{ left: `${((oddsBps - 500) / 9000) * 100}%` }}
                 >
-                  <div className="bg-foreground text-background text-2xs font-mono font-bold px-2 py-1 rounded-md whitespace-nowrap">
+                  <div className="whitespace-nowrap rounded-md bg-foreground px-2 py-1 font-mono text-2xs font-bold text-background">
                     {yesPercent}%
                   </div>
                 </div>
@@ -285,267 +274,294 @@ export default function Markets() {
                 onMouseUp={() => setShowSliderTooltip(false)}
                 onTouchStart={() => setShowSliderTooltip(true)}
                 onTouchEnd={() => setShowSliderTooltip(false)}
-                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                className="w-full cursor-pointer appearance-none rounded-full"
                 style={{
-                  background: `linear-gradient(to right, rgb(16,185,129) ${yesPercent}%, rgb(244,63,94) ${yesPercent}%)`,
+                  background: `linear-gradient(to right, hsl(var(--success)) ${yesPercent}%, hsl(var(--danger)) ${yesPercent}%)`,
                 }}
               />
-            </div>
-            <div className="flex justify-between mt-1.5">
-              <span className="text-2xs text-muted-foreground">5%</span>
-              <span className="text-2xs text-muted-foreground">50%</span>
-              <span className="text-2xs text-muted-foreground">95%</span>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="mb-5">
-          <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center mb-2">Your Bet Amount</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-primary font-medium">ETH</span>
-            <input
-              data-testid="input-stake"
-              type="number"
-              step="0.001"
-              min="0"
-              value={stakeEth}
-              onChange={(e) => setStakeEth(e.target.value)}
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-              placeholder="0.01"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success font-mono font-medium" data-testid="text-stake-usd">
-              {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
-            </span>
-          </div>
-          <div className="grid grid-cols-4 gap-1.5 mt-2">
-            {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
-              <button
-                key={amt}
-                data-testid={`button-stake-${amt}`}
-                onClick={() => setStakeEth(amt)}
-                className={`py-1.5 rounded-md text-xs font-mono border transition-all ${
-                  stakeEth === amt
-                    ? 'border-primary/50 bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
-              >
-                {amt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          data-testid="button-toggle-advanced"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3"
-        >
-          {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          <span className="font-semibold text-foreground">Time Limits</span>
-        </button>
-
-        {showAdvanced && (
-          <div className="grid grid-cols-2 gap-5 mb-5">
-            <div className="space-y-2">
-              <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center">Time to Accept</label>
-              <div className="relative">
-                <input
-                  data-testid="input-join-mins"
-                  type="number"
-                  min={1}
-                  max={43200}
-                  value={joinMins}
-                  onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-primary focus:outline-none focus:border-primary/50"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">min</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[15, 60, 1440].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setJoinMins(m)}
-                    className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
-                      joinMins === m
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground'
-                    }`}
-                  >
-                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
-                  </button>
-                ))}
-              </div>
-              <div className="bg-muted/40 rounded-md px-2 py-2 text-center" data-testid="text-join-deadline-preview">
-                <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
-                <span className="text-[11px] sm:text-sm font-medium text-primary">
-                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
-                </span>
+              <div className="mt-2 flex justify-between text-2xs text-muted-foreground">
+                <span>5%</span>
+                <span>50%</span>
+                <span>95%</span>
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center">Time to Vote</label>
-              <div className="relative">
-                <input
-                  data-testid="input-resolve-mins"
-                  type="number"
-                  min={1}
-                  max={43200}
-                  value={resolveMins}
-                  onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-primary focus:outline-none focus:border-primary/50"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">min</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[30, 120, 2880].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setResolveMins(m)}
-                    className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
-                      resolveMins === m
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground'
-                    }`}
-                  >
-                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
-                  </button>
-                ))}
-              </div>
-              <div className="bg-muted/40 rounded-md px-2 py-2 text-center" data-testid="text-resolve-deadline-preview">
-                <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
-                <span className="text-[11px] sm:text-sm font-medium text-primary">
-                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+          </Field>
 
-        {preview && (
-          <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="market-preview">
-            <div className="flex items-center gap-1.5 mb-3">
-              <Info className="w-3.5 h-3.5 text-primary" />
-              <span className="text-sm font-semibold">Order Preview</span>
+          <Field label="Your stake" hint={preview ? formatUsd(preview.yourStakeUsd) : formatUsd(0)}>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">ETH</span>
+              <input
+                data-testid="input-stake"
+                type="number"
+                inputMode="decimal"
+                step="0.001"
+                min="0"
+                value={stakeEth}
+                onChange={(e) => setStakeEth(e.target.value)}
+                className="field-input pl-12 pr-3 font-mono"
+                placeholder="0.01"
+              />
+              <span className="hidden" data-testid="text-stake-usd">{preview ? formatUsd(preview.yourStakeUsd) : formatUsd(0)}</span>
             </div>
+            <div className="grid grid-cols-4 gap-2">
+              {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+                <Chip
+                  key={amt}
+                  data-testid={`button-stake-${amt}`}
+                  active={stakeEth === amt}
+                  onClick={() => setStakeEth(amt)}
+                  className="font-mono"
+                >
+                  {amt}
+                </Chip>
+              ))}
+            </div>
+          </Field>
 
-            {question.trim() && (
-              <div className="mb-3 p-2.5 rounded-md bg-muted/40 border border-border/50">
-                <p className="text-xs text-muted-foreground mb-1">Market Question</p>
-                <p className="text-sm font-medium leading-snug" data-testid="text-preview-question">&ldquo;{question.trim()}&rdquo;</p>
-                <p className="text-xs mt-1.5">
-                  <span className="text-muted-foreground">Your position: </span>
-                  <span className={`font-bold ${sideYes ? 'text-success' : 'text-danger'}`}>
-                    {sideYes ? 'YES' : 'NO'} @ {(oddsBps / 100).toFixed(0)}%
-                  </span>
-                </p>
+          <div>
+            <button
+              data-testid="button-toggle-advanced"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex w-full items-center justify-between gap-2 text-left"
+            >
+              <span className="text-sm font-medium">Time limits</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span>Accept {formatDuration(joinMins)} · Vote {formatDuration(resolveMins)}</span>
+                {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </span>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">Time to accept</span>
+                  <div className="relative">
+                    <input
+                      data-testid="input-join-mins"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={43200}
+                      value={joinMins}
+                      onChange={(e) => setJoinMins(Number(e.target.value))}
+                      className="field-input pl-3 pr-12 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[15, 60, 1440].map(m => (
+                      <Chip key={m} active={joinMins === m} onClick={() => setJoinMins(m)}>
+                        {formatDuration(m)}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground" data-testid="text-join-deadline-preview">
+                    Accept by {formatDeadline(new Date(Date.now() + joinMins * 60_000))}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">Time to vote</span>
+                  <div className="relative">
+                    <input
+                      data-testid="input-resolve-mins"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={43200}
+                      value={resolveMins}
+                      onChange={(e) => setResolveMins(Number(e.target.value))}
+                      className="field-input pl-3 pr-12 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[30, 120, 2880].map(m => (
+                      <Chip key={m} active={resolveMins === m} onClick={() => setResolveMins(m)}>
+                        {formatDuration(m)}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground" data-testid="text-resolve-deadline-preview">
+                    Vote by {formatDeadline(new Date(Date.now() + (joinMins + resolveMins) * 60_000))}
+                  </p>
+                </div>
               </div>
             )}
+          </div>
 
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">You put in</span>
-                <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
-                  {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-success ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Opponent puts in</span>
-                <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
-                  {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-success ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
-                </span>
+          {preview && (
+            <div data-testid="market-preview">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">Order summary</span>
+                <Badge variant="outline" className={`text-2xs ${sideYes ? 'text-success' : 'text-danger'}`}>
+                  {sideYes ? 'YES' : 'NO'} @ {yesPercent}%
+                </Badge>
               </div>
 
-              <div className="h-px bg-border" />
+              {question.trim() && (
+                <p className="mb-3 text-sm font-medium leading-snug" data-testid="text-preview-question">
+                  &ldquo;{question.trim()}&rdquo;
+                </p>
+              )}
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total pot</span>
-                <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
-                  {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-success ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
-                <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
-                  -{preview.fee.toFixed(6)} ETH <span className="text-emerald-600/70 dark:text-emerald-400/70">(${preview.feeUsd.toFixed(2)})</span>
-                </span>
-              </div>
-
-              <div className="h-px bg-border" />
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-success">You win</span>
-                <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-success" data-testid="text-preview-payout">
-                    +{preview.yourProfit.toFixed(6)} ETH
-                  </span>
-                  <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70 ml-1">(${preview.yourProfitUsd.toFixed(2)})</span>
-                  <span className="text-xs text-muted-foreground ml-1">{preview.multiplier.toFixed(2)}x</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-danger">Opponent wins</span>
-                <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-danger" data-testid="text-preview-opponent-payout">
-                    +{preview.opponentProfit.toFixed(6)} ETH
-                  </span>
-                  <span className="text-xs text-rose-600/70 dark:text-rose-400/70 ml-1">(${preview.opponentProfitUsd.toFixed(2)})</span>
-                  <span className="text-xs text-muted-foreground ml-1">{preview.opponentMultiplier.toFixed(2)}x</span>
+              <div className="space-y-2.5 rounded-lg border border-border bg-muted/30 p-4">
+                <SummaryRow
+                  label="You stake"
+                  value={`${formatEth(preview.yourStake)} ETH`}
+                  sub={formatUsd(preview.yourStakeUsd)}
+                  data-testid="text-preview-stake"
+                />
+                <SummaryRow
+                  label="Opponent stakes"
+                  value={`${formatEth(preview.opponentStake)} ETH`}
+                  sub={formatUsd(preview.opponentStakeUsd)}
+                  data-testid="text-preview-opponent"
+                />
+                <SummaryRow
+                  label="Total pot"
+                  value={`${formatEth(preview.totalPot)} ETH`}
+                  sub={formatUsd(preview.totalPotUsd)}
+                  data-testid="text-preview-pot"
+                />
+                <SummaryRow
+                  label={`Protocol fee (${(feeBps / 100).toFixed(1)}%)`}
+                  value={`-${formatEth(preview.fee)} ETH`}
+                  tone="muted"
+                  data-testid="text-preview-fee"
+                />
+                <div className="h-px bg-border" />
+                <SummaryRow
+                  label="If you win"
+                  value={`+${formatEth(preview.yourProfit)} ETH`}
+                  sub={`${preview.multiplier.toFixed(2)}x`}
+                  tone="success"
+                  strong
+                  data-testid="text-preview-payout"
+                />
+                <SummaryRow
+                  label="If they win"
+                  value={`+${formatEth(preview.opponentProfit)} ETH`}
+                  sub={`${preview.opponentMultiplier.toFixed(2)}x`}
+                  tone="danger"
+                  strong
+                  data-testid="text-preview-opponent-payout"
+                />
+                <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />Accept {formatDuration(joinMins)}</span>
+                  <span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" />Vote {formatDuration(resolveMins)}</span>
                 </div>
               </div>
             </div>
-
-            <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center justify-between text-xs font-medium text-primary">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
-                </div>
-                <span className="font-semibold">Base</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {connected && gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-offer">
-            <Fuel className="w-3 h-3" />
-            <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
-            <span className="text-success">(${gasEstimate.gasUsd.toFixed(4)})</span>
-          </div>
-        )}
-        {connected && estimatingGas && !gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground">
-            <Loader2 className="w-3 h-3 animate-spin" />
-            <span>Estimating gas...</span>
-          </div>
-        )}
-
-        <Button
-          data-testid="button-create-offer"
-          onClick={() => {
-            if (!connected) { handleCreateOffer(); return; }
-            setShowConfirm(true);
-          }}
-          disabled={loading || !preview}
-          className="w-full"
-          size="lg"
-        >
-          {loading ? (
-            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Confirming...</>
-          ) : connected ? (
-            <><Zap className="w-4 h-4 mr-2" /> Create Offer</>
-          ) : (
-            <>Connect Wallet & Create</>
           )}
-        </Button>
+
+          <div>
+            <Button
+              data-testid="button-create-offer"
+              onClick={() => {
+                if (!connected) { handleCreateOffer(); return; }
+                setShowConfirm(true);
+              }}
+              disabled={loading || !preview}
+              className="h-12 w-full text-base"
+              size="lg"
+            >
+              {loading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Confirming…</>
+              ) : connected ? (
+                <><Zap className="h-4 w-4" /> Create offer</>
+              ) : (
+                <>Connect wallet &amp; create</>
+              )}
+            </Button>
+
+            {connected && gasEstimate && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-2xs text-muted-foreground" data-testid="gas-estimate-offer">
+                <Fuel className="h-3 w-3" />
+                <span>Est. gas {formatEth(gasEstimate.gasEth)} ETH · {formatUsd(gasEstimate.gasUsd)}</span>
+              </p>
+            )}
+            {connected && estimatingGas && !gasEstimate && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-2xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Estimating gas…</span>
+              </p>
+            )}
+
+            {(lastOfferId || lastTxHash) && (
+              <div className="mt-4 space-y-3 rounded-lg border border-success/30 bg-success/5 p-4" data-testid="offer-created-success">
+                {lastOfferId && (
+                  <>
+                    <div>
+                      <p className="text-xs font-medium text-success">Your bet is live</p>
+                      <p className="mt-0.5 font-mono text-sm">Bet #{lastOfferId}</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <Button
+                        variant="outline"
+                        className="min-h-11 w-full"
+                        data-testid="button-copy-share-link"
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`;
+                          navigator.clipboard.writeText(shareUrl);
+                          onCopyAction();
+                          toast({ title: 'Link copied!', description: 'Send this to a friend so they can take the other side.' });
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy share link
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="min-h-11 w-full"
+                        data-testid="button-share-x-offer-success"
+                        onClick={() => {
+                          const betUrl = `${window.location.origin}/lookup?id=${lastOfferId}`;
+                          const tweetText = question.trim()
+                            ? `"${question.trim()}" - Take the other side on The Juice!`
+                            : 'Check out this bet on The Juice!';
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
+                        }}
+                      >
+                        <XIcon className="h-3.5 w-3.5" />
+                        Share on X
+                      </Button>
+                    </div>
+                  </>
+                )}
+                <Link href={`/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`} data-testid="link-go-to-lookup">
+                  <Button variant="secondary" className="min-h-11 w-full">
+                    <Search className="h-3.5 w-3.5" />
+                    View your bet
+                  </Button>
+                </Link>
+                {lastTxHash && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      data-testid="button-copy-offer-tx"
+                      onClick={() => {
+                        navigator.clipboard.writeText(lastTxHash);
+                        onCopyAction();
+                        toast({ title: 'Copied', description: 'Transaction hash copied' });
+                      }}
+                      className="flex-1 truncate text-left font-mono text-2xs text-muted-foreground"
+                    >
+                      TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
+                    </button>
+                    <a
+                      href={`${explorerUrl}/tx/${lastTxHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 text-primary"
+                      data-testid="link-offer-tx-explorer"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         <ConfirmTxDialog
           open={showConfirm}
@@ -557,103 +573,27 @@ export default function Markets() {
           lines={preview ? [
             ...(question.trim() ? [{ label: 'Question', value: `"${question.trim().slice(0, 40)}${question.trim().length > 40 ? '...' : ''}"`, muted: false }] : []),
             { label: 'Your side', value: `${sideYes ? 'YES' : 'NO'} @ ${yesPercent}%` },
-            { label: 'Your stake', value: `${preview.yourStake.toFixed(6)} ETH`, highlight: false },
-            { label: 'Opponent pays', value: `${preview.opponentStake.toFixed(6)} ETH` },
-            { label: 'Total pot', value: `${preview.totalPot.toFixed(6)} ETH` },
-            { label: `Fee (${(feeBps / 100).toFixed(1)}%)`, value: `-${preview.fee.toFixed(6)} ETH`, muted: true },
-            { label: 'If you win', value: `+${preview.yourProfit.toFixed(6)} ETH`, highlight: true },
+            { label: 'Your stake', value: `${formatEth(preview.yourStake)} ETH`, highlight: false },
+            { label: 'Opponent pays', value: `${formatEth(preview.opponentStake)} ETH` },
+            { label: 'Total pot', value: `${formatEth(preview.totalPot)} ETH` },
+            { label: `Fee (${(feeBps / 100).toFixed(1)}%)`, value: `-${formatEth(preview.fee)} ETH`, muted: true },
+            { label: 'If you win', value: `+${formatEth(preview.yourProfit)} ETH`, highlight: true },
           ] : []}
         />
-
-        {(lastOfferId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-success/30 bg-success/5 space-y-3" data-testid="offer-created-success">
-            {lastOfferId && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <p className="text-xs text-success font-medium">Your bet is live!</p>
-                    <p className="text-sm font-mono mt-0.5">Bet #{lastOfferId}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  data-testid="button-copy-share-link"
-                  onClick={() => {
-                    const shareUrl = `${window.location.origin}/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`;
-                    navigator.clipboard.writeText(shareUrl);
-                    onCopyAction();
-                    toast({ title: 'Link copied!', description: 'Send this to a friend so they can take the other side.' });
-                  }}
-                >
-                  <Copy className="w-3.5 h-3.5 mr-1.5" />
-                  Copy Share Link
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  data-testid="button-share-x-offer-success"
-                  onClick={() => {
-                    const betUrl = `${window.location.origin}/lookup?id=${lastOfferId}`;
-                    const tweetText = question.trim()
-                      ? `"${question.trim()}" - Take the other side on The Juice!`
-                      : 'Check out this bet on The Juice!';
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
-                  }}
-                >
-                  <XIcon className="w-3.5 h-3.5 mr-1.5" />
-                  Share on X
-                </Button>
-              </div>
-            )}
-            {lastTxHash && (
-              <div className="flex items-center gap-2">
-                <button
-                  data-testid="button-copy-offer-tx"
-                  onClick={() => {
-                    navigator.clipboard.writeText(lastTxHash);
-                    onCopyAction();
-                    toast({ title: 'Copied', description: 'Transaction hash copied' });
-                  }}
-                  className="text-2xs font-mono text-muted-foreground truncate flex-1 text-left"
-                >
-                  TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
-                </button>
-                <a
-                  href={`${explorerUrl}/tx/${lastTxHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary flex-shrink-0"
-                  data-testid="link-offer-tx-explorer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            )}
-            <Link href={`/lookup?id=${lastOfferId}${question.trim() ? `&q=${encodeURIComponent(question.trim())}` : ''}`} data-testid="link-go-to-lookup">
-              <Button variant="outline" size="sm" className="w-full">
-                <Search className="w-3.5 h-3.5 mr-1.5" />
-                View Your Bet
-              </Button>
-            </Link>
-          </div>
-        )}
       </Card>
 
-      <Card className="p-5 sm:p-6">
-        <div className="info-card-header">
-          <Info className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-semibold text-muted-foreground">How Market Odds Work</span>
+      <details className="rounded-xl border border-card-border bg-card p-4 sm:p-6" data-testid="how-it-works">
+        <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Info className="h-4 w-4" />
+          How market odds work
+          <ChevronDown className="ml-auto h-4 w-4" />
+        </summary>
+        <div className="mt-3 space-y-2.5 text-xs leading-relaxed text-muted-foreground">
+          <p>Stakes are <span className="font-medium text-foreground">asymmetric</span>: the side with the higher implied probability risks more for a smaller return.</p>
+          <p>Both sides vote on the outcome. Matching votes pay the winner automatically; a disagreement refunds both sides after the deadline.</p>
+          <p>Share your <span className="font-medium text-foreground">Bet ID</span> so an opponent can take the other side from Find a Bet.</p>
         </div>
-        <div className="space-y-2.5 text-xs text-muted-foreground leading-relaxed">
-          <p>Market offers use <span className="text-foreground font-medium">asymmetric stakes</span> based on implied probability, just like Kalshi prediction markets.</p>
-          <p>If you set YES at <span className="text-foreground font-medium">70%</span>, you risk more for a smaller return. Your opponent gets a better payout if they're right.</p>
-          <p>Both sides vote on the outcome. If votes match, the winner is paid automatically. If they disagree, funds are refunded after the deadline.</p>
-          <p>After creating an offer, share the <span className="text-foreground font-medium">Bet ID</span> with your opponent. They can accept it on the <span className="text-foreground font-medium">Bet Lookup</span> page.</p>
-        </div>
-      </Card>
+      </details>
     </div>
   );
 }

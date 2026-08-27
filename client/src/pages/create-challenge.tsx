@@ -6,14 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { RANDOM_IDEAS, ABI_V1, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Clock, Shield, Zap, ExternalLink, Search, Fuel, Info, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
+import { Loader2, Shuffle, Clock, Shield, Zap, ExternalLink, Search, Fuel, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
 import { Link } from 'wouter';
+import { Field, Chip, SummaryRow } from '@/components/field';
+import { formatEth, formatUsd, formatDuration, formatDeadline } from '@/lib/format';
 import { ConfirmTxDialog } from '@/components/confirm-tx-dialog';
 import { XIcon } from '@/components/x-icon';
 import { onBetCreated, onCopyAction } from '@/lib/feedback';
 
 export default function CreateChallenge() {
-  const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, connecting, explorerUrl } = useWallet();
+  const { connected, connect, signer, ethUsd, feeBps, getV1Contract, network, explorerUrl } = useWallet();
   const { toast } = useToast();
 
   const [idea, setIdea] = useState('');
@@ -166,270 +168,301 @@ export default function CreateChallenge() {
   }, [stakeEthValue, feeBps, ethUsd]);
 
   return (
-    <div className="space-y-4 max-w-xl mx-auto" data-testid="create-challenge-page">
+    <div className="mx-auto max-w-xl space-y-4" data-testid="create-challenge-page">
       <div className="page-section">
-        <h1 className="page-title" data-testid="text-page-title">Create Challenge</h1>
-        <p className="page-subtitle">Both players bet the same amount. Winner takes all (minus a small fee).</p>
+        <h1 className="page-title" data-testid="text-page-title">Challenge</h1>
+        <p className="page-subtitle">Both players stake the same amount. Winner takes the pot, minus a small protocol fee.</p>
       </div>
 
-      <Card className="p-5 sm:p-6">
-        <div className="flex items-center justify-center gap-2 mb-5">
-          <Zap className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold tracking-wide">New Challenge</span>
-        </div>
-
-        <div className="mb-5">
-          <div className="relative">
-            <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              data-testid="input-challenge-idea"
-              type="text"
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              placeholder="Label your bet — both players vote on the outcome"
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-12 text-xs focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-            />
-            <button
-              data-testid="button-shuffle-idea"
-              onClick={shuffleIdea}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md border border-primary/40 text-primary"
-            >
-              <Shuffle className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-
-        <div className="mb-5">
-          <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center mb-2">Bet Amount (Each Player)</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-primary font-medium">ETH</span>
-            <input
-              data-testid="input-stake-amount"
-              type="number"
-              step="0.001"
-              min="0"
-              value={stakeEth}
-              onChange={(e) => setStakeEth(e.target.value)}
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-12 pr-16 text-sm font-mono text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-              placeholder="0.01"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success font-mono font-medium" data-testid="text-stake-usd">
-              {preview ? `$${preview.yourStakeUsd.toFixed(2)}` : '$0.00'}
-            </span>
-          </div>
-          <div className="grid grid-cols-4 gap-1.5 mt-2">
-            {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+      <Card className="p-4 sm:p-6">
+        <div className="stack-divider">
+          <Field label="What's the bet?" hint="Optional">
+            <div className="relative">
+              <MessageSquare className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                data-testid="input-challenge-idea"
+                type="text"
+                value={idea}
+                onChange={(e) => setIdea(e.target.value)}
+                placeholder="e.g. I can beat you at chess"
+                className="field-input pl-9 pr-12"
+              />
               <button
-                key={amt}
-                data-testid={`button-stake-${amt}`}
-                onClick={() => setStakeEth(amt)}
-                className={`py-1.5 rounded-md text-xs font-mono border transition-all ${
-                  stakeEth === amt
-                    ? 'border-primary/50 bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground'
-                }`}
+                data-testid="button-shuffle-idea"
+                onClick={shuffleIdea}
+                title="Random idea"
+                className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-primary hover:bg-primary/10"
               >
-                {amt}
+                <Shuffle className="h-4 w-4" />
               </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          data-testid="button-toggle-advanced"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3"
-        >
-          {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          <span className="font-semibold text-foreground">Time Limits</span>
-        </button>
-
-        {showAdvanced && (
-          <div className="grid grid-cols-2 gap-5 mb-5">
-            <div className="space-y-2">
-              <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center">Time to Accept</label>
-              <div className="relative">
-                <input
-                  data-testid="input-join-deadline"
-                  type="number"
-                  min={1}
-                  max={43200}
-                  value={joinMins}
-                  onChange={(e) => setJoinMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-primary focus:outline-none focus:border-primary/50"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">min</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[15, 60, 1440].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setJoinMins(m)}
-                    className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
-                      joinMins === m
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground'
-                    }`}
-                  >
-                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
-                  </button>
-                ))}
-              </div>
-              <div className="bg-muted/40 rounded-md px-2 py-2 text-center" data-testid="text-join-deadline-preview">
-                <span className="text-[11px] text-muted-foreground block mb-0.5">Accept by</span>
-                <span className="text-[11px] sm:text-sm font-medium text-primary">
-                  {new Date(Date.now() + joinMins * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
-                </span>
-              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs text-foreground font-semibold uppercase tracking-wider block text-center">Time to Vote</label>
-              <div className="relative">
-                <input
-                  data-testid="input-resolve-deadline"
-                  type="number"
-                  min={1}
-                  max={43200}
-                  value={resolveMins}
-                  onChange={(e) => setResolveMins(Number(e.target.value))}
-                  className="w-full bg-muted/50 border border-border rounded-md py-2.5 px-3 pr-12 text-base font-mono text-primary focus:outline-none focus:border-primary/50"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary">min</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[30, 120, 2880].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setResolveMins(m)}
-                    className={`text-xs font-medium border rounded-md py-1.5 text-center transition-all ${
-                      resolveMins === m
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground'
-                    }`}
-                  >
-                    {m < 60 ? `${m}m` : m < 1440 ? `${m/60}h` : `${m/1440}d`}
-                  </button>
-                ))}
-              </div>
-              <div className="bg-muted/40 rounded-md px-2 py-2 text-center" data-testid="text-resolve-deadline-preview">
-                <span className="text-[11px] text-muted-foreground block mb-0.5">Vote by</span>
-                <span className="text-[11px] sm:text-sm font-medium text-primary">
-                  {new Date(Date.now() + (joinMins + resolveMins) * 60_000).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+          </Field>
 
-        {preview && (
-          <div className="rounded-md border border-border bg-muted/30 p-4 mb-5" data-testid="challenge-preview">
-            <div className="flex items-center gap-1.5 mb-3">
-              <Info className="w-3.5 h-3.5 text-primary" />
-              <span className="text-sm font-semibold">Order Preview</span>
+          <Field label="Stake per player" hint={preview ? formatUsd(preview.yourStakeUsd) : formatUsd(0)}>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">ETH</span>
+              <input
+                data-testid="input-stake-amount"
+                type="number"
+                inputMode="decimal"
+                step="0.001"
+                min="0"
+                value={stakeEth}
+                onChange={(e) => setStakeEth(e.target.value)}
+                className="field-input pl-12 pr-3 font-mono"
+                placeholder="0.01"
+              />
+              <span className="hidden" data-testid="text-stake-usd">{preview ? formatUsd(preview.yourStakeUsd) : formatUsd(0)}</span>
             </div>
+            <div className="grid grid-cols-4 gap-2">
+              {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+                <Chip
+                  key={amt}
+                  data-testid={`button-stake-${amt}`}
+                  active={stakeEth === amt}
+                  onClick={() => setStakeEth(amt)}
+                  className="font-mono"
+                >
+                  {amt}
+                </Chip>
+              ))}
+            </div>
+          </Field>
 
-            {idea.trim() && (
-              <div className="mb-3 p-2.5 rounded-md bg-muted/40 border border-border/50">
-                <p className="text-xs text-muted-foreground mb-1">Challenge</p>
-                <p className="text-sm font-medium leading-snug" data-testid="text-preview-idea">&ldquo;{idea.trim()}&rdquo;</p>
+          <div>
+            <button
+              data-testid="button-toggle-advanced"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex w-full items-center justify-between gap-2 text-left"
+            >
+              <span className="text-sm font-medium">Time limits</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span>Accept {formatDuration(joinMins)} · Vote {formatDuration(resolveMins)}</span>
+                {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </span>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">Time to accept</span>
+                  <div className="relative">
+                    <input
+                      data-testid="input-join-deadline"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={43200}
+                      value={joinMins}
+                      onChange={(e) => setJoinMins(Number(e.target.value))}
+                      className="field-input pl-3 pr-12 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[15, 60, 1440].map(m => (
+                      <Chip key={m} active={joinMins === m} onClick={() => setJoinMins(m)}>
+                        {formatDuration(m)}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground" data-testid="text-join-deadline-preview">
+                    Accept by {formatDeadline(new Date(Date.now() + joinMins * 60_000))}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">Time to vote</span>
+                  <div className="relative">
+                    <input
+                      data-testid="input-resolve-deadline"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={43200}
+                      value={resolveMins}
+                      onChange={(e) => setResolveMins(Number(e.target.value))}
+                      className="field-input pl-3 pr-12 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">min</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[30, 120, 2880].map(m => (
+                      <Chip key={m} active={resolveMins === m} onClick={() => setResolveMins(m)}>
+                        {formatDuration(m)}
+                      </Chip>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground" data-testid="text-resolve-deadline-preview">
+                    Vote by {formatDeadline(new Date(Date.now() + (joinMins + resolveMins) * 60_000))}
+                  </p>
+                </div>
               </div>
             )}
+          </div>
 
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">You put in</span>
-                <span className="text-sm font-mono font-medium" data-testid="text-preview-stake">
-                  {preview.yourStake.toFixed(6)} ETH
-                  <span className="text-success ml-1">(${preview.yourStakeUsd.toFixed(2)})</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Opponent puts in</span>
-                <span className="text-sm font-mono font-medium" data-testid="text-preview-opponent">
-                  {preview.opponentStake.toFixed(6)} ETH
-                  <span className="text-success ml-1">(${preview.opponentStakeUsd.toFixed(2)})</span>
-                </span>
+          {preview && (
+            <div data-testid="challenge-preview">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">Order summary</span>
+                <Badge variant="outline" className="text-2xs">Even odds</Badge>
               </div>
 
-              <div className="h-px bg-border" />
+              {idea.trim() && (
+                <p className="mb-3 text-sm font-medium leading-snug" data-testid="text-preview-idea">
+                  &ldquo;{idea.trim()}&rdquo;
+                </p>
+              )}
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total pot</span>
-                <span className="text-sm font-mono font-medium" data-testid="text-preview-pot">
-                  {preview.totalPot.toFixed(6)} ETH
-                  <span className="text-success ml-1">(${preview.totalPotUsd.toFixed(2)})</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Fee ({(feeBps / 100).toFixed(1)}%)</span>
-                <span className="text-sm font-mono text-muted-foreground" data-testid="text-preview-fee">
-                  -{preview.fee.toFixed(6)} ETH <span className="text-emerald-600/70 dark:text-emerald-400/70">(${preview.feeUsd.toFixed(2)})</span>
-                </span>
-              </div>
-
-              <div className="h-px bg-border" />
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-success">Winner takes</span>
-                <div className="text-right">
-                  <span className="text-sm font-mono font-bold text-success" data-testid="text-preview-payout">
-                    +{preview.profit.toFixed(6)} ETH
-                  </span>
-                  <span className="text-xs text-emerald-600/70 dark:text-emerald-400/70 ml-1">(${preview.profitUsd.toFixed(2)})</span>
-                  <span className="text-xs text-muted-foreground ml-1">{preview.multiplier.toFixed(2)}x</span>
+              <div className="space-y-2.5 rounded-lg border border-border bg-muted/30 p-4">
+                <SummaryRow
+                  label="You stake"
+                  value={`${formatEth(preview.yourStake)} ETH`}
+                  sub={formatUsd(preview.yourStakeUsd)}
+                  data-testid="text-preview-stake"
+                />
+                <SummaryRow
+                  label="Opponent stakes"
+                  value={`${formatEth(preview.opponentStake)} ETH`}
+                  sub={formatUsd(preview.opponentStakeUsd)}
+                  data-testid="text-preview-opponent"
+                />
+                <SummaryRow
+                  label="Total pot"
+                  value={`${formatEth(preview.totalPot)} ETH`}
+                  sub={formatUsd(preview.totalPotUsd)}
+                  data-testid="text-preview-pot"
+                />
+                <SummaryRow
+                  label={`Protocol fee (${(feeBps / 100).toFixed(1)}%)`}
+                  value={`-${formatEth(preview.fee)} ETH`}
+                  tone="muted"
+                  data-testid="text-preview-fee"
+                />
+                <div className="h-px bg-border" />
+                <SummaryRow
+                  label="Winner profit"
+                  value={`+${formatEth(preview.profit)} ETH`}
+                  sub={`${preview.multiplier.toFixed(2)}x`}
+                  tone="success"
+                  strong
+                  data-testid="text-preview-payout"
+                />
+                <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />Accept {formatDuration(joinMins)}</span>
+                  <span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" />Vote {formatDuration(resolveMins)}</span>
                 </div>
               </div>
             </div>
-
-            <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex items-center justify-between text-xs font-medium text-primary">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Join: {joinMins < 60 ? `${joinMins}m` : joinMins < 1440 ? `${(joinMins/60).toFixed(0)}h` : `${(joinMins/1440).toFixed(0)}d`}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Resolve: {resolveMins < 60 ? `${resolveMins}m` : resolveMins < 1440 ? `${(resolveMins/60).toFixed(0)}h` : `${(resolveMins/1440).toFixed(0)}d`}</span>
-                </div>
-                <span className="font-semibold">Base</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {connected && gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground" data-testid="gas-estimate-challenge">
-            <Fuel className="w-3 h-3" />
-            <span>Est. gas: {gasEstimate.gasEth.toFixed(6)} ETH</span>
-            <span className="text-success">(${gasEstimate.gasUsd.toFixed(4)})</span>
-          </div>
-        )}
-        {connected && estimatingGas && !gasEstimate && (
-          <div className="flex items-center justify-center gap-1.5 mb-3 text-2xs text-muted-foreground">
-            <Loader2 className="w-3 h-3 animate-spin" />
-            <span>Estimating gas...</span>
-          </div>
-        )}
-
-        <Button
-          data-testid="button-create-challenge"
-          onClick={() => {
-            if (!connected) { handleCreate(); return; }
-            setShowConfirm(true);
-          }}
-          disabled={loading || stakeEthValue <= 0}
-          className="w-full"
-          size="lg"
-        >
-          {loading ? (
-            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Confirming...</>
-          ) : connected ? (
-            <><Zap className="w-4 h-4 mr-2" /> Create & Fund</>
-          ) : (
-            <>Connect Wallet & Create</>
           )}
-        </Button>
+
+          <div>
+            <Button
+              data-testid="button-create-challenge"
+              onClick={() => {
+                if (!connected) { handleCreate(); return; }
+                setShowConfirm(true);
+              }}
+              disabled={loading || stakeEthValue <= 0}
+              className="h-12 w-full text-base"
+              size="lg"
+            >
+              {loading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Confirming…</>
+              ) : connected ? (
+                <><Zap className="h-4 w-4" /> Create &amp; fund</>
+              ) : (
+                <>Connect wallet &amp; create</>
+              )}
+            </Button>
+
+            {connected && gasEstimate && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-2xs text-muted-foreground" data-testid="gas-estimate-challenge">
+                <Fuel className="h-3 w-3" />
+                <span>Est. gas {formatEth(gasEstimate.gasEth)} ETH · {formatUsd(gasEstimate.gasUsd)}</span>
+              </p>
+            )}
+            {connected && estimatingGas && !gasEstimate && (
+              <p className="mt-2 flex items-center justify-center gap-1.5 text-2xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Estimating gas…</span>
+              </p>
+            )}
+
+            {(lastChallengeId || lastTxHash) && (
+              <div className="mt-4 space-y-3 rounded-lg border border-success/30 bg-success/5 p-4" data-testid="challenge-created-success">
+                {lastChallengeId && (
+                  <>
+                    <div>
+                      <p className="text-xs font-medium text-success">Your challenge is live</p>
+                      <p className="mt-0.5 font-mono text-sm">Challenge #{lastChallengeId}</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <Button
+                        variant="outline"
+                        className="min-h-11 w-full"
+                        data-testid="button-copy-share-link"
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`;
+                          navigator.clipboard.writeText(shareUrl);
+                          onCopyAction();
+                          toast({ title: 'Link copied!', description: 'Send this to a friend so they can accept the challenge.' });
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy share link
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="min-h-11 w-full"
+                        data-testid="button-share-x-challenge-success"
+                        onClick={() => {
+                          const betUrl = `${window.location.origin}/lookup?id=${lastChallengeId}`;
+                          const tweetText = idea.trim()
+                            ? `"${idea.trim()}" - Take the other side on The Juice!`
+                            : 'Check out this bet on The Juice!';
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
+                        }}
+                      >
+                        <XIcon className="h-3.5 w-3.5" />
+                        Share on X
+                      </Button>
+                    </div>
+                  </>
+                )}
+                <Link href={`/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`} data-testid="link-go-to-lookup">
+                  <Button variant="secondary" className="min-h-11 w-full">
+                    <Search className="h-3.5 w-3.5" />
+                    View your challenge
+                  </Button>
+                </Link>
+                {lastTxHash && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      data-testid="button-copy-tx"
+                      onClick={() => {
+                        navigator.clipboard.writeText(lastTxHash);
+                        onCopyAction();
+                        toast({ title: 'Copied', description: 'Transaction hash copied' });
+                      }}
+                      className="flex-1 truncate text-left font-mono text-2xs text-muted-foreground"
+                    >
+                      TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
+                    </button>
+                    <a
+                      href={`${explorerUrl}/tx/${lastTxHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 text-primary"
+                      data-testid="link-tx-explorer"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         <ConfirmTxDialog
           open={showConfirm}
@@ -440,89 +473,13 @@ export default function CreateChallenge() {
           gas={gasEstimate}
           lines={preview ? [
             ...(idea.trim() ? [{ label: 'Challenge', value: `"${idea.trim().slice(0, 40)}${idea.trim().length > 40 ? '...' : ''}"` }] : []),
-            { label: 'Your stake', value: `${preview.yourStake.toFixed(6)} ETH` },
-            { label: 'Opponent stakes', value: `${preview.opponentStake.toFixed(6)} ETH` },
-            { label: 'Total pot', value: `${preview.totalPot.toFixed(6)} ETH` },
-            { label: `Fee (${(feeBps / 100).toFixed(1)}%)`, value: `-${preview.fee.toFixed(6)} ETH`, muted: true },
-            { label: 'Winner takes', value: `+${preview.profit.toFixed(6)} ETH`, highlight: true },
+            { label: 'Your stake', value: `${formatEth(preview.yourStake)} ETH` },
+            { label: 'Opponent stakes', value: `${formatEth(preview.opponentStake)} ETH` },
+            { label: 'Total pot', value: `${formatEth(preview.totalPot)} ETH` },
+            { label: `Fee (${(feeBps / 100).toFixed(1)}%)`, value: `-${formatEth(preview.fee)} ETH`, muted: true },
+            { label: 'Winner takes', value: `+${formatEth(preview.profit)} ETH`, highlight: true },
           ] : []}
         />
-
-        {(lastChallengeId || lastTxHash) && (
-          <div className="mt-3 p-3 rounded-md border border-success/30 bg-success/5 space-y-3" data-testid="challenge-created-success">
-            {lastChallengeId && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <p className="text-xs text-success font-medium">Your challenge is live!</p>
-                    <p className="text-sm font-mono mt-0.5">Challenge #{lastChallengeId}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  data-testid="button-copy-share-link"
-                  onClick={() => {
-                    const shareUrl = `${window.location.origin}/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`;
-                    navigator.clipboard.writeText(shareUrl);
-                    onCopyAction();
-                    toast({ title: 'Link copied!', description: 'Send this to a friend so they can accept the challenge.' });
-                  }}
-                >
-                  <Copy className="w-3.5 h-3.5 mr-1.5" />
-                  Copy Share Link
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  data-testid="button-share-x-challenge-success"
-                  onClick={() => {
-                    const betUrl = `${window.location.origin}/lookup?id=${lastChallengeId}`;
-                    const tweetText = idea.trim()
-                      ? `"${idea.trim()}" - Take the other side on The Juice!`
-                      : 'Check out this bet on The Juice!';
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(betUrl)}`, '_blank');
-                  }}
-                >
-                  <XIcon className="w-3.5 h-3.5 mr-1.5" />
-                  Share on X
-                </Button>
-              </div>
-            )}
-            {lastTxHash && (
-              <div className="flex items-center gap-2">
-                <button
-                  data-testid="button-copy-tx"
-                  onClick={() => {
-                    navigator.clipboard.writeText(lastTxHash);
-                    onCopyAction();
-                    toast({ title: 'Copied', description: 'Transaction hash copied' });
-                  }}
-                  className="text-2xs font-mono text-muted-foreground truncate flex-1 text-left"
-                >
-                  TX: {lastTxHash.slice(0, 10)}...{lastTxHash.slice(-8)}
-                </button>
-                <a
-                  href={`${explorerUrl}/tx/${lastTxHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary flex-shrink-0"
-                  data-testid="link-tx-explorer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            )}
-            <Link href={`/lookup?id=${lastChallengeId}${idea.trim() ? `&q=${encodeURIComponent(idea.trim())}` : ''}`} data-testid="link-go-to-lookup">
-              <Button variant="outline" size="sm" className="w-full">
-                <Search className="w-3.5 h-3.5 mr-1.5" />
-                View Your Challenge
-              </Button>
-            </Link>
-          </div>
-        )}
       </Card>
     </div>
   );

@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@/lib/wallet';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ExternalLink } from 'lucide-react';
+import { Loader2, Search, ExternalLink, Flame } from 'lucide-react';
+import { Link } from 'wouter';
 import { onBetJoined, onVoteSubmitted, onBetResolved, onBetRefunded, onCopyAction } from '@/lib/feedback';
 import { ChallengeData, OfferData, BetData } from './types';
 import { ChallengeView } from './challenge-view';
@@ -281,30 +282,46 @@ export default function BetLookup() {
   const now = Math.floor(Date.now() / 1000);
 
   return (
-    <div className="space-y-4 max-w-xl mx-auto" data-testid="bet-lookup-page">
+    <div className="mx-auto max-w-xl space-y-4" data-testid="bet-lookup-page">
       <div className="page-section">
-        <h1 className="page-title" data-testid="text-page-title">Bet Lookup</h1>
+        <h1 className="page-title" data-testid="text-page-title">Find a Bet</h1>
         <p className="page-subtitle">Enter a bet ID to join, vote on the outcome, or check its status.</p>
       </div>
 
-      <Card className="p-5 sm:p-6">
-        <div className="flex gap-2 mb-2">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Card className="p-4 sm:p-6">
+        <div className="mb-2 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               data-testid="input-bet-id"
               type="text"
+              inputMode="numeric"
               value={betId}
               onChange={(e) => setBetId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && loadBet()}
-              placeholder="Enter a numeric ID, e.g. 1, 2, 3..."
-              className="w-full bg-muted/50 border border-border rounded-md py-3 pl-9 pr-3 text-xs focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+              placeholder="Bet ID, e.g. 1, 2, 3…"
+              className="field-input pl-9 pr-3"
             />
           </div>
-          <Button data-testid="button-load-bet" onClick={() => loadBet()} disabled={loading || !betId.trim()} variant="secondary">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          <Button data-testid="button-load-bet" onClick={() => loadBet()} disabled={loading || !betId.trim()} variant="secondary" className="min-h-12 px-5">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </Button>
         </div>
+
+        {!bet && !loading && (
+          <div className="pt-4 text-center" data-testid="lookup-empty">
+            <p className="text-sm font-medium">Nothing loaded yet</p>
+            <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+              Paste the ID from a shared bet link, or browse what&rsquo;s open right now.
+            </p>
+            <Link href="/trending">
+              <Button variant="outline" className="mt-4 min-h-11 w-full sm:w-auto" data-testid="button-browse-trending">
+                <Flame className="h-4 w-4" />
+                Browse trending bets
+              </Button>
+            </Link>
+          </div>
+        )}
 
         {bet?.type === 'challenge' && (
           <ChallengeView

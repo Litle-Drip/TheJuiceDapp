@@ -16,6 +16,7 @@ import { useEnsName, shortAddr } from '@/lib/ens';
 import { Skeleton } from '@/components/ui/skeleton';
 import { onCopyAction } from '@/lib/feedback';
 import { TabButton } from '@/components/tab-button';
+import { formatEth, formatUsd } from '@/lib/format';
 
 function AddressName({ address }: { address: string }) {
   const { name, loading } = useEnsName(address);
@@ -356,7 +357,7 @@ export default function MyBets() {
   const now = Math.floor(Date.now() / 1000);
 
   return (
-    <div className="space-y-4 max-w-xl mx-auto" data-testid="my-bets-page">
+    <div className="mx-auto max-w-xl space-y-4" data-testid="my-bets-page">
       <div className="page-section">
         <h1 className="page-title" data-testid="text-page-title">My Bets</h1>
         <p className="page-subtitle">Track all your bets, see your stats, and check transaction history.</p>
@@ -364,12 +365,12 @@ export default function MyBets() {
 
       {!connected ? (
         <Card className="p-8 text-center">
-          <Wallet className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm font-medium mb-1">Connect your wallet to get started</p>
-          <p className="text-xs text-muted-foreground mb-4">We'll scan the blockchain for any bets linked to your wallet address.</p>
-          <Button data-testid="button-connect-my-bets" onClick={() => connect()} disabled={connecting}>
-            {connecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wallet className="w-4 h-4 mr-2" />}
-            Connect Wallet
+          <Wallet className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+          <p className="mb-1 text-sm font-medium">Connect your wallet to get started</p>
+          <p className="mb-5 text-xs leading-relaxed text-muted-foreground">We'll scan the blockchain for any bets linked to your wallet address.</p>
+          <Button data-testid="button-connect-my-bets" onClick={() => connect()} disabled={connecting} className="min-h-11 w-full sm:w-auto">
+            {connecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+            Connect wallet
           </Button>
         </Card>
       ) : (
@@ -443,17 +444,17 @@ export default function MyBets() {
                       : `Try switching to "All" to see all your bets.`}
                   </p>
                   {filterTab === 'all' && (
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex flex-col items-stretch justify-center gap-2 sm:flex-row">
                       <Link href="/">
-                        <Button variant="default" size="sm" data-testid="button-create-from-empty">
-                          <Zap className="w-3.5 h-3.5 mr-1.5" />
-                          Create a Bet
+                        <Button className="min-h-11 w-full sm:w-auto" data-testid="button-create-from-empty">
+                          <Zap className="h-4 w-4" />
+                          Create a bet
                         </Button>
                       </Link>
                       <Link href="/trending">
-                        <Button variant="outline" size="sm" data-testid="button-trending-from-empty">
-                          <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
-                          Browse Trending
+                        <Button variant="outline" className="min-h-11 w-full sm:w-auto" data-testid="button-trending-from-empty">
+                          <TrendingUp className="h-4 w-4" />
+                          Browse trending
                         </Button>
                       </Link>
                     </div>
@@ -509,8 +510,8 @@ export default function MyBets() {
                           <div className="flex items-center justify-between gap-2 text-xs">
                             <div className="flex items-center gap-3">
                               <span className="text-muted-foreground">
-                                Stake: <span className="font-mono text-foreground">{bet.stakeEth.toFixed(6)} ETH</span>
-                                <span className="text-success ml-1">(${(bet.stakeEth * ethUsd).toFixed(2)})</span>
+                                Stake <span className="font-mono text-foreground">{formatEth(bet.stakeEth)} ETH</span>
+                                <span className="ml-1">{formatUsd(bet.stakeEth * ethUsd)}</span>
                               </span>
                             </div>
                             {bet.type === 'offer' && bet.oddsBps && (

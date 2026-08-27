@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
+import { formatEth } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ABI_V2, NETWORKS, OFFER_STATES } from '@/lib/contracts';
@@ -59,8 +60,8 @@ export function OfferView({
       lines: [
         { label: 'Bet ID', value: `#${betId}` },
         { label: 'Your side', value: offer.creatorSideYes ? 'NO' : 'YES' },
-        { label: 'Your stake', value: `${takerStakeEth.toFixed(6)} ETH` },
-        { label: 'Total pot', value: `${totalPotEth.toFixed(6)} ETH` },
+        { label: 'Your stake', value: `${formatEth(takerStakeEth)} ETH` },
+        { label: 'Total pot', value: `${formatEth(totalPotEth)} ETH` },
       ],
       action,
     });
@@ -93,7 +94,7 @@ export function OfferView({
       lines: [
         { label: 'Bet ID', value: `#${betId}` },
         { label: 'Action', value: 'Resolve & pay winner' },
-        { label: 'Total pot', value: `${totalPotEth.toFixed(6)} ETH`, highlight: true },
+        { label: 'Total pot', value: `${formatEth(totalPotEth)} ETH`, highlight: true },
       ],
       action,
     });
@@ -215,16 +216,16 @@ export function OfferView({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Creator puts in</span>
-            <span className="font-mono">{Number(ethers.formatEther(offer.creatorStake)).toFixed(6)} ETH</span>
+            <span className="font-mono">{formatEth(Number(ethers.formatEther(offer.creatorStake)))} ETH</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Taker puts in</span>
-            <span className="font-mono">{Number(ethers.formatEther(offer.takerStake)).toFixed(6)} ETH</span>
+            <span className="font-mono">{formatEth(Number(ethers.formatEther(offer.takerStake)))} ETH</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Total pot</span>
             <span className="font-mono font-medium">
-              {Number(ethers.formatEther(offer.creatorStake + offer.takerStake)).toFixed(6)} ETH
+              {formatEth(Number(ethers.formatEther(offer.creatorStake + offer.takerStake)))} ETH
             </span>
           </div>
           <div className="h-px bg-border" />
@@ -293,9 +294,9 @@ export function OfferView({
       {offer.state === 0 && !hasTaker && !joinExpired && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('takeOffer', [BigInt(betId)], offer.takerStake)} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-take-offer" onClick={confirmTake} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-take-offer" onClick={confirmTake} disabled={!!actionLoading} className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Take Offer' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ArrowDownToLine className="w-4 h-4 mr-2" />}
-            Take Offer ({takerStakeEth.toFixed(6)} ETH)
+            Take Offer ({formatEth(takerStakeEth)} ETH)
           </Button>
         </div>
       )}
@@ -357,7 +358,7 @@ export function OfferView({
       {offer.state === 1 && offer.creatorVote !== 0 && offer.takerVote !== 0 && offer.creatorVote === offer.takerVote && !offer.paid && (
         <div className="space-y-1">
           <GasEstimate estimateFn={() => estimateGas('resolveOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-resolve-offer" onClick={confirmResolve} disabled={!!actionLoading} className="w-full" size="lg">
+          <Button data-testid="button-resolve-offer" onClick={confirmResolve} disabled={!!actionLoading} className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Resolve' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}
             Resolve & Payout
           </Button>
@@ -371,7 +372,7 @@ export function OfferView({
             <p className="text-xs text-amber-600 dark:text-amber-400">Join deadline passed with no taker. Creator can reclaim funds.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={() => confirmRefund('No taker')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('No taker')} disabled={!!actionLoading} variant="outline" className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (No Taker)
           </Button>
@@ -385,7 +386,7 @@ export function OfferView({
             <p className="text-xs text-amber-600 dark:text-amber-400">Votes disagree - creator and taker voted differently. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Vote conflict')} disabled={!!actionLoading} variant="outline" className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Vote Conflict)
           </Button>
@@ -399,7 +400,7 @@ export function OfferView({
             <p className="text-xs text-amber-600 dark:text-amber-400">Resolve deadline passed without agreement. Both parties can claim a refund.</p>
           </div>
           <GasEstimate estimateFn={() => estimateGas('refundOffer', [BigInt(betId)])} ethUsd={ethUsd} address={address} />
-          <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="w-full" size="lg">
+          <Button data-testid="button-refund" onClick={() => confirmRefund('Deadline expired')} disabled={!!actionLoading} variant="outline" className="h-12 w-full text-base" size="lg">
             {actionLoading === 'Refund' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
             Refund (Deadline Expired)
           </Button>

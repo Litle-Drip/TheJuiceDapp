@@ -13,6 +13,7 @@ import {
   Search, RefreshCw, Zap, Copy, MessageSquare
 } from 'lucide-react';
 import { Countdown } from '@/components/countdown';
+import { formatEth, formatUsd } from '@/lib/format';
 import { useEnsName, shortAddr } from '@/lib/ens';
 import { onCopyAction } from '@/lib/feedback';
 import { useToast } from '@/hooks/use-toast';
@@ -178,7 +179,7 @@ export default function Trending() {
   });
 
   return (
-    <div className="space-y-4 max-w-xl mx-auto" data-testid="trending-page">
+    <div className="mx-auto max-w-xl space-y-4" data-testid="trending-page">
       <div className="page-section">
         <h1 className="page-title" data-testid="text-page-title">Trending</h1>
         <p className="page-subtitle">See what others are betting on. Jump in and take the other side.</p>
@@ -227,23 +228,23 @@ export default function Trending() {
         </div>
       ) : loaded && filteredBets.length === 0 ? (
         <Card className="p-8 text-center">
-          <Flame className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm font-medium mb-1">
+          <Flame className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+          <p className="mb-1 text-sm font-medium">
             {filter === 'open' ? 'No open bets right now' : 'No bets found on this network'}
           </p>
-          <p className="text-xs text-muted-foreground mb-4">
-            {filter === 'open' ? 'All current bets have been taken. Create a new one or switch to "All Bets" to browse.' : 'Be the first to create one and set the market.'}
+          <p className="mb-5 text-xs leading-relaxed text-muted-foreground">
+            {filter === 'open' ? 'Every current bet has been taken. Create a new one, or browse all bets.' : 'Be the first to create one and set the market.'}
           </p>
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-col items-stretch justify-center gap-2 sm:flex-row">
             <Link href="/">
-              <Button variant="default" size="sm" data-testid="button-create-first">
-                <Zap className="w-3.5 h-3.5 mr-1.5" />
-                Create a Bet
+              <Button className="min-h-11 w-full sm:w-auto" data-testid="button-create-first">
+                <Zap className="h-4 w-4" />
+                Create a bet
               </Button>
             </Link>
             {filter === 'open' && (
-              <Button variant="outline" size="sm" onClick={() => setFilter('all')} data-testid="button-show-all-empty">
-                Show All Bets
+              <Button variant="outline" className="min-h-11 w-full sm:w-auto" onClick={() => setFilter('all')} data-testid="button-show-all-empty">
+                Browse all bets
               </Button>
             )}
           </div>
@@ -305,9 +306,9 @@ export default function Trending() {
 
                   <div className="flex items-center justify-between gap-2 text-xs">
                     <div>
-                      <span className="text-muted-foreground">Total pot: </span>
-                      <span className="font-mono font-medium text-foreground">{bet.totalPotEth.toFixed(6)} ETH</span>
-                      <span className="text-success ml-1">(${(bet.totalPotEth * ethUsd).toFixed(2)})</span>
+                      <span className="text-muted-foreground">Pot </span>
+                      <span className="font-mono font-medium text-foreground">{formatEth(bet.totalPotEth)} ETH</span>
+                      <span className="ml-1 text-muted-foreground">{formatUsd(bet.totalPotEth * ethUsd)}</span>
                     </div>
                     {bet.type === 'offer' && bet.oddsBps && (
                       <div className="flex items-center gap-1">
@@ -358,8 +359,8 @@ export default function Trending() {
                           }
                         }}
                       >
-                        <Copy className="w-3 h-3 mr-1" />
-                        Create Similar
+                        <Copy className="mr-1 h-3 w-3" />
+                        Create similar
                       </Button>
                     </div>
                   </div>
