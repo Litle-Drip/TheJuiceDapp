@@ -35,10 +35,10 @@ const FAQ = lazy(() => import("@/pages/faq"));
 
 function Brand({ className = "", tagline = true }: { className?: string; tagline?: boolean }) {
   return (
-    <Link href="/" data-testid="link-logo" className={`flex shrink-0 items-center gap-2.5 ${className}`}>
+    <Link href="/" data-testid="link-logo" className={`flex min-w-0 items-center gap-2.5 ${className}`}>
       <img src={logoImg} alt="The Juice" className="h-8 w-8 shrink-0 rounded-lg shadow-sm" />
       <span className="min-w-0">
-        <span className="block whitespace-nowrap text-base font-bold leading-none tracking-tight">The Juice</span>
+        <span className="block truncate text-base font-bold leading-none tracking-tight">The Juice</span>
         {tagline && (
           <span className="mt-1 block whitespace-nowrap text-2xs leading-none text-muted-foreground">P2P Betting on Base</span>
         )}
@@ -59,9 +59,9 @@ function NetworkPill() {
       onClick={switchNetwork}
       disabled={connecting}
       title="Switch network"
-      className="flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+      className="flex min-h-9 min-w-0 shrink items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-success" : "bg-amber-500"}`} />
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${live ? "bg-success" : "bg-amber-500"}`} />
       <span className="max-w-24 truncate">{net.chainName.replace("Base ", "")}</span>
     </button>
   );
@@ -91,10 +91,10 @@ function WalletButton() {
       onClick={connect}
       disabled={connecting}
       size="sm"
-      className="rounded-full"
+      className="shrink-0 rounded-full"
     >
       {connecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-      <span>{connecting ? "Connecting" : "Connect"}</span>
+      <span className="hidden min-[360px]:inline">{connecting ? "Connecting" : "Connect"}</span>
     </Button>
   );
 }
@@ -196,7 +196,7 @@ function LegalFooter() {
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   return (
-    <Button size="icon" variant="ghost" onClick={toggleTheme} data-testid="button-theme-toggle" title="Toggle theme">
+    <Button size="icon" variant="ghost" onClick={toggleTheme} data-testid="button-theme-toggle" title="Toggle theme" className="shrink-0">
       {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
