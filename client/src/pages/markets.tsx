@@ -267,7 +267,7 @@ export default function Markets() {
                 type="range"
                 min={500}
                 max={9500}
-                step={50}
+                step={100}
                 value={oddsBps}
                 onChange={(e) => setOddsBps(Number(e.target.value))}
                 onMouseDown={() => setShowSliderTooltip(true)}

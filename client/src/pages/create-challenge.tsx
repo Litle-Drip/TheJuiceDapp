@@ -163,7 +163,7 @@ export default function CreateChallenge() {
       winnerPayoutUsd: winnerEth * ethUsd,
       profit: profitEth,
       profitUsd: profitEth * ethUsd,
-      multiplier: ethVal > 0 ? profitEth / ethVal : 0,
+      multiplier: ethVal > 0 ? winnerEth / ethVal : 0,
     };
   }, [stakeEthValue, feeBps, ethUsd]);
 
