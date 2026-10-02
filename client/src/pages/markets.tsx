@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
 import { computeTakerStake, ABI_V2, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { RANDOM_IDEAS } from '@/lib/contracts';
-import { TrendingUp, TrendingDown, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, Shuffle, MessageSquare, Search, Fuel } from 'lucide-react';
+import { TrendingUp, TrendingDown, Zap, Clock, Shield, ChevronDown, ChevronUp, Info, Loader2, Copy, ExternalLink, MessageSquare, Search, Fuel } from 'lucide-react';
 import { Link } from 'wouter';
 import { Field, Chip, SummaryRow } from '@/components/field';
 import { formatEth, formatUsd, formatDuration, formatDeadline } from '@/lib/format';
@@ -28,7 +27,7 @@ export default function Markets() {
   const [loading, setLoading] = useState(false);
   const [lastOfferId, setLastOfferId] = useState('');
   const [lastTxHash, setLastTxHash] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
   const [showSliderTooltip, setShowSliderTooltip] = useState(false);
@@ -45,10 +44,6 @@ export default function Markets() {
     if (sideParam) setSideYes(sideParam === 'yes');
     if (qParam) setQuestion(decodeURIComponent(qParam));
   }, []);
-
-  const shuffleQuestion = () => {
-    setQuestion(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
-  };
 
   const yesPercent = Math.round(oddsBps / 100);
   const noPercent = 100 - yesPercent;
@@ -190,12 +185,12 @@ export default function Markets() {
     <div className="mx-auto max-w-xl space-y-4" data-testid="markets-page">
       <div className="page-section">
         <h1 className="page-title" data-testid="text-page-title">Markets</h1>
-        <p className="page-subtitle">Set your own odds. Your opponent stakes more or less depending on how likely the outcome is.</p>
+        <p className="page-subtitle">Choose a side, set the odds, and enter your stake.</p>
       </div>
 
       <Card className="p-4 sm:p-6">
         <div className="stack-divider">
-          <Field label="What's the bet?" hint="Optional">
+          <Field label="What's the bet?" hint="Optional · used when sharing">
             <div className="relative">
               <MessageSquare className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -204,16 +199,8 @@ export default function Markets() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="e.g. Will ETH close above $4k Friday?"
-                className="field-input pl-9 pr-12"
+                className="field-input pl-9 pr-3"
               />
-              <button
-                data-testid="button-shuffle-question"
-                onClick={shuffleQuestion}
-                title="Random idea"
-                className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-primary hover:bg-primary/10"
-              >
-                <Shuffle className="h-4 w-4" />
-              </button>
             </div>
           </Field>
 
@@ -303,8 +290,8 @@ export default function Markets() {
               />
               <span className="hidden" data-testid="text-stake-usd">{preview ? formatUsd(preview.yourStakeUsd) : formatUsd(0)}</span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+            <div className="grid grid-cols-3 gap-2">
+              {['0.005', '0.01', '0.05'].map((amt) => (
                 <Chip
                   key={amt}
                   data-testid={`button-stake-${amt}`}
@@ -324,7 +311,7 @@ export default function Markets() {
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex w-full items-center justify-between gap-2 text-left"
             >
-              <span className="text-sm font-medium">Time limits</span>
+              <span className="text-sm font-medium">Timing</span>
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span>Accept {formatDuration(joinMins)} · Vote {formatDuration(resolveMins)}</span>
                 {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
