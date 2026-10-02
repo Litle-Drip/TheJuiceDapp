@@ -8,16 +8,16 @@
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
-  --background: 220 6% 97%;
-  --foreground: 220 10% 12%;
-  --border: 220 6% 88%;
+  --background: 216 30% 97%;
+  --foreground: 220 32% 11%;
+  --border: 216 20% 88%;
   --card: 0 0% 100%;
   --card-foreground: 220 10% 12%;
   --card-border: 220 6% 88%;
-  --sidebar: 220 6% 95%;
+  --sidebar: 218 30% 98%;
   --sidebar-foreground: 220 10% 12%;
   --sidebar-border: 220 6% 88%;
-  --sidebar-primary: 207 35% 48%;
+  --sidebar-primary: 199 89% 36%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 6% 90%;
   --sidebar-accent-foreground: 220 10% 12%;
@@ -25,7 +25,7 @@
   --popover: 0 0% 100%;
   --popover-foreground: 220 10% 12%;
   --popover-border: 220 6% 88%;
-  --primary: 207 35% 48%;
+  --primary: 199 89% 36%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 6% 92%;
   --secondary-foreground: 220 10% 25%;
@@ -36,7 +36,7 @@
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 98%;
   --input: 220 6% 88%;
-  --ring: 207 35% 48%;
+  --ring: 199 89% 36%;
   --success: 152 69% 31%;
   --success-foreground: 152 69% 41%;
   --danger: 347 77% 50%;
@@ -83,16 +83,16 @@
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
-  --background: 220 4% 13%;
-  --foreground: 220 5% 93%;
-  --border: 220 3% 22%;
-  --card: 220 3% 17%;
+  --background: 222 34% 8%;
+  --foreground: 214 24% 94%;
+  --border: 218 20% 18%;
+  --card: 221 28% 12%;
   --card-foreground: 220 5% 93%;
   --card-border: 220 3% 20%;
-  --sidebar: 220 4% 15%;
+  --sidebar: 222 31% 10%;
   --sidebar-foreground: 220 5% 93%;
   --sidebar-border: 220 3% 20%;
-  --sidebar-primary: 207 30% 62%;
+  --sidebar-primary: 195 88% 62%;
   --sidebar-primary-foreground: 210 100% 98%;
   --sidebar-accent: 220 3% 20%;
   --sidebar-accent-foreground: 220 5% 93%;
@@ -100,7 +100,7 @@
   --popover: 220 3% 18%;
   --popover-foreground: 220 5% 93%;
   --popover-border: 220 3% 22%;
-  --primary: 207 30% 62%;
+  --primary: 195 88% 62%;
   --primary-foreground: 210 100% 98%;
   --secondary: 220 3% 20%;
   --secondary-foreground: 220 4% 88%;
@@ -115,7 +115,7 @@
   --danger: 347 77% 65%;
   --danger-foreground: 347 77% 65%;
   --input: 220 3% 25%;
-  --ring: 207 30% 62%;
+  --ring: 195 88% 62%;
   --chart-1: 207 35% 60%;
   --chart-2: 340 60% 55%;
   --chart-3: 45 80% 55%;
@@ -153,6 +153,18 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 80% -10%, hsl(var(--primary) / 0.08), transparent 34rem),
+      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+    background-attachment: fixed;
+  }
+
+  button, a, input {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring/40 ring-offset-2 ring-offset-background;
   }
 
   ::-webkit-scrollbar {
@@ -244,10 +256,10 @@
 
 @layer utilities {
   .page-section {
-    @apply mb-5;
+    @apply mb-6;
   }
   .page-title {
-    @apply text-xl sm:text-2xl font-bold tracking-tight;
+    @apply text-2xl sm:text-3xl font-bold tracking-[-0.03em];
   }
   .page-subtitle {
     @apply text-sm text-muted-foreground mt-1 max-w-prose leading-relaxed;
@@ -256,9 +268,9 @@
     @apply flex items-center gap-2 mb-3 pb-2.5 border-b border-border/50;
   }
   .field-input {
-    @apply w-full min-h-12 rounded-md border border-input bg-background text-base sm:text-sm text-foreground
+    @apply w-full min-h-12 rounded-lg border border-input bg-background/80 text-base sm:text-sm text-foreground shadow-sm
       placeholder:text-muted-foreground transition-colors
-      focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/25;
+      hover:border-foreground/20 focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/20;
   }
   .stack-divider > * + * {
     @apply mt-5 pt-5 border-t border-border/50;
