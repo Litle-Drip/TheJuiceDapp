@@ -43,10 +43,10 @@ export function Chip({
       data-testid={props['data-testid']}
       aria-pressed={active}
       className={cn(
-        'min-h-11 rounded-md border px-3 text-sm font-medium transition-colors',
+        'min-h-11 rounded-lg border px-3 text-sm font-medium shadow-sm transition-all',
         active
-          ? 'border-primary/60 bg-primary/10 text-primary'
-          : 'border-border bg-card text-muted-foreground hover:text-foreground',
+          ? 'border-primary/50 bg-primary/10 text-primary ring-1 ring-primary/10'
+          : 'border-border bg-card/70 text-muted-foreground hover:border-foreground/20 hover:text-foreground',
         className,
       )}
     >
