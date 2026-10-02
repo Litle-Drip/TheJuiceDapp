@@ -20,7 +20,7 @@ export function SideNav() {
   const { notificationCount, clearNotifications } = useNotifications();
 
   return (
-    <nav className="p-3" data-testid="side-nav">
+    <nav className="space-y-1 p-3" data-testid="side-nav" aria-label="Primary navigation">
       {NAV_ITEMS.map((item) => {
         const active = location === item.url;
         return (
@@ -30,11 +30,12 @@ export function SideNav() {
             data-testid={testId(item.title)}
             onClick={() => { if (item.url === '/my-bets') clearNotifications(); }}
             className={cn(
-              'flex items-start gap-3 rounded-md px-3 py-2.5 transition-colors',
-              active ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/60',
+              'group relative flex items-start gap-3 rounded-lg px-3 py-3 transition-all',
+              active ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/10' : 'text-foreground hover:bg-muted/70',
             )}
           >
-            <item.icon className={cn('mt-0.5 h-4 w-4 shrink-0', active ? 'text-primary' : 'text-muted-foreground')} />
+            <span className={cn('absolute inset-y-3 left-0 w-0.5 rounded-full bg-primary transition-opacity', active ? 'opacity-100' : 'opacity-0')} />
+            <item.icon className={cn('mt-0.5 h-4 w-4 shrink-0 transition-colors', active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium leading-tight">{item.title}</span>
               <span className="mt-0.5 block text-xs leading-tight text-muted-foreground">{item.desc}</span>
@@ -60,7 +61,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_hsl(var(--background)/0.8)] backdrop-blur-xl md:hidden"
       data-testid="bottom-nav"
     >
       <div className="grid grid-cols-5">

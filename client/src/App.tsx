@@ -59,7 +59,7 @@ function NetworkPill() {
       onClick={switchNetwork}
       disabled={connecting}
       title="Switch network"
-      className="flex min-h-9 min-w-0 shrink items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+      className="flex min-h-9 min-w-0 shrink items-center gap-1.5 rounded-full border border-border/80 bg-card/70 px-2.5 text-xs font-medium text-muted-foreground shadow-sm transition-all hover:border-primary/30 hover:text-foreground"
     >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${live ? "bg-success" : "bg-amber-500"}`} />
       <span className="max-w-24 truncate">{net.chainName.replace("Base ", "")}</span>
@@ -173,7 +173,7 @@ const legalLinks = [
 
 function LegalFooter() {
   return (
-    <footer className="mx-auto mt-12 max-w-xl border-t border-border/60 pt-6" data-testid="legal-footer">
+    <footer className="mx-auto mt-14 max-w-xl border-t border-border/60 pt-6" data-testid="legal-footer">
       <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
         {legalLinks.map((l) => (
           <Link
@@ -231,10 +231,10 @@ function App() {
             <NotificationProvider>
               <div className="flex min-h-screen w-full">
                 <aside
-                  className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex"
+                  className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar/90 backdrop-blur-xl md:flex"
                   data-testid="app-sidebar"
                 >
-                  <div className="border-b border-sidebar-border px-4 py-4">
+                  <div className="border-b border-sidebar-border/70 px-5 py-5">
                     <Brand />
                   </div>
                   <div className="flex-1 overflow-y-auto">
@@ -246,7 +246,7 @@ function App() {
                 </aside>
 
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <header className="sticky top-0 z-30 flex h-14 items-center gap-1.5 border-b border-border bg-background/85 px-3 backdrop-blur sm:gap-2 sm:px-4">
+                  <header className="sticky top-0 z-30 flex h-16 items-center gap-1.5 border-b border-border/70 bg-background/75 px-3 shadow-[0_1px_0_hsl(var(--border)/0.25)] backdrop-blur-xl sm:gap-2 sm:px-5">
                     <Brand className="md:hidden" tagline={false} />
                     <div className="flex-1" />
                     <EthPrice />
@@ -255,7 +255,7 @@ function App() {
                     <ThemeToggle />
                   </header>
                   <MainnetBanner />
-                  <main className="flex-1 px-4 pb-24 pt-5 sm:px-6 md:pb-10 md:pt-8">
+                  <main className="flex-1 px-4 pb-24 pt-7 sm:px-6 md:pb-10 md:pt-10">
                     <Router />
                     <LegalFooter />
                   </main>

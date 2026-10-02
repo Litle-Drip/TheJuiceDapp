@@ -4,9 +4,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/lib/wallet';
-import { RANDOM_IDEAS, ABI_V1, NETWORKS } from '@/lib/contracts';
+import { ABI_V1, NETWORKS } from '@/lib/contracts';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Shuffle, Clock, Shield, Zap, ExternalLink, Search, Fuel, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
+import { Loader2, Clock, Shield, Zap, ExternalLink, Search, Fuel, ChevronDown, ChevronUp, MessageSquare, Copy } from 'lucide-react';
 import { Link } from 'wouter';
 import { Field, Chip, SummaryRow } from '@/components/field';
 import { formatEth, formatUsd, formatDuration, formatDeadline } from '@/lib/format';
@@ -27,7 +27,7 @@ export default function CreateChallenge() {
   const [lastTxHash, setLastTxHash] = useState('');
   const [gasEstimate, setGasEstimate] = useState<{ gasEth: number; gasUsd: number } | null>(null);
   const [estimatingGas, setEstimatingGas] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
@@ -41,10 +41,6 @@ export default function CreateChallenge() {
   const stakeEthValue = useMemo(() => {
     return parseFloat(stakeEth) || 0;
   }, [stakeEth]);
-
-  const shuffleIdea = () => {
-    setIdea(RANDOM_IDEAS[Math.floor(Math.random() * RANDOM_IDEAS.length)]);
-  };
 
   useEffect(() => {
     if (!connected || !signer || stakeEthValue <= 0) { setGasEstimate(null); return; }
@@ -171,12 +167,12 @@ export default function CreateChallenge() {
     <div className="mx-auto max-w-xl space-y-4" data-testid="create-challenge-page">
       <div className="page-section">
         <h1 className="page-title" data-testid="text-page-title">Challenge</h1>
-        <p className="page-subtitle">Both players stake the same amount. Winner takes the pot, minus a small protocol fee.</p>
+        <p className="page-subtitle">Both players stake the same amount. The winner receives the pot, minus the protocol fee.</p>
       </div>
 
       <Card className="p-4 sm:p-6">
         <div className="stack-divider">
-          <Field label="What's the bet?" hint="Optional">
+          <Field label="What's the bet?" hint="Optional · used when sharing">
             <div className="relative">
               <MessageSquare className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -185,16 +181,8 @@ export default function CreateChallenge() {
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 placeholder="e.g. I can beat you at chess"
-                className="field-input pl-9 pr-12"
+                className="field-input pl-9 pr-3"
               />
-              <button
-                data-testid="button-shuffle-idea"
-                onClick={shuffleIdea}
-                title="Random idea"
-                className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-primary hover:bg-primary/10"
-              >
-                <Shuffle className="h-4 w-4" />
-              </button>
             </div>
           </Field>
 
@@ -214,8 +202,8 @@ export default function CreateChallenge() {
               />
               <span className="hidden" data-testid="text-stake-usd">{preview ? formatUsd(preview.yourStakeUsd) : formatUsd(0)}</span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
-              {['0.001', '0.005', '0.01', '0.05'].map((amt) => (
+            <div className="grid grid-cols-3 gap-2">
+              {['0.005', '0.01', '0.05'].map((amt) => (
                 <Chip
                   key={amt}
                   data-testid={`button-stake-${amt}`}
@@ -235,7 +223,7 @@ export default function CreateChallenge() {
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="flex w-full items-center justify-between gap-2 text-left"
             >
-              <span className="text-sm font-medium">Time limits</span>
+              <span className="text-sm font-medium">Timing</span>
               <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span>Accept {formatDuration(joinMins)} · Vote {formatDuration(resolveMins)}</span>
                 {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
